@@ -1,0 +1,642 @@
+[
+  {
+    "id": "kit-guerreiro",
+    "class": "Guerreiro",
+    "starterSkillIds": [],
+    "starterSlots": [
+      {
+        "id": "slot-guerreiro-1",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-guerreiro-2",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-guerreiro-3",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-guerreiro-4",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-guerreiro-5",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-guerreiro-6",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-guerreiro-7",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-guerreiro-8",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      }
+    ],
+    "starterEquipment": {
+      "mainHand": null,
+      "offHand": null,
+      "armor": null,
+      "amulet": null,
+      "ring": null,
+      "utility": null
+    },
+    "starterItems": [],
+    "starterAttributes": {
+      "strength": 10,
+      "agility": 8,
+      "intelligence": 6,
+      "resistance": 10,
+      "flow": 6,
+      "wisdom": 6,
+      "presence": 6,
+      "defense": 8
+    }
+  },
+  {
+    "id": "kit-brutamonte",
+    "class": "Brutamonte",
+    "starterSkillIds": [],
+    "starterSlots": [
+      {
+        "id": "slot-brutamonte-1",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-brutamonte-2",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-brutamonte-3",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-brutamonte-4",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-brutamonte-5",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-brutamonte-6",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-brutamonte-7",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-brutamonte-8",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      }
+    ],
+    "starterEquipment": {
+      "mainHand": null,
+      "offHand": null,
+      "armor": null,
+      "amulet": null,
+      "ring": null,
+      "utility": null
+    },
+    "starterItems": [],
+    "starterAttributes": {
+      "strength": 12,
+      "agility": 6,
+      "intelligence": 4,
+      "resistance": 12,
+      "flow": 4,
+      "wisdom": 4,
+      "presence": 6,
+      "defense": 10
+    }
+  },
+  {
+    "id": "kit-assassino",
+    "class": "Assassino",
+    "starterSkillIds": [],
+    "starterSlots": [
+      {
+        "id": "slot-assassino-1",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-assassino-2",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-assassino-3",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-assassino-4",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-assassino-5",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-assassino-6",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-assassino-7",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-assassino-8",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      }
+    ],
+    "starterEquipment": {
+      "mainHand": null,
+      "offHand": null,
+      "armor": null,
+      "amulet": null,
+      "ring": null,
+      "utility": null
+    },
+    "starterItems": [],
+    "starterAttributes": {
+      "strength": 8,
+      "agility": 12,
+      "intelligence": 8,
+      "resistance": 6,
+      "flow": 8,
+      "wisdom": 6,
+      "presence": 8,
+      "defense": 6
+    }
+  },
+  {
+    "id": "kit-atirador",
+    "class": "Atirador",
+    "starterSkillIds": [],
+    "starterSlots": [
+      {
+        "id": "slot-atirador-1",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-atirador-2",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-atirador-3",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-atirador-4",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-atirador-5",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-atirador-6",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-atirador-7",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-atirador-8",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      }
+    ],
+    "starterEquipment": {
+      "mainHand": null,
+      "offHand": null,
+      "armor": null,
+      "amulet": null,
+      "ring": null,
+      "utility": null
+    },
+    "starterItems": [],
+    "starterAttributes": {
+      "strength": 6,
+      "agility": 12,
+      "intelligence": 8,
+      "resistance": 6,
+      "flow": 8,
+      "wisdom": 8,
+      "presence": 6,
+      "defense": 6
+    }
+  },
+  {
+    "id": "kit-forjado",
+    "class": "Forjado",
+    "starterSkillIds": [],
+    "starterSlots": [
+      {
+        "id": "slot-forjado-1",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-forjado-2",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-forjado-3",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-forjado-4",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-forjado-5",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-forjado-6",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-forjado-7",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-forjado-8",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      }
+    ],
+    "starterEquipment": {
+      "mainHand": null,
+      "offHand": null,
+      "armor": null,
+      "amulet": null,
+      "ring": null,
+      "utility": null
+    },
+    "starterItems": [],
+    "starterAttributes": {
+      "strength": 10,
+      "agility": 8,
+      "intelligence": 8,
+      "resistance": 10,
+      "flow": 6,
+      "wisdom": 6,
+      "presence": 6,
+      "defense": 6
+    }
+  },
+  {
+    "id": "kit-intenso",
+    "class": "Intenso",
+    "starterSkillIds": [],
+    "starterSlots": [
+      {
+        "id": "slot-intenso-1",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-intenso-2",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-intenso-3",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-intenso-4",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-intenso-5",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-intenso-6",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-intenso-7",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-intenso-8",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      }
+    ],
+    "starterEquipment": {
+      "mainHand": null,
+      "offHand": null,
+      "armor": null,
+      "amulet": null,
+      "ring": null,
+      "utility": null
+    },
+    "starterItems": [],
+    "starterAttributes": {
+      "strength": 8,
+      "agility": 8,
+      "intelligence": 12,
+      "resistance": 6,
+      "flow": 12,
+      "wisdom": 6,
+      "presence": 6,
+      "defense": 6
+    }
+  },
+  {
+    "id": "kit-artifice",
+    "class": "Artífice",
+    "starterSkillIds": [],
+    "starterSlots": [
+      {
+        "id": "slot-artifice-1",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-artifice-2",
+        "type": "class",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-artifice-3",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-artifice-4",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-artifice-5",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-artifice-6",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-artifice-7",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "slot-artifice-8",
+        "type": "free",
+        "skillId": null,
+        "cooldownRemaining": 0
+      }
+    ],
+    "starterEquipment": {
+      "mainHand": null,
+      "offHand": null,
+      "armor": null,
+      "amulet": null,
+      "ring": null,
+      "utility": null
+    },
+    "starterItems": [],
+    "starterAttributes": {
+      "strength": 6,
+      "agility": 10,
+      "intelligence": 12,
+      "resistance": 6,
+      "flow": 10,
+      "wisdom": 10,
+      "presence": 6,
+      "defense": 6
+    }
+  },
+  {
+    "id": "kit_arcanista",
+    "class": "Arcanista",
+    "subClass": null,
+    "starter_skill_ids": [
+      "arcanista_geniosidade",
+      "arcanista_essencia_desperta"
+    ],
+    "starter_slots": [
+      {
+        "id": "c1",
+        "type": "class",
+        "skill_id": "arcanista_geniosidade",
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "c2",
+        "type": "class",
+        "skill_id": "arcanista_essencia_desperta",
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "l1",
+        "type": "free",
+        "skill_id": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "l2",
+        "type": "free",
+        "skill_id": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "l3",
+        "type": "free",
+        "skill_id": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "l4",
+        "type": "free",
+        "skill_id": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "l5",
+        "type": "free",
+        "skill_id": null,
+        "cooldownRemaining": 0
+      },
+      {
+        "id": "l6",
+        "type": "free",
+        "skill_id": null,
+        "cooldownRemaining": 0
+      }
+    ],
+    "starter_equipment": {
+      "mainHand": {
+        "id": "cajado_simples",
+        "name": "Cajado Simples",
+        "weaponType": "cajado",
+        "rarity": "comum",
+        "damageBase": 0,
+        "damageDice": {
+          "quantity": 1,
+          "die": "d4"
+        },
+        "damageAttribute": "int_",
+        "attributeBonus": null,
+        "properties": "Duas mãos",
+        "price": 10
+      },
+      "offHand": null,
+      "armor": {
+        "id": "vestes_arcanistas",
+        "name": "Vestes de Arcanista",
+        "rarity": "comum",
+        "damageReduction": 0,
+        "attributeBonus": {
+          "intelligence": 1
+        }
+      },
+      "amulet": null,
+      "ring": null,
+      "utility": null
+    },
+    "starter_items": [
+      {
+        "id": "item_pocao_flow",
+        "name": "Poção de Fluxo",
+        "desc": "Restaura 10 ES",
+        "qty": 2,
+        "type": "consumable"
+      },
+      {
+        "id": "item_grimorio",
+        "name": "Grimório em Branco",
+        "desc": "Para anotar magias e estudos",
+        "qty": 1,
+        "type": "equipment"
+      },
+      {
+        "id": "item_ouro",
+        "name": "Ouro",
+        "desc": "Moeda corrente do reino",
+        "qty": 20,
+        "type": "currency"
+      }
+    ],
+    "starter_attributes": {
+      "strength": 9,
+      "agility": 10,
+      "intelligence": 14,
+      "resistance": 10,
+      "flow": 14,
+      "wisdom": 12,
+      "presence": 9,
+      "defense": 9
+    }
+  }
+]

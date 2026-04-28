@@ -1,0 +1,124 @@
+package com.rpg.essentia.model
+
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
+import java.util.UUID
+
+/* ── Shared ──────────────────────────────────────────────────── */
+
+data class EnemyAttack(val name: String = "", val damage: String = "")
+data class EnemyDrop(val name: String = "", val icon: String = "")
+data class EnemyAttributes(val strength: Int = 10, val agility: Int = 10, val intelligence: Int = 10, val defense: Int = 5)
+
+/* ── Enemy catalog template ──────────────────────────────────── */
+
+@Document(collection = "enemy_templates")
+data class EnemyTemplate(
+    @Id val id: String = UUID.randomUUID().toString(),
+    val name: String = "",
+    val type: String = "",
+    val icon: String = "👹",
+    val hpMax: Int = 20,
+    val attributes: EnemyAttributes = EnemyAttributes(),
+    val attacks: List<EnemyAttack> = emptyList(),
+    val drops: List<EnemyDrop> = emptyList(),
+    val xp: Int = 0,
+    val notes: String = ""
+)
+
+/* ── Enemy combat instance ───────────────────────────────────── */
+
+@Document(collection = "combat_enemies")
+data class EnemyInstance(
+    @Id val instanceId: String = UUID.randomUUID().toString(),
+    val templateId: String? = null,
+    val name: String = "",
+    val type: String = "",
+    val icon: String = "👹",
+    val hpCurrent: Int = 20,
+    val hpMax: Int = 20,
+    val attributes: EnemyAttributes = EnemyAttributes(),
+    val attacks: List<EnemyAttack> = emptyList(),
+    val drops: List<EnemyDrop> = emptyList(),
+    val xp: Int = 0,
+    val notes: String = ""
+)
+
+/* ── Boss models ─────────────────────────────────────────────── */
+
+data class BossAbility(
+    val name: String = "",
+    val desc: String = "",
+    val cooldownTurns: Int = 0
+)
+
+data class BossImmunity(val type: String = "", val icon: String = "")
+data class BossResistance(val type: String = "", val reduction: Int = 50)
+data class BossReward(
+    val type: String = "essencia",
+    val referenceId: String = "",
+    val name: String = "",
+    val desc: String = ""
+)
+
+data class BossPhase(
+    val phaseNumber: Int = 1,
+    val name: String = "",
+    val hpMax: Int = 100,
+    val attributes: Attributes = Attributes(),
+    val attacks: List<EnemyAttack> = emptyList(),
+    val specialAbility: BossAbility? = null
+)
+
+@Document(collection = "boss_templates")
+data class BossTemplate(
+    @Id val id: String = UUID.randomUUID().toString(),
+    val name: String = "",
+    val type: String = "Boss",
+    val icon: String = "👑",
+    val phases: List<BossPhase> = emptyList(),
+    val immunities: List<BossImmunity> = emptyList(),
+    val resistances: List<BossResistance> = emptyList(),
+    val drops: List<EnemyDrop> = emptyList(),
+    val xp: Int = 500,
+    val specialReward: BossReward? = null,
+    val notes: String = ""
+)
+
+@Document(collection = "combat_bosses")
+data class BossInstance(
+    @Id val instanceId: String = UUID.randomUUID().toString(),
+    val templateId: String? = null,
+    val name: String = "",
+    val icon: String = "👑",
+    val phases: List<BossPhase> = emptyList(),
+    val currentPhase: Int = 0,
+    val hpCurrent: Int = 100,
+    val immunities: List<BossImmunity> = emptyList(),
+    val resistances: List<BossResistance> = emptyList(),
+    val drops: List<EnemyDrop> = emptyList(),
+    val xp: Int = 500,
+    val specialReward: BossReward? = null,
+    val notes: String = ""
+)
+
+/* ── DTOs ────────────────────────────────────────────────────── */
+
+data class EnemyHpRequest(val delta: Int = 0)
+data class EnemyNotesRequest(val notes: String = "")
+data class AddEnemyRequest(val templateId: String? = null, val enemy: EnemyInstance)
+data class DropAssignment(val itemName: String = "", val icon: String = "", val playerId: String = "")
+data class EnemyDefeatRequest(
+    val drops: List<DropAssignment> = emptyList(),
+    val distributeXp: Boolean = true
+)
+
+data class BossHpRequest(val delta: Int = 0)
+data class BossNotesRequest(val notes: String = "")
+data class AddBossRequest(val templateId: String? = null, val boss: BossInstance)
+data class SpecialRewardAssignment(val referenceId: String = "", val playerId: String = "")
+data class BossDefeatRequest(
+    val drops: List<DropAssignment> = emptyList(),
+    val specialReward: SpecialRewardAssignment? = null,
+    val distributeXp: Boolean = true
+)

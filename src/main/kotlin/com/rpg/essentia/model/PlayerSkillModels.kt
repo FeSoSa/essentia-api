@@ -1,0 +1,37 @@
+package com.rpg.essentia.model
+
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
+
+data class MaestriaUpgrade(
+    val level: Int = 1,
+    val path: String = "",             // "aumento" | "otimizacao"
+    val effect: Map<String, Any> = emptyMap()  // audit trail only
+)
+
+data class MaestriaComputed(
+    val damageFixedBonus: Int = 0,
+    val esBonus: Int = 0,
+    val costReduction: Int = 0,
+    val cooldownReduction: Int = 0,
+    val canUseTwice: Boolean = false
+)
+
+data class Maestria(
+    val level: Int = 1,                // 1 to 5
+    val totalUses: Int = 0,
+    val nextLevelUses: Int = 3,        // thresholds: 3 | 8 | 16 | 28
+    val upgrades: List<MaestriaUpgrade> = emptyList(),
+    val computed: MaestriaComputed = MaestriaComputed()
+)
+
+@Document(collection = "player_skills")
+data class PlayerSkill(
+    @Id val id: String,
+    val playerId: String,
+    val skillId: String,
+    val used: Boolean = false,
+    val equipped: Boolean = false,
+    val slotId: String? = null,
+    val maestria: Maestria = Maestria()
+)
