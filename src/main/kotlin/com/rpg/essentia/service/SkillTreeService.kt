@@ -49,6 +49,61 @@ class SkillTreeService(
         }
     }
 
+    fun getMasterSkillTree(playerId: String): List<MasterSkillTreeEntry> {
+        val player = loadPlayer(playerId)
+        val essencias = essenciaRepository.findAll()
+        val effectiveAttrs = attributeService.computeEffectiveAttributes(player, essencias)
+
+        val equippedWeaponTypes = weaponTypesEquipped(player)
+        val obtainedEssenciaIds = player.essenciasObtidas.map { it.essenciaId }.toSet()
+
+        val relevantSkills = skillRepository.findAll().filter { skill ->
+            when (skill.type) {
+                "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
+                "weapon"   -> skill.weaponType in equippedWeaponTypes
+                "essencia" -> skill.essenciaId in obtainedEssenciaIds
+                "mestre"   -> true   // habilidades de mestre sempre visíveis no painel do mestre
+                else       -> false
+            }
+        }
+
+        val playerSkills = playerSkillRepository.findByPlayerId(playerId)
+        val playerSkillMap = playerSkills.associateBy { it.skillId }
+        val unlockedSkillIds = playerSkills.map { it.skillId }.toSet()
+
+        return relevantSkills.map { skill ->
+            val entry = computeEntry(skill, player, unlockedSkillIds, effectiveAttrs)
+            MasterSkillTreeEntry(
+                skill      = skill,
+                status     = entry.status,
+                playerSkill = playerSkillMap[skill.id]
+            )
+        }
+    }
+
+    fun grantMasterSkill(playerId: String, skillId: String) {
+        val player = loadPlayer(playerId)
+        val skill  = skillRepository.findById(skillId).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found")
+        }
+        // Remove PlayerSkill órfão se existir
+        playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId)?.let {
+            playerSkillRepository.delete(it)
+        }
+        val playerSkill = PlayerSkill(
+            id        = UUID.randomUUID().toString(),
+            playerId  = playerId,
+            skillId   = skillId,
+            used      = false,
+            equipped  = false,
+            slotId    = null,
+            maestria  = Maestria(level = 1, totalUses = 0, nextLevelUses = 3, upgrades = emptyList(), computed = MaestriaComputed())
+        )
+        playerSkillRepository.save(playerSkill)
+        broadcaster.broadcastPlayer(player)
+        gameStateService.addLogEntry(playerId, "${player.char.name} recebeu ${skill.name}", "skill")
+    }
+
     private fun toFlat(skill: Skill, entry: SkillTreeEntry, ps: PlayerSkill?, player: Player): PlayerSkillTreeEntry {
         val custo = skill.costs.joinToString(", ") { c ->
             when {
@@ -76,7 +131,7 @@ class SkillTreeService(
         }
 
         return PlayerSkillTreeEntry(
-            skillId          = skill.id,
+            skillId          = skill.id ?: "",
             nome             = skill.name,
             custo            = custo,
             descricao        = skill.desc,
@@ -85,7 +140,20 @@ class SkillTreeService(
             equipped         = ps?.equipped ?: false,
             slotId           = ps?.slotId,
             requirementsText = reqText,
-            maestria         = ps?.maestria?.let { MaestriaSimple(it.level, it.totalUses, it.nextLevelUses) }
+            maestria         = ps?.let { playerSkill ->
+                val c = playerSkill.maestria.computed
+                MaestriaSimple(
+                    playerSkillId = playerSkill.id,
+                    level         = playerSkill.maestria.level,
+                    totalUses     = playerSkill.maestria.totalUses,
+                    nextLevelUses = playerSkill.maestria.nextLevelUses,
+                    choices       = playerSkill.maestria.upgrades.map { it.path },
+                    bonusDano     = c.bonusDano,
+                    custoAumento  = c.custoAumento,
+                    reducaoCusto  = c.reducaoCusto,
+                )
+            },
+            isPassive = skill.passive || !skill.passiveAttributes.isNullOrEmpty()
         )
     }
 
@@ -121,7 +189,7 @@ class SkillTreeService(
         val equippedWeaponTypes = weaponTypesEquipped(player)
         val obtainedEssenciaIds = player.essenciasObtidas.map { it.essenciaId }.toSet()
         val accessible = when (skill.type) {
-            "class"    -> skill.skillClass == player.char.skillClass
+            "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
             "weapon"   -> skill.weaponType in equippedWeaponTypes
             "essencia" -> skill.essenciaId in obtainedEssenciaIds
             else       -> false
@@ -129,9 +197,10 @@ class SkillTreeService(
         if (!accessible)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Skill is not accessible to this player")
 
-        // Validate not already unlocked
-        if (playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId) != null)
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Skill already unlocked")
+        // Remove qualquer PlayerSkill órfão antes de criar novo (garante estado limpo)
+        playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId)?.let {
+            playerSkillRepository.delete(it)
+        }
 
         // Validate requirements
         val essencias = essenciaRepository.findAll()

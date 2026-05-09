@@ -1,6 +1,8 @@
 package com.rpg.essentia.service
 
 import com.rpg.essentia.model.*
+import com.rpg.essentia.repository.BossInstanceRepository
+import com.rpg.essentia.repository.EnemyInstanceRepository
 import com.rpg.essentia.repository.EssenciaRepository
 import com.rpg.essentia.repository.PlayerRepository
 import com.rpg.essentia.websocket.WebSocketBroadcaster
@@ -20,8 +22,13 @@ class PlayerService(
     private val attributeService: AttributeService,
     private val essenciaRepository: EssenciaRepository,
     private val gameStateService: GameStateService,
-    private val broadcaster: WebSocketBroadcaster
+    private val broadcaster: WebSocketBroadcaster,
+    private val enemyRepository: EnemyInstanceRepository,
+    private val bossRepository: BossInstanceRepository,
 ) {
+    private fun combatActive(): Boolean =
+        enemyRepository.count() > 0 || bossRepository.count() > 0
+
     fun load(id: String): Player =
         playerRepository.findById(id).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Player not found")
@@ -104,6 +111,8 @@ class PlayerService(
     }
 
     fun updateSlot(id: String, slotId: String, skillId: String?): Player {
+        if (combatActive())
+            throw ResponseStatusException(HttpStatus.CONFLICT, "Não é possível alterar habilidades durante o combate.")
         val player = load(id)
         val newSlots = player.slots.map { slot ->
             if (slot.id == slotId) slot.copy(skillId = skillId) else slot

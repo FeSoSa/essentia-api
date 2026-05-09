@@ -3,6 +3,7 @@ package com.rpg.essentia.service
 import com.rpg.essentia.model.Attributes
 import com.rpg.essentia.model.Essencia
 import com.rpg.essentia.model.Player
+import com.rpg.essentia.repository.SkillRepository
 import org.springframework.stereotype.Service
 
 const val HP_BASE = 20
@@ -11,12 +12,12 @@ const val FLOW_BASE = 20
 const val FLOW_PER_FLOW_ATTR = 5
 
 @Service
-class AttributeService {
+class AttributeService(private val skillRepository: SkillRepository) {
 
     fun computeEffectiveAttributes(player: Player, essencias: List<Essencia>): Attributes {
         val base = player.attributes.toMap().toMutableMap()
 
-        // Weapons (mainHand, offHand) do NOT contribute to attribute calculation
+        // Equipment bonuses
         val eq = player.equipment
         listOfNotNull(
             eq.armor?.attributeBonus,
@@ -25,7 +26,7 @@ class AttributeService {
             eq.utility?.attributeBonus
         ).forEach { bonus -> bonus.forEach { (k, v) -> base.merge(k, v, Int::plus) } }
 
-        // Add active essencia bonuses
+        // Essencia bonuses
         val essenciaMap = essencias.associateBy { it.id }
         player.essenciasObtidas
             .filter { it.attributeBonusActive }
@@ -33,6 +34,22 @@ class AttributeService {
                 essenciaMap[obtained.essenciaId]?.attributeBonus
                     ?.forEach { (k, v) -> base.merge(k, v, Int::plus) }
             }
+
+        // Passive skill bonuses (skills equipadas com passiveAttributes)
+        val equippedIds = player.slots.mapNotNull { it.skillId }
+        if (equippedIds.isNotEmpty()) {
+            skillRepository.findAllById(equippedIds)
+                .filter { it.passiveAttributes != null }
+                .forEach { skill ->
+                    skill.passiveAttributes!!.forEach { (k, v) -> base.merge(k, v, Int::plus) }
+                }
+        }
+
+        // Status effect attribute bonuses
+        player.statusEffects
+            .filter { it.durationTurns != 0 }
+            .mapNotNull { it.attributeBonus }
+            .forEach { bonus -> bonus.forEach { (k, v) -> base.merge(k, v, Int::plus) } }
 
         return base.toAttributes()
     }

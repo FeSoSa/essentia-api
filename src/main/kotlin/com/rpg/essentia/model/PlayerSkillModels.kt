@@ -10,11 +10,9 @@ data class MaestriaUpgrade(
 )
 
 data class MaestriaComputed(
-    val damageFixedBonus: Int = 0,
-    val esBonus: Int = 0,
-    val costReduction: Int = 0,
-    val cooldownReduction: Int = 0,
-    val canUseTwice: Boolean = false
+    val bonusDano: Double = 0.0,      // ex: 0.32 = +32% no dano
+    val custoAumento: Double = 0.0,   // ex: 0.24 = +24% no custo (de escolhas aumento)
+    val reducaoCusto: Double = 0.0,   // ex: 0.16 = -16% no custo (de escolhas otimizacao)
 )
 
 data class Maestria(

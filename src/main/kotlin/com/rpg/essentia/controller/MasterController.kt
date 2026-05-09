@@ -1,12 +1,14 @@
 package com.rpg.essentia.controller
 
 import com.rpg.essentia.model.*
+import com.rpg.essentia.repository.PlayerSkillRepository
 import com.rpg.essentia.service.ClassKitService
 import com.rpg.essentia.service.EssenciaService
 import com.rpg.essentia.service.GameStateService
 import com.rpg.essentia.service.MasterService
 import com.rpg.essentia.service.PlayerCreationService
 import com.rpg.essentia.service.PlayerService
+import com.rpg.essentia.service.SkillTreeService
 import com.rpg.essentia.service.TurnService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,10 +23,33 @@ class MasterController(
     private val playerCreationService: PlayerCreationService,
     private val playerService: PlayerService,
     private val essenciaService: EssenciaService,
-    private val gameStateService: GameStateService
+    private val gameStateService: GameStateService,
+    private val skillTreeService: SkillTreeService,
+    private val playerSkillRepository: PlayerSkillRepository
 ) {
     @GetMapping("/players")
     fun getPlayers(): List<Player> = masterService.getPlayers()
+
+    @GetMapping("/players/{id}/skill-tree")
+    fun getMasterSkillTree(@PathVariable id: String): List<MasterSkillTreeEntry> =
+        skillTreeService.getMasterSkillTree(id)
+
+    @PostMapping("/players/{playerId}/grant-skill")
+    fun grantSkill(@PathVariable playerId: String, @RequestBody req: Map<String, String>): ResponseEntity<Void> {
+        val skillId = req["skillId"] ?: return ResponseEntity.badRequest().build()
+        skillTreeService.grantMasterSkill(playerId, skillId)
+        return ResponseEntity.ok().build()
+    }
+
+    @DeleteMapping("/players/{playerId}/skill/{skillId}")
+    fun resetSkill(@PathVariable playerId: String, @PathVariable skillId: String): ResponseEntity<Void> {
+        val ps = playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId)
+            ?: return ResponseEntity.noContent().build()
+        playerSkillRepository.delete(ps)
+        // Limpa o slot que tinha essa skill e notifica o jogador
+        masterService.clearSkillFromSlots(playerId, skillId)
+        return ResponseEntity.noContent().build()
+    }
 
     @GetMapping("/kits")
     fun listKits(): List<ClassKit> = classKitService.listAll()

@@ -33,20 +33,25 @@ class MaestriaService(
         if (playerSkill.playerId != playerId)
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "PlayerSkill does not belong to this player")
 
-        val currentLevel = playerSkill.maestria.level
-        if (currentLevel >= 5)
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Maestria is already at max level")
+        val currentLevel   = playerSkill.maestria.level
+        val choicesMade    = playerSkill.maestria.upgrades.size
+        val pendingChoices = (currentLevel - 1) - choicesMade  // level 1 = 0 choices needed
 
-        val upgradeLevel = currentLevel  // upgrading FROM current level TO next
-        val effectMap = buildEffectMap(upgradeLevel, path)
-        val upgrade = MaestriaUpgrade(level = upgradeLevel, path = path, effect = effectMap)
-        val newUpgrades = playerSkill.maestria.upgrades + upgrade
-        val newComputed = recomputeComputed(newUpgrades)
-        val newLevel = currentLevel + 1
+        if (pendingChoices <= 0)
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "No pending level-up: level=$currentLevel choices=$choicesMade"
+            )
 
+        // Escolha é para o próximo nível ainda sem caminho (choices.size + 1)
+        val upgradeLevel = choicesMade + 1
+        val effectMap    = buildEffectMap(upgradeLevel, path)
+        val upgrade      = MaestriaUpgrade(level = upgradeLevel, path = path, effect = effectMap)
+        val newUpgrades  = playerSkill.maestria.upgrades + upgrade
+        val newComputed  = recomputeComputed(newUpgrades)
+
+        // Nível já foi incrementado pelo master — não altera level nem nextLevelUses
         val updatedMaestria = playerSkill.maestria.copy(
-            level = newLevel,
-            nextLevelUses = nextLevelUses(newLevel),
             upgrades = newUpgrades,
             computed = newComputed
         )
@@ -58,58 +63,33 @@ class MaestriaService(
         return saved
     }
 
+    // Incremento de bônus de dano por nível de aumento (índice = nível 1-5)
+    private val DANO_INCREMENT = listOf(0.10, 0.10, 0.12, 0.13, 0.15)
+
     fun recomputeComputed(upgrades: List<MaestriaUpgrade>): MaestriaComputed {
-        var damageFixedBonus = 0
-        var esBonus = 0
-        var costReduction = 0
-        var cooldownReduction = 0
-        var canUseTwice = false
+        var bonusDano    = 0.0
+        var custoAumento = 0.0
+        var reducaoCusto = 0.0
 
         for (upgrade in upgrades) {
             when (upgrade.path) {
-                "aumento" -> when (upgrade.level) {
-                    1 -> { damageFixedBonus += 1; esBonus += 2 }
-                    2 -> { damageFixedBonus += 2; esBonus += 3 }
-                    3 -> { esBonus += 3 }           // +1d4 damage is handled dynamically in skill use
-                    4 -> { damageFixedBonus += 2; esBonus += 4 }
-                    5 -> { esBonus += 4 }           // +1d6 damage is handled dynamically in skill use
+                "aumento"    -> {
+                    bonusDano    += DANO_INCREMENT.getOrElse(upgrade.level - 1) { 0.0 }
+                    custoAumento += 0.08
                 }
-                "otimizacao" -> when (upgrade.level) {
-                    1 -> costReduction += 3
-                    2 -> costReduction += 5
-                    3 -> cooldownReduction += 1
-                    4 -> costReduction += 8
-                    5 -> canUseTwice = true
-                }
+                "otimizacao" -> reducaoCusto += 0.08
             }
         }
 
-        return MaestriaComputed(
-            damageFixedBonus = damageFixedBonus,
-            esBonus = esBonus,
-            costReduction = costReduction,
-            cooldownReduction = cooldownReduction,
-            canUseTwice = canUseTwice
-        )
+        return MaestriaComputed(bonusDano, custoAumento, reducaoCusto)
     }
 
     private fun buildEffectMap(level: Int, path: String): Map<String, Any> = when (path) {
-        "aumento" -> when (level) {
-            1 -> mapOf("damage_fixed" to 1, "es_bonus" to 2)
-            2 -> mapOf("damage_fixed" to 2, "es_bonus" to 3)
-            3 -> mapOf("damage_dice" to "1d4", "es_bonus" to 3)
-            4 -> mapOf("damage_fixed" to 2, "es_bonus" to 4)
-            5 -> mapOf("damage_dice" to "1d6", "es_bonus" to 4)
-            else -> emptyMap()
-        }
-        "otimizacao" -> when (level) {
-            1 -> mapOf("cost_reduction" to 3)
-            2 -> mapOf("cost_reduction" to 5)
-            3 -> mapOf("cooldown_reduction" to 1)
-            4 -> mapOf("cost_reduction" to 8)
-            5 -> mapOf("can_use_twice" to true)
-            else -> emptyMap()
-        }
-        else -> emptyMap()
+        "aumento"    -> mapOf(
+            "bonus_dano"    to DANO_INCREMENT.getOrElse(level - 1) { 0.0 },
+            "custo_aumento" to 0.08
+        )
+        "otimizacao" -> mapOf("reducao_custo" to 0.08)
+        else         -> emptyMap()
     }
 }

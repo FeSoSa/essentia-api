@@ -9,6 +9,7 @@ import com.rpg.essentia.websocket.WebSocketBroadcaster
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import java.util.UUID
 import kotlin.random.Random
 
 @Service
@@ -51,15 +52,18 @@ class SkillUseService(
 
         val computed = playerSkill.maestria.computed
 
-        // 4. Compute effective costs (after maestria cost reduction)
+        // 4. Compute effective costs (after maestria percentual modifiers)
+        // custo_final = custo_base × (1 + custoAumento - reducaoCusto)
+        val netCostMod = computed.custoAumento - computed.reducaoCusto
         val costMap = mutableMapOf<String, Int>()
         for (cost in skill.costs) {
-            val effectiveCost = when (cost.type) {
-                "flow", "ether", "hp", "charge" -> maxOf(0, (cost.value ?: 0) - computed.costReduction)
+            val base = when (cost.type) {
+                "flow", "ether", "hp", "charge" -> cost.value ?: 0
                 "percentual_flow" -> (player.flow.max * (cost.percentual ?: 0)) / 100
-                "percentual_hp" -> (player.hp.max * (cost.percentual ?: 0)) / 100
-                else -> cost.value ?: 0
+                "percentual_hp"   -> (player.hp.max  * (cost.percentual ?: 0)) / 100
+                else              -> cost.value ?: 0
             }
+            val effectiveCost = maxOf(0, Math.round(base * (1.0 + netCostMod)).toInt())
             costMap[cost.type] = effectiveCost
         }
 
@@ -86,13 +90,18 @@ class SkillUseService(
         }
 
         // 6. Calculate damage
+        // dano_calculado = baseFixed + atributo + dados
+        // dano_final     = dano_calculado × (1 + bonusDano)
         val (totalDamage, displayFormula) = if (skill.damage != null) {
             val dmg = skill.damage
-            var total = dmg.baseFixed + computed.damageFixedBonus
-            dmg.attribute?.let { attr -> total += attrMap[attr] ?: 0 }
-            dmg.baseDice?.let { dice -> total += rollDice(dice) }
-            getMaestriaBonusDice(playerSkill.maestria.upgrades)?.let { total += rollDice(it) }
-            total to dmg.formula
+            var danoCalculado = dmg.baseFixed
+            dmg.attribute?.let { attr -> danoCalculado += attrMap[attr] ?: 0 }
+            dmg.baseDice?.let { dice -> danoCalculado += rollDice(dice) }
+            val danoFinal = if (computed.bonusDano > 0.0)
+                Math.round(danoCalculado * (1.0 + computed.bonusDano)).toInt()
+            else
+                danoCalculado
+            danoFinal to dmg.formula
         } else {
             null to null
         }
@@ -115,8 +124,24 @@ class SkillUseService(
             updatedPlayer = updatedPlayer.copy(hp = updatedPlayer.hp.copy(current = (updatedPlayer.hp.current - c).coerceAtLeast(0)))
         }
 
+        // 7b. Criar buff de atributo se a skill tiver buffAttributes
+        if (skill.buffAttributes != null && !skill.buffAttributes.isEmpty()) {
+            val duration = skill.buffDurationTurns ?: 1
+            val buffEffect = StatusEffect(
+                id             = UUID.randomUUID().toString(),
+                name           = skill.name,
+                desc           = "Bônus de atributos por ${if (duration == -1) "∞" else "$duration"} turno(s)",
+                color          = "#4ade80",
+                durationTurns  = duration,
+                attributeBonus = skill.buffAttributes
+            )
+            updatedPlayer = updatedPlayer.copy(
+                statusEffects = updatedPlayer.statusEffects + buffEffect
+            )
+        }
+
         // 8. Set slot cooldown
-        val newCooldown = maxOf(0, skill.cooldownTurns - computed.cooldownReduction)
+        val newCooldown = skill.cooldownTurns
         val newSlots = updatedPlayer.slots.map { s ->
             if (s.id == slot.id) s.copy(cooldownRemaining = newCooldown) else s
         }
@@ -144,15 +169,6 @@ class SkillUseService(
     private fun rollDice(dice: Dice): Int {
         val sides = dice.die.removePrefix("d").toIntOrNull() ?: 6
         return (1..dice.quantity).sumOf { Random.nextInt(1, sides + 1) }
-    }
-
-    private fun getMaestriaBonusDice(upgrades: List<MaestriaUpgrade>): Dice? {
-        val aumUpgrades = upgrades.filter { it.path == "aumento" }
-        return when {
-            aumUpgrades.any { it.level == 5 } -> Dice(1, "d6")
-            aumUpgrades.any { it.level == 3 } -> Dice(1, "d4")
-            else -> null
-        }
     }
 
     private fun buildLogText(player: Player, skill: Skill, damage: Int?, costs: Map<String, Int>): String {

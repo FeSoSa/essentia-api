@@ -24,17 +24,21 @@ data class Cost(
 
 @Document(collection = "skills")
 data class Skill(
-    @Id val id: String,
+    @Id val id: String? = null,
     val name: String,
     val desc: String,
-    val type: String,              // "class" | "weapon" | "essencia"
+    val type: String,              // "class" | "weapon" | "essencia" | "mestre"
     val skillClass: String?,       // null = Geral (qualquer classe)
-    val weaponType: String?,       // "curta" | "media" | "pesada" | "ranged" | "unarmed"
+    val weaponType: String?,
     val essenciaId: String?,
     val costs: List<Cost>,
     val damage: DamageFormula?,
     val cooldownTurns: Int,
     val ultimate: Boolean,
-    val toggle: Boolean = false,   // habilidade que fica ativa/inativa ao invés de uso único
-    val requirements: SkillRequirements? = null
+    val toggle: Boolean = false,
+    val requirements: SkillRequirements? = null,
+    val passive: Boolean = false,                      // skill passiva — não é usada ativamente
+    val passiveAttributes: Map<String, Int>? = null,  // bônus passivo enquanto equipada
+    val buffAttributes: Map<String, Int>? = null,     // bônus de atributo ao usar
+    val buffDurationTurns: Int? = null                // duração do buff (-1 = permanente)
 )

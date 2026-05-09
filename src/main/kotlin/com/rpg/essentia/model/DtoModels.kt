@@ -124,13 +124,26 @@ data class PlayerSkillTreeEntry(
     val equipped: Boolean,
     val slotId: String?,
     val requirementsText: String?,
-    val maestria: MaestriaSimple?
+    val maestria: MaestriaSimple?,
+    val isPassive: Boolean = false
 )
 
 data class MaestriaSimple(
+    val playerSkillId: String,
     val level: Int,
     val totalUses: Int,
-    val nextLevelUses: Int
+    val nextLevelUses: Int,
+    val choices: List<String>,  // "aumento" | "otimizacao" por nível, na ordem
+    val bonusDano: Double,      // ex: 0.32 = +32%
+    val custoAumento: Double,   // ex: 0.24 = +24%
+    val reducaoCusto: Double,   // ex: 0.16 = -16%
+)
+
+// DTO para o app do mestre — árvore de habilidades com status e playerSkill
+data class MasterSkillTreeEntry(
+    val skill: Skill,
+    val status: SkillStatus,
+    val playerSkill: PlayerSkill?
 )
 
 // DTO interno — usado apenas no SkillTreeService

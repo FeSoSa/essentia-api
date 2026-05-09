@@ -108,20 +108,18 @@ class MasterService(
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "PlayerSkill does not belong to this player")
 
         val newTotalUses = playerSkill.maestria.totalUses + uses
-        val newLevel = MAESTRIA_THRESHOLDS.count { newTotalUses >= it } + 1
-        val leveledUp = newLevel > playerSkill.maestria.level
+        val newLevel     = minOf(MAESTRIA_THRESHOLDS.count { newTotalUses >= it } + 1, 5)
+        val leveledUp    = newLevel > playerSkill.maestria.level
 
         val updatedMaestria = playerSkill.maestria.copy(
-            totalUses = newTotalUses,
-            level = if (leveledUp) newLevel else playerSkill.maestria.level,
-            nextLevelUses = if (newLevel <= 4) MAESTRIA_THRESHOLDS[newLevel - 1] else Int.MAX_VALUE
+            totalUses     = newTotalUses,
+            level         = newLevel,
+            nextLevelUses = if (newLevel < 5) MAESTRIA_THRESHOLDS[newLevel - 1] else Int.MAX_VALUE
         )
         val saved = playerSkillRepository.save(playerSkill.copy(maestria = updatedMaestria))
 
-        // If leveled up, notify player so they can choose upgrade path
-        if (leveledUp) {
-            playerRepository.findById(playerId).ifPresent { broadcaster.broadcastPlayer(it) }
-        }
+        // Notifica jogador — sempre (progresso) e especialmente se subiu de nível (pode escolher caminho)
+        playerRepository.findById(playerId).ifPresent { broadcaster.broadcastPlayer(it) }
 
         return saved
     }
@@ -241,6 +239,21 @@ class MasterService(
     fun adjustGold(playerId: String, delta: Int): Player {
         val player = loadPlayer(playerId)
         return saveAndBroadcast(player.copy(gold = maxOf(0, player.gold + delta)))
+    }
+
+    fun clearSkillFromSlots(playerId: String, skillId: String) {
+        val player = loadPlayer(playerId)
+        val hasSlot = player.slots.any { it.skillId == skillId }
+        if (hasSlot) {
+            val cleared = player.copy(
+                slots = player.slots.map { slot ->
+                    if (slot.skillId == skillId) slot.copy(skillId = null) else slot
+                }
+            )
+            saveAndBroadcast(cleared)
+        } else {
+            broadcaster.broadcastPlayer(player)
+        }
     }
 
     private fun loadPlayer(id: String): Player =

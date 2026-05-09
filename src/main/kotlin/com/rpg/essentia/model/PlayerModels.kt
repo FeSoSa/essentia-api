@@ -103,7 +103,8 @@ data class StatusEffect(
     val icon: String? = null,
     val color: String? = null,
     val durationTurns: Int = 1,        // -1 = permanent until master removes
-    val effects: List<AutoEffect> = emptyList()
+    val effects: List<AutoEffect> = emptyList(),
+    val attributeBonus: Map<String, Int>? = null  // bônus de atributos enquanto ativo
 )
 
 data class Item(
