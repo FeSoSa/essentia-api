@@ -3,8 +3,10 @@ package com.rpg.essentia.controller
 import com.rpg.essentia.model.*
 import com.rpg.essentia.service.ClassKitService
 import com.rpg.essentia.service.EssenciaService
+import com.rpg.essentia.service.GameStateService
 import com.rpg.essentia.service.MasterService
 import com.rpg.essentia.service.PlayerCreationService
+import com.rpg.essentia.service.PlayerService
 import com.rpg.essentia.service.TurnService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -17,10 +19,29 @@ class MasterController(
     private val turnService: TurnService,
     private val classKitService: ClassKitService,
     private val playerCreationService: PlayerCreationService,
-    private val essenciaService: EssenciaService
+    private val playerService: PlayerService,
+    private val essenciaService: EssenciaService,
+    private val gameStateService: GameStateService
 ) {
     @GetMapping("/players")
     fun getPlayers(): List<Player> = masterService.getPlayers()
+
+    @GetMapping("/kits")
+    fun listKits(): List<ClassKit> = classKitService.listAll()
+
+    @PostMapping("/kits")
+    fun createKit(@RequestBody kit: ClassKit): ResponseEntity<ClassKit> =
+        ResponseEntity.status(HttpStatus.CREATED).body(classKitService.create(kit))
+
+    @PutMapping("/kits/{id}")
+    fun updateKit(@PathVariable id: String, @RequestBody kit: ClassKit): ClassKit =
+        classKitService.update(id, kit)
+
+    @DeleteMapping("/kits/{id}")
+    fun deleteKit(@PathVariable id: String): ResponseEntity<Void> {
+        classKitService.delete(id)
+        return ResponseEntity.noContent().build()
+    }
 
     @GetMapping("/kits/{className}")
     fun getKit(@PathVariable className: String): ClassKit = classKitService.getByClass(className)
@@ -56,6 +77,12 @@ class MasterController(
     @PostMapping("/next-turn")
     fun nextTurn(): TurnUpdate = turnService.nextTurn()
 
+    @PostMapping("/players/{id}/recalculate")
+    fun recalculate(@PathVariable id: String): Player = playerService.recalculate(id)
+
+    @PostMapping("/players/{id}/reset-attributes")
+    fun resetAttributes(@PathVariable id: String): Player = playerCreationService.resetAttributes(id)
+
     @PostMapping("/reset-skills")
     fun resetSkills(@RequestBody req: ResetSkillsRequest) =
         masterService.resetSkills(req.playerId)
@@ -73,6 +100,10 @@ class MasterController(
         @PathVariable effectId: String,
         @RequestBody req: StatusEffectDeleteRequest
     ): Player = masterService.removeStatusEffect(req.playerId, effectId)
+
+    @DeleteMapping("/players/{playerId}/status-effects")
+    fun removeAllStatusEffects(@PathVariable playerId: String): Player =
+        masterService.removeAllStatusEffects(playerId)
 
     @PostMapping("/players/{id}/items")
     fun addItem(
@@ -119,9 +150,57 @@ class MasterController(
         @PathVariable slot: String
     ): Player = masterService.clearEquipment(id, slot)
 
-    // Essências
+    // Essências — catálogo
     @GetMapping("/essencias")
     fun listEssencias(): List<Essencia> = essenciaService.listAll()
+
+    @PostMapping("/essencias")
+    fun createEssencia(@RequestBody essencia: Essencia): ResponseEntity<Essencia> =
+        ResponseEntity.status(HttpStatus.CREATED).body(essenciaService.create(essencia))
+
+    @PutMapping("/essencias/{id}")
+    fun updateEssencia(@PathVariable id: String, @RequestBody essencia: Essencia): Essencia =
+        essenciaService.update(id, essencia)
+
+    @DeleteMapping("/essencias/{id}")
+    fun deleteEssencia(@PathVariable id: String): ResponseEntity<Void> {
+        essenciaService.delete(id)
+        return ResponseEntity.noContent().build()
+    }
+
+    // Barras coletivas
+    @GetMapping("/collective-bars")
+    fun getCollectiveBars(): List<CollectiveBar> = gameStateService.getCollectiveBars()
+
+    @PostMapping("/collective-bars")
+    fun addCollectiveBar(@RequestBody bar: CollectiveBar): List<CollectiveBar> =
+        gameStateService.addCollectiveBar(bar)
+
+    @PutMapping("/collective-bars/{barId}")
+    fun updateCollectiveBar(
+        @PathVariable barId: String,
+        @RequestBody req: Map<String, Int>
+    ): List<CollectiveBar> = gameStateService.updateCollectiveBar(barId, req["current"], req["max"])
+
+    @DeleteMapping("/collective-bars/{barId}")
+    fun removeCollectiveBar(@PathVariable barId: String): List<CollectiveBar> =
+        gameStateService.removeCollectiveBar(barId)
+
+    // Barras customizadas
+    @PostMapping("/players/{id}/custom-bars")
+    fun addCustomBar(@PathVariable id: String, @RequestBody bar: CustomBar): Player =
+        masterService.addCustomBar(id, bar)
+
+    @PutMapping("/players/{id}/custom-bars/{barId}")
+    fun updateCustomBar(
+        @PathVariable id: String,
+        @PathVariable barId: String,
+        @RequestBody req: Map<String, Int>
+    ): Player = masterService.updateCustomBar(id, barId, req["current"], req["max"])
+
+    @DeleteMapping("/players/{id}/custom-bars/{barId}")
+    fun removeCustomBar(@PathVariable id: String, @PathVariable barId: String): Player =
+        masterService.removeCustomBar(id, barId)
 
     @PostMapping("/players/{id}/essencias")
     fun grantEssencia(

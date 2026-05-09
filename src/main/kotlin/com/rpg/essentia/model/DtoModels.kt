@@ -14,6 +14,7 @@ data class MaestriaUpgradeRequest(val playerSkillId: String, val path: String)
 
 // Items
 data class RequestItemRequest(val itemId: String)
+data class EquipItemRequest(val itemId: String)
 
 // Player creation
 data class CreatePlayerRequest(
@@ -24,17 +25,28 @@ data class CreatePlayerRequest(
     val race: String,
     val attributes: Attributes,
     val equipment: Equipment,
-    val items: List<Item>
+    val items: List<Item>,
+    val slotsClass: Int = 2,
+    val slotsFree: Int = 6,
+    val etherUnlocked: Boolean = false
 )
 
-// Player update (master edits name/code/race/class/attributes only)
+// Player update (master edits name/code/race/class/attributes/slots/ether)
 data class UpdatePlayerRequest(
     val code: String,
     val name: String,
     val skillClass: String,
     val subClass: String?,
     val race: String,
-    val attributes: Attributes
+    val attributes: Attributes,
+    val portraitUrl: String? = null,
+    val level: Int? = null,
+    val slotsClass: Int? = null,
+    val slotsFree: Int? = null,
+    val etherUnlocked: Boolean? = null,
+    val sobrecargaDesbloqueada: Boolean? = null,
+    val expAvailable: Int? = null,
+    val expTotal: Int? = null
 )
 
 // Master
@@ -75,6 +87,7 @@ data class AdjustItemQtyRequest(val delta: Int)
 
 // Images
 data class ImageCreateRequest(val url: String, val title: String)
+data class ImageUpdateRequest(val url: String, val title: String)
 
 // Fast action
 data class VoteRequest(val playerId: String, val optionId: String)
@@ -95,13 +108,34 @@ data class UnlockSkillRequest(val skillId: String)
 enum class SkillStatus { UNLOCKED, AVAILABLE, LOCKED }
 
 data class MissingRequirements(
-    val level: Int?,                    // quanto falta de nível
-    val attributes: Map<String, Int>?,  // quanto falta em cada atributo
-    val skillIds: List<String>?         // ids das skills que faltam desbloquear
+    val level: Int?,
+    val attributes: Map<String, Int>?,
+    val weaponRequired: String?
 )
 
+// Flat DTO para o app do jogador
+data class PlayerSkillTreeEntry(
+    val skillId: String,
+    val nome: String,
+    val custo: String,
+    val descricao: String,
+    val categoria: String,
+    val unlocked: Boolean,
+    val equipped: Boolean,
+    val slotId: String?,
+    val requirementsText: String?,
+    val maestria: MaestriaSimple?
+)
+
+data class MaestriaSimple(
+    val level: Int,
+    val totalUses: Int,
+    val nextLevelUses: Int
+)
+
+// DTO interno — usado apenas no SkillTreeService
 data class SkillTreeEntry(
     val skill: Skill,
     val status: SkillStatus,
-    val missing: MissingRequirements?   // null se UNLOCKED ou AVAILABLE
+    val missing: MissingRequirements?
 )

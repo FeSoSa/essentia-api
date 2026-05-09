@@ -36,7 +36,16 @@ data class LogEntry(
     val playerId: String = "",
     val text: String = "",
     val time: String = "",
-    val timestamp: String = ""
+    val timestamp: String = "",
+    val type: String = "info"   // "skill"|"hp"|"flow"|"ether"|"attr"|"level"|"item"|"essencia"|"info"
+)
+
+data class CollectiveBar(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val name: String = "",
+    val color: String = "#3b82f6",
+    val current: Int = 0,
+    val max: Int = 10
 )
 
 @Document(collection = "game_state")
@@ -45,5 +54,6 @@ data class GameState(
     val images: List<GameImage> = emptyList(),
     val fastAction: FastAction = FastAction(),
     val initiative: List<InitiativeEntry> = emptyList(),
-    val log: List<LogEntry> = emptyList()
+    val log: List<LogEntry> = emptyList(),
+    val collectiveBars: List<CollectiveBar> = emptyList()
 )

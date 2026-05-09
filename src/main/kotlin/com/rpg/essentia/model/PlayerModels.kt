@@ -5,13 +5,14 @@ import org.springframework.data.mongodb.core.mapping.Document
 
 data class CharInfo(
     val name: String = "",
+    val classe: String = "",
     val skillClass: String = "",
-    val subClass: String? = null,
     val race: String = "",
     val level: Int = 1,
     val slotsClass: Int = 2,
     val slotsFree: Int = 6,
-    val slotsTotal: Int = 8
+    val slotsTotal: Int = 8,
+    val portraitUrl: String? = null
 )
 
 data class Vital(val current: Int = 0, val max: Int = 0)
@@ -67,7 +68,8 @@ data class ArmorEquip(
     val id: String = "",
     val name: String = "",
     val damageReduction: Int = 0,
-    val attributeBonus: Map<String, Int>? = null
+    val attributeBonus: Map<String, Int>? = null,
+    val armorWeight: String? = null   // "leve" | "média" | "pesada"
 )
 
 data class AccessoryEquip(
@@ -99,6 +101,7 @@ data class StatusEffect(
     val name: String = "",
     val desc: String = "",
     val icon: String? = null,
+    val color: String? = null,
     val durationTurns: Int = 1,        // -1 = permanent until master removes
     val effects: List<AutoEffect> = emptyList()
 )
@@ -118,6 +121,7 @@ data class Item(
     val properties: String? = null,
     // Armor field (type == "armor")
     val damageReduction: Int? = null,
+    val armorWeight: String? = null,   // "leve" | "média" | "pesada"
     // Shared equip field (type == "weapon" | "armor" | "accessory")
     val attributeBonus: Map<String, Int>? = null,
     val equipSlot: String? = null      // "mainHand"|"offHand"|"armor"|"amulet"|"ring"|"utility"
@@ -138,6 +142,7 @@ data class Player(
     val hp: Vital = Vital(),
     val flow: Vital = Vital(),
     val ether: Ether = Ether(),
+    val pressao: Vital? = null,
     val exp: Exp = Exp(),
     val attributes: Attributes = Attributes(),
     val essenciasObtidas: List<EssenciaObtida> = emptyList(),
@@ -146,5 +151,16 @@ data class Player(
     val statusEffects: List<StatusEffect> = emptyList(),
     val items: List<Item> = emptyList(),
     val pendingRequests: List<PendingRequest> = emptyList(),
-    val gold: Int = 0
+    val gold: Int = 0,
+    val desviosRestantes: Int = 3,
+    val sobrecargaDesbloqueada: Boolean = false,
+    val customBars: List<CustomBar> = emptyList()
+)
+
+data class CustomBar(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val name: String = "",
+    val color: String = "#a855f7",
+    val current: Int = 0,
+    val max: Int = 10
 )

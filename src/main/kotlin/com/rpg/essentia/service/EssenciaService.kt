@@ -17,6 +17,12 @@ class EssenciaService(
 ) {
     fun listAll(): List<Essencia> = essenciaRepository.findAll()
 
+    fun create(essencia: Essencia): Essencia = essenciaRepository.save(essencia)
+
+    fun update(id: String, essencia: Essencia): Essencia = essenciaRepository.save(essencia.copy(id = id))
+
+    fun delete(id: String) = essenciaRepository.deleteById(id)
+
     fun grantEssencia(playerId: String, essenciaId: String): Player {
         val player = loadPlayer(playerId)
         essenciaRepository.findById(essenciaId).orElseThrow {

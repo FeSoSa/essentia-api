@@ -27,6 +27,10 @@ class PlayerController(
     fun adjustEther(@PathVariable id: String, @RequestBody req: DeltaRequest): Player =
         playerService.adjustEther(id, req.delta)
 
+    @PutMapping("/pressao")
+    fun adjustPressao(@PathVariable id: String, @RequestBody req: DeltaRequest): Player =
+        playerService.adjustPressao(id, req.delta)
+
     @PutMapping("/attributes")
     fun adjustAttribute(@PathVariable id: String, @RequestBody req: AttributeDeltaRequest): Player =
         playerService.adjustAttribute(id, req.attribute, req.delta)
@@ -47,11 +51,23 @@ class PlayerController(
     fun requestItem(@PathVariable id: String, @RequestBody req: RequestItemRequest): Player =
         playerService.requestItem(id, req.itemId)
 
+    @PostMapping("/equip")
+    fun equipItem(@PathVariable id: String, @RequestBody req: EquipItemRequest): Player =
+        playerService.equipFromInventory(id, req.itemId)
+
+    @DeleteMapping("/equipment/{slot}")
+    fun unequipItem(@PathVariable id: String, @PathVariable slot: String): Player =
+        playerService.unequipItem(id, slot)
+
     @GetMapping("/skill-tree")
-    fun getSkillTree(@PathVariable id: String): List<SkillTreeEntry> =
+    fun getSkillTree(@PathVariable id: String): List<PlayerSkillTreeEntry> =
         skillTreeService.getSkillTree(id)
 
     @PostMapping("/unlock-skill")
     fun unlockSkill(@PathVariable id: String, @RequestBody req: UnlockSkillRequest): PlayerSkill =
         skillTreeService.unlockSkill(id, req.skillId)
+
+    @PostMapping("/desvio")
+    fun desvio(@PathVariable id: String): Player =
+        playerService.executeDesvio(id)
 }

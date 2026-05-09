@@ -10,6 +10,9 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
     fun broadcastImage(image: GameImage) =
         messagingTemplate.convertAndSend("/topic/image", image)
 
+    fun broadcastImages(images: List<GameImage>) =
+        messagingTemplate.convertAndSend("/topic/images", images)
+
     fun broadcastFastAction(fastAction: FastAction) =
         messagingTemplate.convertAndSend("/topic/fast-action", fastAction)
 
@@ -33,4 +36,7 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
 
     fun broadcastCombatBosses(bosses: List<BossInstance>) =
         messagingTemplate.convertAndSend("/topic/combat/bosses", bosses)
+
+    fun broadcastCollectiveBars(bars: List<CollectiveBar>) =
+        messagingTemplate.convertAndSend("/topic/collective-bars", bars)
 }

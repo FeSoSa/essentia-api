@@ -24,20 +24,39 @@ class ImageService(
             active = false
         )
         val state = gameStateService.getOrCreate()
-        gameStateService.save(state.copy(images = state.images + image))
+        val newImages = state.images + image
+        gameStateService.save(state.copy(images = newImages))
+        broadcaster.broadcastImages(newImages)
         return image
     }
 
-    fun activateImage(id: String): GameImage {
+    fun toggleImage(id: String): List<GameImage> {
+        val state = gameStateService.getOrCreate()
+        state.images.firstOrNull { it.id == id }
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found")
+        val newImages = state.images.map { img ->
+            if (img.id == id) img.copy(active = !img.active) else img
+        }
+        gameStateService.save(state.copy(images = newImages))
+        broadcaster.broadcastImages(newImages)
+        return newImages
+    }
+
+    fun updateImage(id: String, url: String, title: String): GameImage {
         val state = gameStateService.getOrCreate()
         val target = state.images.firstOrNull { it.id == id }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found")
-        val newImages = state.images.map { img ->
-            img.copy(active = img.id == id)
-        }
+        val updated = target.copy(url = url, title = title)
+        val newImages = state.images.map { if (it.id == id) updated else it }
         gameStateService.save(state.copy(images = newImages))
-        val activated = target.copy(active = true)
-        broadcaster.broadcastImage(activated)
-        return activated
+        broadcaster.broadcastImages(newImages)
+        return updated
+    }
+
+    fun deleteImage(id: String) {
+        val state = gameStateService.getOrCreate()
+        val newImages = state.images.filter { it.id != id }
+        gameStateService.save(state.copy(images = newImages))
+        broadcaster.broadcastImages(newImages)
     }
 }

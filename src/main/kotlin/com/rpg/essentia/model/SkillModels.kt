@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class SkillRequirements(
     val level: Int? = null,
     val attributes: Map<String, Int>? = null,  // ex: { "agility": 14, "strength": 12 }
-    val skillIds: List<String>? = null
+    val weaponRequired: String? = null          // "curta" | "media" | "pesada" | "ranged" | "unarmed"
 )
 
 data class DamageFormula(
@@ -28,12 +28,13 @@ data class Skill(
     val name: String,
     val desc: String,
     val type: String,              // "class" | "weapon" | "essencia"
-    val skillClass: String?,
+    val skillClass: String?,       // null = Geral (qualquer classe)
     val weaponType: String?,       // "curta" | "media" | "pesada" | "ranged" | "unarmed"
     val essenciaId: String?,
     val costs: List<Cost>,
     val damage: DamageFormula?,
     val cooldownTurns: Int,
     val ultimate: Boolean,
-    val requirements: SkillRequirements? = null  // null = sem requisito, sempre AVAILABLE
+    val toggle: Boolean = false,   // habilidade que fica ativa/inativa ao invés de uso único
+    val requirements: SkillRequirements? = null
 )

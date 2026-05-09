@@ -18,5 +18,6 @@ data class ItemCatalog(
     val properties: String? = null,
     val damageReduction: Int? = null,
     val attributeBonus: Map<String, Int>? = null,
-    val equipSlot: String? = null
+    val equipSlot: String? = null,
+    val armorWeight: String? = null   // "leve" | "média" | "pesada"
 )

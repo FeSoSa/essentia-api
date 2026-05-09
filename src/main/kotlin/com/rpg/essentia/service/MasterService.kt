@@ -57,7 +57,7 @@ class MasterService(
             exp = player.exp.copy(available = newAvailable, total = newTotal),
             char = player.char.copy(level = newLevel)
         )
-        if (leveled) gameStateService.addLogEntry(playerId, "${player.char.name} subiu para nível $newLevel!")
+        if (leveled) gameStateService.addLogEntry(playerId, "${player.char.name} subiu para nível $newLevel!", "level")
         return saveAndBroadcast(updated)
     }
 
@@ -76,6 +76,12 @@ class MasterService(
         val state = gameStateService.getOrCreate()
         gameStateService.save(state.copy(initiative = entries))
         broadcaster.broadcastInitiative(entries)
+        // Reset desvios for all players at combat start
+        if (entries.isNotEmpty()) {
+            playerRepository.findAll().forEach { p ->
+                saveAndBroadcast(p.copy(desviosRestantes = 3))
+            }
+        }
     }
 
     fun addStatusEffect(playerId: String, effect: StatusEffect): Player {
@@ -87,6 +93,11 @@ class MasterService(
         val player = loadPlayer(playerId)
         val newEffects = player.statusEffects.filter { it.id != effectId }
         return saveAndBroadcast(player.copy(statusEffects = newEffects))
+    }
+
+    fun removeAllStatusEffects(playerId: String): Player {
+        val player = loadPlayer(playerId)
+        return saveAndBroadcast(player.copy(statusEffects = emptyList()))
     }
 
     fun addMaestriaUses(playerId: String, playerSkillId: String, uses: Int): PlayerSkill {
@@ -143,7 +154,9 @@ class MasterService(
             attributeBonus = req.attributeBonus,
             equipSlot = req.equipSlot
         )
-        return saveAndBroadcast(player.copy(items = player.items + newItem))
+        val saved = saveAndBroadcast(player.copy(items = player.items + newItem))
+        gameStateService.addLogEntry(playerId, "${player.char.name} recebeu ${req.name}${if (req.qty > 1) " ×${req.qty}" else ""}", "item")
+        return saved
     }
 
     fun removeItem(playerId: String, itemId: String): Player {
@@ -162,7 +175,7 @@ class MasterService(
     private fun slotToItem(slot: String, eq: Equipment): Item? = when (slot) {
         "mainHand" -> eq.mainHand?.let { Item(id = it.id, name = it.name, type = "weapon",    equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice, damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus) }
         "offHand"  -> eq.offHand?.let  { Item(id = it.id, name = it.name, type = "weapon",    equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice, damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus) }
-        "armor"    -> eq.armor?.let    { Item(id = it.id, name = it.name, type = "armor",     equipSlot = slot, damageReduction = it.damageReduction, attributeBonus = it.attributeBonus) }
+        "armor"    -> eq.armor?.let    { Item(id = it.id, name = it.name, type = "armor",     equipSlot = slot, damageReduction = it.damageReduction, armorWeight = it.armorWeight, attributeBonus = it.attributeBonus) }
         "amulet"   -> eq.amulet?.let   { Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus) }
         "ring"     -> eq.ring?.let     { Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus) }
         "utility"  -> eq.utility?.let  { Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus) }
@@ -201,6 +214,28 @@ class MasterService(
         if (gridItems.size >= 16)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Inventário cheio")
         return setEquipment(playerId, slot, SetEquipmentRequest())
+    }
+
+    fun addCustomBar(playerId: String, bar: CustomBar): Player {
+        val player = loadPlayer(playerId)
+        return saveAndBroadcast(player.copy(customBars = player.customBars + bar))
+    }
+
+    fun updateCustomBar(playerId: String, barId: String, current: Int?, max: Int?): Player {
+        val player = loadPlayer(playerId)
+        val bars = player.customBars.map { b ->
+            if (b.id != barId) b
+            else b.copy(
+                current = current?.coerceIn(0, max ?: b.max) ?: b.current,
+                max     = max     ?: b.max
+            )
+        }
+        return saveAndBroadcast(player.copy(customBars = bars))
+    }
+
+    fun removeCustomBar(playerId: String, barId: String): Player {
+        val player = loadPlayer(playerId)
+        return saveAndBroadcast(player.copy(customBars = player.customBars.filter { it.id != barId }))
     }
 
     fun adjustGold(playerId: String, delta: Int): Player {

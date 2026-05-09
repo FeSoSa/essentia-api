@@ -35,17 +35,17 @@ class PlayerCreationService(
             }
         }
 
-        val slotsClass = 2
-        val slotsFree = if (req.race == "Humano") 7 else 6
+        val slotsClass = req.slotsClass
+        val slotsFree  = req.slotsFree
         val slotsTotal = slotsClass + slotsFree
 
-        val hpMax = 20 + (req.attributes.resistance * 5)
+        val hpMax   = 20 + (req.attributes.resistance * 5)
         val flowMax = 20 + (req.attributes.flow * 5)
 
-        val slots = kit.starterSlots.toMutableList()
-        if (req.race == "Humano") {
-            slots.add(Slot(id = UUID.randomUUID().toString(), type = "human_bonus"))
-        }
+        val slots = mutableListOf<Slot>()
+        repeat(slotsClass) { slots.add(Slot(id = UUID.randomUUID().toString(), type = "class")) }
+        repeat(slotsFree)  { slots.add(Slot(id = UUID.randomUUID().toString(), type = "free"))  }
+        if (req.race == "Humano") slots.add(Slot(id = UUID.randomUUID().toString(), type = "human_bonus"))
 
         val player = Player(
             id = UUID.randomUUID().toString(),
@@ -53,19 +53,23 @@ class PlayerCreationService(
             char = CharInfo(
                 name = req.name,
                 skillClass = req.skillClass,
-                subClass = req.subClass,
                 race = req.race,
                 level = 1,
                 slotsClass = slotsClass,
                 slotsFree = slotsFree,
                 slotsTotal = slotsTotal
             ),
-            hp = Vital(current = hpMax, max = hpMax),
+            hp   = Vital(current = hpMax,  max = hpMax),
             flow = Vital(current = flowMax, max = flowMax),
+            ether = Ether(
+                unlocked = req.etherUnlocked,
+                max      = minOf(req.attributes.wisdom / 4, 10),
+                current  = minOf(req.attributes.wisdom / 4, 10)
+            ),
             attributes = req.attributes,
-            equipment = req.equipment,
-            items = req.items,
-            slots = slots
+            equipment  = req.equipment,
+            items      = req.items,
+            slots      = slots
         )
         playerRepository.save(player)
 
@@ -96,19 +100,85 @@ class PlayerCreationService(
         val hpMax = 20 + (req.attributes.resistance * 5)
         val flowMax = 20 + (req.attributes.flow * 5)
 
+        val newSlotsClass = req.slotsClass ?: existing.char.slotsClass
+        val newSlotsFree  = req.slotsFree  ?: existing.char.slotsFree
+
+        // Reconstrói a lista de slots preservando habilidades equipadas
+        val existingClass = existing.slots.filter { it.type == "class" }
+        val existingFree  = existing.slots.filter { it.type == "free" }
+        val bonusSlots    = existing.slots.filter { it.type == "human_bonus" }
+
+        fun resize(current: List<Slot>, newCount: Int, type: String): List<Slot> =
+            List(newCount) { i ->
+                current.getOrElse(i) { Slot(id = UUID.randomUUID().toString(), type = type) }
+            }
+
+        val newSlots = resize(existingClass, newSlotsClass, "class") +
+                       resize(existingFree,  newSlotsFree,  "free")  +
+                       bonusSlots
+
         val updated = existing.copy(
             code = req.code,
             char = existing.char.copy(
-                name = req.name,
-                skillClass = req.skillClass,
-                subClass = req.subClass,
-                race = req.race
+                name        = req.name,
+                skillClass  = req.skillClass,
+                race        = req.race,
+                portraitUrl = req.portraitUrl ?: existing.char.portraitUrl,
+                level       = req.level       ?: existing.char.level,
+                slotsClass  = newSlotsClass,
+                slotsFree   = newSlotsFree,
+                slotsTotal  = newSlotsClass + newSlotsFree
             ),
-            hp = existing.hp.copy(max = hpMax),
-            flow = existing.flow.copy(max = flowMax),
-            attributes = req.attributes
+            hp    = existing.hp.copy(max = hpMax),
+            flow  = existing.flow.copy(max = flowMax),
+            ether = existing.ether.copy(
+                unlocked = req.etherUnlocked ?: existing.ether.unlocked,
+                max      = minOf(req.attributes.wisdom / 4, 10),
+                current  = minOf(existing.ether.current, minOf(req.attributes.wisdom / 4, 10))
+            ),
+            attributes = req.attributes,
+            exp = Exp(
+                available = req.expAvailable ?: existing.exp.available,
+                total     = req.expTotal     ?: existing.exp.total
+            ),
+            slots = newSlots,
+            sobrecargaDesbloqueada = req.sobrecargaDesbloqueada ?: existing.sobrecargaDesbloqueada
         )
         playerRepository.save(updated)
+        broadcaster.broadcastPlayer(updated)
+        broadcaster.broadcastPlayers(playerRepository.findAll())
+        return updated
+    }
+
+    fun resetAttributes(id: String): Player {
+        val player = playerRepository.findById(id).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado: $id")
+        }
+        val kit = try { classKitService.getByClass(player.char.skillClass) } catch (_: Exception) { null }
+        val initial = kit?.starterAttributes ?: Attributes()
+
+        fun cost(v: Int) = when {
+            v <= 15 -> 1; v <= 20 -> 2; v <= 25 -> 3; v <= 30 -> 4; else -> 5
+        }
+        fun spent(ini: Int, cur: Int) = if (cur <= ini) 0 else (ini until cur).sumOf { cost(it) }
+
+        val totalSpent = listOf(
+            spent(initial.strength,     player.attributes.strength),
+            spent(initial.agility,      player.attributes.agility),
+            spent(initial.intelligence, player.attributes.intelligence),
+            spent(initial.resistance,   player.attributes.resistance),
+            spent(initial.flow,         player.attributes.flow),
+            spent(initial.wisdom,       player.attributes.wisdom),
+            spent(initial.presence,     player.attributes.presence),
+            spent(initial.defense,      player.attributes.defense),
+        ).sum()
+
+        val updated = player.copy(
+            attributes = initial,
+            exp = player.exp.copy(available = player.exp.available + totalSpent)
+        )
+        playerRepository.save(updated)
+        broadcaster.broadcastPlayer(updated)
         broadcaster.broadcastPlayers(playerRepository.findAll())
         return updated
     }

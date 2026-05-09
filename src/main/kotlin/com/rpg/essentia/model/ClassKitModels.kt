@@ -4,6 +4,10 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 
+data class ClassPerks(
+    val hasPressureBar: Boolean = false        // habilita a barra de pressão (ex: Intenso)
+)
+
 @Document(collection = "class_kits")
 data class ClassKit(
     @Id val id: String,
@@ -12,5 +16,6 @@ data class ClassKit(
     val starterSlots: List<Slot> = emptyList(),
     val starterEquipment: Equipment = Equipment(),
     val starterItems: List<Item> = emptyList(),
-    val starterAttributes: Attributes = Attributes()
+    val starterAttributes: Attributes = Attributes(),
+    val perks: ClassPerks = ClassPerks()
 )

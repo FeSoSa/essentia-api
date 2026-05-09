@@ -130,7 +130,7 @@ class SkillUseService(
         val savedPlayer = playerRepository.save(updatedPlayer)
 
         val logText = buildLogText(player, skill, totalDamage, costMap)
-        gameStateService.addLogEntry(playerId, logText)
+        gameStateService.addLogEntry(playerId, logText, "skill")
         broadcaster.broadcastPlayer(savedPlayer)
 
         return DamageResult(

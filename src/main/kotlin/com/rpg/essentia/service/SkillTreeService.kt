@@ -21,7 +21,7 @@ class SkillTreeService(
     private val gameStateService: GameStateService,
     private val broadcaster: WebSocketBroadcaster
 ) {
-    fun getSkillTree(playerId: String): List<SkillTreeEntry> {
+    fun getSkillTree(playerId: String): List<PlayerSkillTreeEntry> {
         val player = loadPlayer(playerId)
         val essencias = essenciaRepository.findAll()
         val effectiveAttrs = attributeService.computeEffectiveAttributes(player, essencias)
@@ -31,19 +31,84 @@ class SkillTreeService(
 
         val relevantSkills = skillRepository.findAll().filter { skill ->
             when (skill.type) {
-                "class"    -> skill.skillClass == player.char.skillClass
+                "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
                 "weapon"   -> skill.weaponType in equippedWeaponTypes
                 "essencia" -> skill.essenciaId in obtainedEssenciaIds
                 else       -> false
             }
         }
 
-        val unlockedSkillIds = playerSkillRepository.findByPlayerId(playerId)
-            .map { it.skillId }.toSet()
+        val playerSkills = playerSkillRepository.findByPlayerId(playerId)
+        val playerSkillMap = playerSkills.associateBy { it.skillId }
+        val unlockedSkillIds = playerSkills.map { it.skillId }.toSet()
 
         return relevantSkills.map { skill ->
-            computeEntry(skill, player, unlockedSkillIds, effectiveAttrs)
+            val entry = computeEntry(skill, player, unlockedSkillIds, effectiveAttrs)
+            val ps = playerSkillMap[skill.id]
+            toFlat(skill, entry, ps, player)
         }
+    }
+
+    private fun toFlat(skill: Skill, entry: SkillTreeEntry, ps: PlayerSkill?, player: Player): PlayerSkillTreeEntry {
+        val custo = skill.costs.joinToString(", ") { c ->
+            when {
+                c.percentual != null -> "${c.percentual}% ${costLabel(c.type)}"
+                c.value != null      -> "${c.value} ${costLabel(c.type)}"
+                else                 -> costLabel(c.type)
+            }
+        }.ifEmpty { "—" }
+
+        val categoria = when (skill.type) {
+            "class"    -> skill.skillClass ?: "Geral"
+            "weapon"   -> skill.weaponType ?: "Arma"
+            "essencia" -> "Essência"
+            else       -> "Geral"
+        }
+
+        val reqText = entry.missing?.let { m ->
+            listOfNotNull(
+                m.level?.let { "Nível ${player.char.level + it}+" },
+                m.attributes?.entries?.joinToString(", ") { (a, v) ->
+                    "${attrLabel(a)} ${(player.attributes.toMap()[a] ?: 0) + v}+"
+                },
+                m.weaponRequired?.let { "Arma: $it" }
+            ).joinToString(" · ").ifEmpty { null }
+        }
+
+        return PlayerSkillTreeEntry(
+            skillId          = skill.id,
+            nome             = skill.name,
+            custo            = custo,
+            descricao        = skill.desc,
+            categoria        = categoria,
+            unlocked         = entry.status == SkillStatus.UNLOCKED,
+            equipped         = ps?.equipped ?: false,
+            slotId           = ps?.slotId,
+            requirementsText = reqText,
+            maestria         = ps?.maestria?.let { MaestriaSimple(it.level, it.totalUses, it.nextLevelUses) }
+        )
+    }
+
+    private fun costLabel(type: String) = when (type) {
+        "flow"            -> "FLX"
+        "hp"              -> "HP"
+        "ether"           -> "ÉTER"
+        "charge"          -> "Carga"
+        "percentual_flow" -> "FLX"
+        "percentual_hp"   -> "HP"
+        else              -> type
+    }
+
+    private fun attrLabel(a: String) = when (a) {
+        "strength"     -> "FOR"
+        "agility"      -> "AGI"
+        "intelligence" -> "INT"
+        "resistance"   -> "RES"
+        "flow"         -> "FLX"
+        "wisdom"       -> "SAB"
+        "presence"     -> "PRE"
+        "defense"      -> "DEF"
+        else           -> a
     }
 
     fun unlockSkill(playerId: String, skillId: String): PlayerSkill {
@@ -100,7 +165,7 @@ class SkillTreeService(
 
         // Broadcast player so frontend refreshes skill tree
         broadcaster.broadcastPlayer(player)
-        gameStateService.addLogEntry(playerId, "${player.char.name} desbloqueou ${skill.name}")
+        gameStateService.addLogEntry(playerId, "${player.char.name} desbloqueou ${skill.name}", "skill")
 
         return saved
     }
@@ -129,14 +194,15 @@ class SkillTreeService(
             }
             ?.toMap()
             ?.ifEmpty { null }
-        val missingSkills = req.skillIds
-            ?.filter { it !in unlockedSkillIds }
-            ?.ifEmpty { null }
+        val missingWeapon = req.weaponRequired?.let { needed ->
+            val equipped = weaponTypesEquipped(player)
+            if (needed !in equipped) needed else null
+        }
 
-        return if (missingLevel == null && missingAttrs == null && missingSkills == null) {
+        return if (missingLevel == null && missingAttrs == null && missingWeapon == null) {
             SkillTreeEntry(skill, SkillStatus.AVAILABLE, null)
         } else {
-            SkillTreeEntry(skill, SkillStatus.LOCKED, MissingRequirements(missingLevel, missingAttrs, missingSkills))
+            SkillTreeEntry(skill, SkillStatus.LOCKED, MissingRequirements(missingLevel, missingAttrs, missingWeapon))
         }
     }
 
