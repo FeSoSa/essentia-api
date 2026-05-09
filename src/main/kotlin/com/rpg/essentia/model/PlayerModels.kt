@@ -61,7 +61,9 @@ data class WeaponEquip(
     val damageBase: Int = 0,
     val damageDice: Dice = Dice(1, "d6"),
     val damageAttribute: String = "",
-    val attributeBonus: Map<String, Int>? = null
+    val attributeBonus: Map<String, Int>? = null,
+    val rarity: String? = null,
+    val twoHanded: Boolean = false
 )
 
 data class ArmorEquip(
@@ -69,13 +71,15 @@ data class ArmorEquip(
     val name: String = "",
     val damageReduction: Int = 0,
     val attributeBonus: Map<String, Int>? = null,
-    val armorWeight: String? = null   // "leve" | "média" | "pesada"
+    val armorWeight: String? = null,
+    val rarity: String? = null
 )
 
 data class AccessoryEquip(
     val id: String = "",
     val name: String = "",
-    val attributeBonus: Map<String, Int>? = null
+    val attributeBonus: Map<String, Int>? = null,
+    val rarity: String? = null
 )
 
 data class Equipment(
@@ -125,7 +129,9 @@ data class Item(
     val armorWeight: String? = null,   // "leve" | "média" | "pesada"
     // Shared equip field (type == "weapon" | "armor" | "accessory")
     val attributeBonus: Map<String, Int>? = null,
-    val equipSlot: String? = null      // "mainHand"|"offHand"|"armor"|"amulet"|"ring"|"utility"
+    val equipSlot: String? = null,     // "mainHand"|"offHand"|"armor"|"amulet"|"ring"|"utility"
+    val rarity: String? = null,
+    val twoHanded: Boolean? = null
 )
 
 data class PendingRequest(

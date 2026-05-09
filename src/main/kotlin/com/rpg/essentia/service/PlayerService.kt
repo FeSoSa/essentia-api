@@ -139,35 +139,40 @@ class PlayerService(
         val player = load(id)
         val item = player.items.firstOrNull { it.id == itemId }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Item não encontrado no inventário")
-        val slot = item.equipSlot
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Item não tem slot de equipamento")
+        val slot = item.equipSlot ?: when (item.type) {
+            "armor"  -> "armor"
+            "weapon" -> "mainHand"
+            else     -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Item não tem slot de equipamento")
+        }
 
         val previousItem: Item? = when (slot) {
             "mainHand" -> player.equipment.mainHand?.let {
                 Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
                     weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice,
-                    damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus)
+                    damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus,
+                    rarity = it.rarity, twoHanded = it.twoHanded)
             }
             "offHand" -> player.equipment.offHand?.let {
                 Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
                     weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice,
-                    damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus)
+                    damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus,
+                    rarity = it.rarity, twoHanded = it.twoHanded)
             }
             "armor" -> player.equipment.armor?.let {
                 Item(id = it.id, name = it.name, type = "armor", equipSlot = slot,
-                    damageReduction = it.damageReduction, attributeBonus = it.attributeBonus)
+                    damageReduction = it.damageReduction, attributeBonus = it.attributeBonus, rarity = it.rarity)
             }
             "amulet" -> player.equipment.amulet?.let {
                 Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus)
+                    attributeBonus = it.attributeBonus, rarity = it.rarity)
             }
             "ring" -> player.equipment.ring?.let {
                 Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus)
+                    attributeBonus = it.attributeBonus, rarity = it.rarity)
             }
             "utility" -> player.equipment.utility?.let {
                 Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus)
+                    attributeBonus = it.attributeBonus, rarity = it.rarity)
             }
             else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot inválido: $slot")
         }
@@ -176,20 +181,23 @@ class PlayerService(
             "mainHand" -> player.equipment.copy(mainHand = WeaponEquip(
                 id = item.id, name = item.name, weaponType = item.weaponType ?: "",
                 damageBase = item.damageBase ?: 0, damageDice = item.damageDice ?: Dice(1, "d6"),
-                damageAttribute = item.damageAttribute ?: "", attributeBonus = item.attributeBonus))
+                damageAttribute = item.damageAttribute ?: "", attributeBonus = item.attributeBonus,
+                rarity = item.rarity, twoHanded = item.twoHanded ?: false))
             "offHand" -> player.equipment.copy(offHand = WeaponEquip(
                 id = item.id, name = item.name, weaponType = item.weaponType ?: "",
                 damageBase = item.damageBase ?: 0, damageDice = item.damageDice ?: Dice(1, "d6"),
-                damageAttribute = item.damageAttribute ?: "", attributeBonus = item.attributeBonus))
+                damageAttribute = item.damageAttribute ?: "", attributeBonus = item.attributeBonus,
+                rarity = item.rarity, twoHanded = item.twoHanded ?: false))
             "armor" -> player.equipment.copy(armor = ArmorEquip(
                 id = item.id, name = item.name,
-                damageReduction = item.damageReduction ?: 0, attributeBonus = item.attributeBonus))
+                damageReduction = item.damageReduction ?: 0, attributeBonus = item.attributeBonus,
+                armorWeight = item.armorWeight, rarity = item.rarity))
             "amulet" -> player.equipment.copy(amulet = AccessoryEquip(
-                id = item.id, name = item.name, attributeBonus = item.attributeBonus))
+                id = item.id, name = item.name, attributeBonus = item.attributeBonus, rarity = item.rarity))
             "ring" -> player.equipment.copy(ring = AccessoryEquip(
-                id = item.id, name = item.name, attributeBonus = item.attributeBonus))
+                id = item.id, name = item.name, attributeBonus = item.attributeBonus, rarity = item.rarity))
             "utility" -> player.equipment.copy(utility = AccessoryEquip(
-                id = item.id, name = item.name, attributeBonus = item.attributeBonus))
+                id = item.id, name = item.name, attributeBonus = item.attributeBonus, rarity = item.rarity))
             else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot inválido: $slot")
         }
 

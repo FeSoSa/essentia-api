@@ -19,5 +19,7 @@ data class ItemCatalog(
     val damageReduction: Int? = null,
     val attributeBonus: Map<String, Int>? = null,
     val equipSlot: String? = null,
-    val armorWeight: String? = null   // "leve" | "média" | "pesada"
+    val armorWeight: String? = null,  // "leve" | "média" | "pesada"
+    val rarity: String? = null,       // "branco" | "verde" | "azul" | "roxo" | "amarelo" | "rosa"
+    val twoHanded: Boolean? = null
 )

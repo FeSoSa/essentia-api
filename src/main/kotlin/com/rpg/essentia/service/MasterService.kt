@@ -76,8 +76,8 @@ class MasterService(
         val state = gameStateService.getOrCreate()
         gameStateService.save(state.copy(initiative = entries))
         broadcaster.broadcastInitiative(entries)
-        // Reset desvios for all players at combat start
-        if (entries.isNotEmpty()) {
+        // Reset desvios at combat start AND at combat end
+        if (entries.isNotEmpty() || state.initiative.isNotEmpty()) {
             playerRepository.findAll().forEach { p ->
                 saveAndBroadcast(p.copy(desviosRestantes = 3))
             }
@@ -149,8 +149,11 @@ class MasterService(
             damageAttribute = req.damageAttribute,
             properties = req.properties,
             damageReduction = req.damageReduction,
+            armorWeight = req.armorWeight,
             attributeBonus = req.attributeBonus,
-            equipSlot = req.equipSlot
+            equipSlot = req.equipSlot,
+            rarity = req.rarity,
+            twoHanded = req.twoHanded
         )
         val saved = saveAndBroadcast(player.copy(items = player.items + newItem))
         gameStateService.addLogEntry(playerId, "${player.char.name} recebeu ${req.name}${if (req.qty > 1) " ×${req.qty}" else ""}", "item")
