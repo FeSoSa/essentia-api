@@ -5,6 +5,8 @@ import com.rpg.essentia.service.MaestriaService
 import com.rpg.essentia.service.PlayerService
 import com.rpg.essentia.service.SkillTreeService
 import com.rpg.essentia.service.SkillUseService
+import com.rpg.essentia.service.DamageService
+import com.rpg.essentia.service.SobrecargaService
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -13,7 +15,9 @@ class PlayerController(
     private val playerService: PlayerService,
     private val skillUseService: SkillUseService,
     private val maestriaService: MaestriaService,
-    private val skillTreeService: SkillTreeService
+    private val skillTreeService: SkillTreeService,
+    private val sobrecargaService: SobrecargaService,
+    private val damageService: DamageService
 ) {
     @PutMapping("/hp")
     fun adjustHp(@PathVariable id: String, @RequestBody req: DeltaRequest): Player =
@@ -70,4 +74,23 @@ class PlayerController(
     @PostMapping("/desvio")
     fun desvio(@PathVariable id: String): Player =
         playerService.executeDesvio(id)
+
+    @PostMapping("/sobrecarga/request")
+    fun requestSobrecarga(@PathVariable id: String, @RequestBody req: SobrecargaRequestBody): Player {
+        sobrecargaService.setPendingNivel(id, req.nivel)
+        return sobrecargaService.requestSobrecarga(id, req.nivel)
+    }
+
+    @PostMapping("/sobrecarga/deactivate")
+    fun deactivateSobrecarga(@PathVariable id: String): Player =
+        sobrecargaService.deactivateSobrecarga(id)
+
+    @PostMapping("/damage-request")
+    fun requestDamage(@PathVariable id: String, @RequestBody req: DamageRequestBody) {
+        damageService.requestDamage(id, req)
+    }
+
+    @PostMapping("/skill-miss")
+    fun skillMiss(@PathVariable id: String, @RequestBody costs: Map<String, Int>): Player =
+        playerService.deductCosts(id, costs)
 }

@@ -77,6 +77,7 @@ class GameStateService(
             answers = emptyMap()
         ),
         initiative = emptyList(),
+        currentTurnIndex = 0,
         log = emptyList()
     )
 }

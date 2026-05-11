@@ -39,4 +39,16 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
 
     fun broadcastCollectiveBars(bars: List<CollectiveBar>) =
         messagingTemplate.convertAndSend("/topic/collective-bars", bars)
+
+    fun broadcastSobrecargaRequest(req: SobrecargaBroadcast) =
+        messagingTemplate.convertAndSend("/topic/sobrecarga-request", req)
+
+    fun broadcastSobrecargaResult(playerId: String, result: SobrecargaResult) =
+        messagingTemplate.convertAndSend("/topic/player/$playerId/sobrecarga-result", result)
+
+    fun broadcastDamageRequest(req: DamageApprovalRequest) =
+        messagingTemplate.convertAndSend("/topic/damage-request", req)
+
+    fun broadcastDamageResult(playerId: String, result: DamageResultNotification) =
+        messagingTemplate.convertAndSend("/topic/player/$playerId/damage-result", result)
 }

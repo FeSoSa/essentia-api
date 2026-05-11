@@ -8,11 +8,15 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
+private const val BOSS_XP_PER_LEVEL = 100
+private const val BOSS_POINTS_PER_LEVEL = 5
+
 @Service
 class BossService(
     private val templateRepository: BossTemplateRepository,
     private val instanceRepository: BossInstanceRepository,
     private val playerRepository: PlayerRepository,
+    private val gameStateService: GameStateService,
     private val broadcaster: WebSocketBroadcaster
 ) {
 
@@ -112,13 +116,26 @@ class BossService(
         }
 
         if (req.distributeXp && boss.xp > 0) {
-            playerRepository.findAll().forEach { player ->
-                playerRepository.save(
-                    player.copy(exp = player.exp.copy(
-                        available = player.exp.available + boss.xp,
-                        total = player.exp.total + boss.xp
-                    ))
-                )
+            val players = playerRepository.findAll()
+            val share = if (players.isEmpty()) 0 else boss.xp / players.size
+            if (share > 0) {
+                players.forEach { player ->
+                    val newTotal = player.exp.total + share
+                    var newLevel = player.char.level
+                    var newAvailable = player.exp.available
+                    while (newTotal >= newLevel * BOSS_XP_PER_LEVEL) {
+                        newLevel++
+                        newAvailable += BOSS_POINTS_PER_LEVEL
+                    }
+                    val leveled = newLevel > player.char.level
+                    val updated = player.copy(
+                        exp  = player.exp.copy(available = newAvailable, total = newTotal),
+                        char = if (leveled) player.char.copy(level = newLevel) else player.char
+                    )
+                    val saved = playerRepository.save(updated)
+                    broadcaster.broadcastPlayer(saved)
+                    if (leveled) gameStateService.addLogEntry(player.id, "${player.char.name} subiu para nível $newLevel!", "level")
+                }
             }
         }
 

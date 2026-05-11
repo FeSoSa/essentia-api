@@ -54,6 +54,8 @@ data class GameState(
     val images: List<GameImage> = emptyList(),
     val fastAction: FastAction = FastAction(),
     val initiative: List<InitiativeEntry> = emptyList(),
+    val currentTurnIndex: Int = 0,
+    val totalTurns: Int = 0,
     val log: List<LogEntry> = emptyList(),
     val collectiveBars: List<CollectiveBar> = emptyList()
 )

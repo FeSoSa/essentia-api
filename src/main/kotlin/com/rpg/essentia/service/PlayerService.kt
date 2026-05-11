@@ -5,6 +5,8 @@ import com.rpg.essentia.repository.BossInstanceRepository
 import com.rpg.essentia.repository.EnemyInstanceRepository
 import com.rpg.essentia.repository.EssenciaRepository
 import com.rpg.essentia.repository.PlayerRepository
+import com.rpg.essentia.repository.PlayerSkillRepository
+import com.rpg.essentia.repository.SkillRepository
 import com.rpg.essentia.websocket.WebSocketBroadcaster
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -19,6 +21,8 @@ private val VALID_ATTRIBUTES = setOf(
 @Service
 class PlayerService(
     private val playerRepository: PlayerRepository,
+    private val playerSkillRepository: PlayerSkillRepository,
+    private val skillRepository: SkillRepository,
     private val attributeService: AttributeService,
     private val essenciaRepository: EssenciaRepository,
     private val gameStateService: GameStateService,
@@ -27,7 +31,7 @@ class PlayerService(
     private val bossRepository: BossInstanceRepository,
 ) {
     private fun combatActive(): Boolean =
-        enemyRepository.count() > 0 || bossRepository.count() > 0
+        gameStateService.getOrCreate().initiative.isNotEmpty()
 
     fun load(id: String): Player =
         playerRepository.findById(id).orElseThrow {
@@ -114,6 +118,37 @@ class PlayerService(
         if (combatActive())
             throw ResponseStatusException(HttpStatus.CONFLICT, "Não é possível alterar habilidades durante o combate.")
         val player = load(id)
+
+        // Validate: class slots only accept class skills
+        if (skillId != null) {
+            val slot = player.slots.firstOrNull { it.id == slotId }
+                ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot não encontrado")
+            if (slot.type == "class") {
+                val skill = skillRepository.findById(skillId).orElseThrow {
+                    ResponseStatusException(HttpStatus.NOT_FOUND, "Habilidade não encontrada")
+                }
+                if (skill.type != "class")
+                    throw ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Slots de classe só aceitam habilidades de classe"
+                    )
+            }
+        }
+
+        // Clear slotId from the skill previously in this slot
+        val previousSkillId = player.slots.firstOrNull { it.id == slotId }?.skillId
+        if (previousSkillId != null && previousSkillId != skillId) {
+            playerSkillRepository.findByPlayerIdAndSkillId(id, previousSkillId)?.let { ps ->
+                playerSkillRepository.save(ps.copy(slotId = null, equipped = false))
+            }
+        }
+        // Set slotId on the new skill being equipped
+        if (skillId != null) {
+            playerSkillRepository.findByPlayerIdAndSkillId(id, skillId)?.let { ps ->
+                playerSkillRepository.save(ps.copy(slotId = slotId, equipped = true))
+            }
+        }
+
         val newSlots = player.slots.map { slot ->
             if (slot.id == slotId) slot.copy(skillId = skillId) else slot
         }
@@ -256,10 +291,36 @@ class PlayerService(
             else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot inválido: $slot")
         }
 
-        val updated = player.copy(equipment = newEquipment, items = player.items + previousItem)
+        var finalPlayer = player.copy(equipment = newEquipment, items = player.items + previousItem)
+
+        // Se desquipou uma arma, remove skills de arma que não têm mais suporte
+        if (slot in setOf("mainHand", "offHand")) {
+            val remainingWeaponTypes = listOfNotNull(
+                finalPlayer.equipment.mainHand?.weaponType?.takeIf { it.isNotBlank() }?.lowercase(),
+                finalPlayer.equipment.offHand?.weaponType?.takeIf { it.isNotBlank() }?.lowercase()
+            ).toSet()
+            val allPlayerSkills = playerSkillRepository.findByPlayerId(id)
+            val lostSkillIds = allPlayerSkills.mapNotNull { ps ->
+                val skill = skillRepository.findById(ps.skillId).orElse(null)
+                if (skill != null && skill.type == "weapon" &&
+                    !skill.weaponType.isNullOrBlank() &&
+                    skill.weaponType.lowercase() !in remainingWeaponTypes)
+                    ps.skillId else null
+            }.toSet()
+            if (lostSkillIds.isNotEmpty()) {
+                allPlayerSkills.filter { it.skillId in lostSkillIds }
+                    .forEach { playerSkillRepository.deleteById(it.id) }
+                finalPlayer = finalPlayer.copy(
+                    slots = finalPlayer.slots.map { s ->
+                        if (s.skillId in lostSkillIds) s.copy(skillId = null, cooldownRemaining = 0) else s
+                    }
+                )
+            }
+        }
+
         val essencias = essenciaRepository.findAll()
-        val effective = attributeService.computeEffectiveAttributes(updated, essencias)
-        return saveAndBroadcast(attributeService.recalculateVitals(updated, effective))
+        val effective = attributeService.computeEffectiveAttributes(finalPlayer, essencias)
+        return saveAndBroadcast(attributeService.recalculateVitals(finalPlayer, effective))
     }
 
     fun recalculate(id: String): Player {
@@ -284,6 +345,26 @@ class PlayerService(
         if (player.desviosRestantes <= 0)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Sem desvios restantes")
         return saveAndBroadcast(player.copy(desviosRestantes = player.desviosRestantes - 1))
+    }
+
+    fun deductCosts(id: String, costs: Map<String, Int>): Player {
+        var player = load(id)
+        costs["flow"]?.let { c ->
+            player = player.copy(flow = player.flow.copy(current = (player.flow.current - c).coerceAtLeast(0)))
+        }
+        costs["percentual_flow"]?.let { c ->
+            player = player.copy(flow = player.flow.copy(current = (player.flow.current - c).coerceAtLeast(0)))
+        }
+        costs["hp"]?.let { c ->
+            player = player.copy(hp = player.hp.copy(current = (player.hp.current - c).coerceAtLeast(0)))
+        }
+        costs["percentual_hp"]?.let { c ->
+            player = player.copy(hp = player.hp.copy(current = (player.hp.current - c).coerceAtLeast(0)))
+        }
+        costs["ether"]?.let { c ->
+            player = player.copy(ether = player.ether.copy(current = (player.ether.current - c).coerceAtLeast(0)))
+        }
+        return saveAndBroadcast(player)
     }
 
     fun saveAndBroadcast(player: Player): Player {

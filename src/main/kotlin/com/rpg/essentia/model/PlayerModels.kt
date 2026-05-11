@@ -12,7 +12,8 @@ data class CharInfo(
     val slotsClass: Int = 2,
     val slotsFree: Int = 6,
     val slotsTotal: Int = 8,
-    val portraitUrl: String? = null
+    val portraitUrl: String? = null,
+    val unarmedDamage: String? = null
 )
 
 data class Vital(val current: Int = 0, val max: Int = 0)
@@ -152,6 +153,7 @@ data class Player(
     val pressao: Vital? = null,
     val exp: Exp = Exp(),
     val attributes: Attributes = Attributes(),
+    val effectiveAttributes: Attributes? = null,
     val essenciasObtidas: List<EssenciaObtida> = emptyList(),
     val slots: List<Slot> = emptyList(),
     val equipment: Equipment = Equipment(),
@@ -161,6 +163,8 @@ data class Player(
     val gold: Int = 0,
     val desviosRestantes: Int = 3,
     val sobrecargaDesbloqueada: Boolean = false,
+    val sobrecargaAtiva: Boolean = false,
+    val sobrecargaNivel: Int? = null,
     val customBars: List<CustomBar> = emptyList()
 )
 

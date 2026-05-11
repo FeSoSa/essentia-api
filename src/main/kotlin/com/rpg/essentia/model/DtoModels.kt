@@ -8,7 +8,7 @@ data class DeltaRequest(val delta: Int)
 data class AttributeDeltaRequest(val attribute: String, val delta: Int)
 
 // Skills
-data class UseSkillRequest(val slotId: String)
+data class UseSkillRequest(val slotId: String, val diceRoll: Int? = null)
 data class SlotUpdateRequest(val slotId: String, val skillId: String?)
 data class MaestriaUpgradeRequest(val playerSkillId: String, val path: String)
 
@@ -95,6 +95,53 @@ data class ImageUpdateRequest(val url: String, val title: String)
 // Fast action
 data class VoteRequest(val playerId: String, val optionId: String)
 
+// Damage approval
+data class DamageApprovalRequest(
+    val requestId: String,
+    val playerId: String,
+    val playerName: String,
+    val targetId: String,
+    val targetType: String,   // "enemy" | "boss"
+    val targetName: String,
+    val damage: Int,
+    val costs: Map<String, Int> = emptyMap()
+)
+data class DamageRequestBody(
+    val requestId: String,
+    val targetId: String,
+    val targetType: String,
+    val targetName: String,
+    val damage: Int,
+    val costs: Map<String, Int> = emptyMap()
+)
+data class DamageApproveBody(
+    val requestId: String,
+    val playerId: String,
+    val targetId: String,
+    val targetType: String,
+    val damage: Int,
+    val costs: Map<String, Int> = emptyMap()  // custo resolvido a debitar ao aprovar
+)
+data class DamageResultNotification(val requestId: String, val approved: Boolean)
+
+// Sobrecarga
+data class SobrecargaRequestBody(val nivel: Int)
+data class SobrecargaRejectRequest(val roll: Int, val danoDado: String)
+data class SobrecargaResult(
+    val approved: Boolean,
+    val nivel: Int,
+    val roll: Int? = null,
+    val cd: Int? = null,
+    val damageTaken: Int? = null
+)
+data class SobrecargaBroadcast(
+    val playerId: String,
+    val playerName: String,
+    val nivel: Int,
+    val cd: Int,
+    val sabMod: Int
+)
+
 // Responses
 data class DamageResult(
     val skillName: String,
@@ -103,7 +150,7 @@ data class DamageResult(
     val cooldownSet: Int
 )
 
-data class TurnUpdate(val message: String)
+data class TurnUpdate(val message: String, val currentTurnIndex: Int = 0, val totalTurns: Int = 0)
 
 // Skill tree
 data class UnlockSkillRequest(val skillId: String)
@@ -128,7 +175,11 @@ data class PlayerSkillTreeEntry(
     val slotId: String?,
     val requirementsText: String?,
     val maestria: MaestriaSimple?,
-    val isPassive: Boolean = false
+    val isPassive: Boolean = false,
+    val danoFormula: String? = null,
+    val danoBase: Int? = null,
+    val cooldownTurns: Int = 0,
+    val skillType: String = "class"   // "class" | "weapon" | "essencia" | "mestre"
 )
 
 data class MaestriaSimple(

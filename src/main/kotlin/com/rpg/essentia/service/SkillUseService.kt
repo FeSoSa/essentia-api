@@ -29,17 +29,20 @@ class SkillUseService(
 
         // 1. Find and validate slot
         val slot = player.slots.firstOrNull { it.id == request.slotId }
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot not found")
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot não encontrado")
         if (slot.cooldownRemaining > 0)
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
-                "Skill is on cooldown (${slot.cooldownRemaining} turns remaining)"
+                "Habilidade em cooldown (${slot.cooldownRemaining} turno${if (slot.cooldownRemaining > 1) "s" else ""} restante${if (slot.cooldownRemaining > 1) "s" else ""})"
             )
         val skillId = slot.skillId
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot is empty")
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot vazio")
 
-        // 2. Load PlayerSkill and Skill
+        // 2. Load PlayerSkill and Skill — fallback to skillId lookup for skills equipped before slotId sync was added
         val playerSkill = playerSkillRepository.findByPlayerIdAndSlotId(playerId, slot.id)
+            ?: playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId)?.also { ps ->
+                playerSkillRepository.save(ps.copy(slotId = slot.id, equipped = true))
+            }
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "PlayerSkill not found for this slot")
         val skill = skillRepository.findById(skillId).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found")
@@ -70,23 +73,23 @@ class SkillUseService(
         // 5. Validate sufficient resources
         costMap["flow"]?.let { c ->
             if (player.flow.current < c)
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient flow ($c required, ${player.flow.current} available)")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Fluxo insuficiente ($c requerido, ${player.flow.current} disponível)")
         }
         costMap["hp"]?.let { c ->
             if (player.hp.current < c)
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient HP")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "HP insuficiente ($c requerido)")
         }
         costMap["ether"]?.let { c ->
             if (!player.ether.unlocked || player.ether.current < c)
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient ether")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Éter insuficiente ($c requerido)")
         }
         costMap["percentual_flow"]?.let { c ->
             if (player.flow.current < c)
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient flow")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Fluxo insuficiente ($c requerido, ${player.flow.current} disponível)")
         }
         costMap["percentual_hp"]?.let { c ->
             if (player.hp.current < c)
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient HP")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "HP insuficiente ($c requerido)")
         }
 
         // 6. Calculate damage
@@ -96,7 +99,11 @@ class SkillUseService(
             val dmg = skill.damage
             var danoCalculado = dmg.baseFixed
             dmg.attribute?.let { attr -> danoCalculado += attrMap[attr] ?: 0 }
-            dmg.baseDice?.let { dice -> danoCalculado += rollDice(dice) }
+            // Use player-provided dice roll when available; otherwise roll internally
+            when {
+                request.diceRoll != null -> danoCalculado += request.diceRoll
+                dmg.baseDice != null     -> danoCalculado += rollDice(dmg.baseDice)
+            }
             val danoFinal = if (computed.bonusDano > 0.0)
                 Math.round(danoCalculado * (1.0 + computed.bonusDano)).toInt()
             else
@@ -106,23 +113,8 @@ class SkillUseService(
             null to null
         }
 
-        // 7. Deduct costs
+        // 7. Custo será debitado pelo mestre ao aprovar o dano (não debitar aqui)
         var updatedPlayer = player
-        costMap["flow"]?.let { c ->
-            updatedPlayer = updatedPlayer.copy(flow = updatedPlayer.flow.copy(current = (updatedPlayer.flow.current - c).coerceAtLeast(0)))
-        }
-        costMap["hp"]?.let { c ->
-            updatedPlayer = updatedPlayer.copy(hp = updatedPlayer.hp.copy(current = (updatedPlayer.hp.current - c).coerceAtLeast(0)))
-        }
-        costMap["ether"]?.let { c ->
-            updatedPlayer = updatedPlayer.copy(ether = updatedPlayer.ether.copy(current = (updatedPlayer.ether.current - c).coerceAtLeast(0)))
-        }
-        costMap["percentual_flow"]?.let { c ->
-            updatedPlayer = updatedPlayer.copy(flow = updatedPlayer.flow.copy(current = (updatedPlayer.flow.current - c).coerceAtLeast(0)))
-        }
-        costMap["percentual_hp"]?.let { c ->
-            updatedPlayer = updatedPlayer.copy(hp = updatedPlayer.hp.copy(current = (updatedPlayer.hp.current - c).coerceAtLeast(0)))
-        }
 
         // 7b. Criar buff de atributo se a skill tiver buffAttributes
         if (skill.buffAttributes != null && !skill.buffAttributes.isEmpty()) {

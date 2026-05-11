@@ -3,6 +3,7 @@ package com.rpg.essentia.service
 import com.rpg.essentia.model.*
 import com.rpg.essentia.repository.PlayerRepository
 import com.rpg.essentia.repository.PlayerSkillRepository
+import com.rpg.essentia.repository.SkillRepository
 import com.rpg.essentia.websocket.WebSocketBroadcaster
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -13,6 +14,7 @@ import java.util.UUID
 class PlayerCreationService(
     private val playerRepository: PlayerRepository,
     private val playerSkillRepository: PlayerSkillRepository,
+    private val skillRepository: SkillRepository,
     private val classKitService: ClassKitService,
     private val broadcaster: WebSocketBroadcaster
 ) {
@@ -52,12 +54,14 @@ class PlayerCreationService(
             code = req.code,
             char = CharInfo(
                 name = req.name,
+                classe = req.skillClass,
                 skillClass = req.skillClass,
                 race = req.race,
                 level = 1,
                 slotsClass = slotsClass,
                 slotsFree = slotsFree,
-                slotsTotal = slotsTotal
+                slotsTotal = slotsTotal,
+                unarmedDamage = kit.perks.unarmedDamage
             ),
             hp   = Vital(current = hpMax,  max = hpMax),
             flow = Vital(current = flowMax, max = flowMax),
@@ -66,6 +70,7 @@ class PlayerCreationService(
                 max      = minOf(req.attributes.wisdom / 4, 10),
                 current  = minOf(req.attributes.wisdom / 4, 10)
             ),
+            pressao = if (kit.perks.hasPressureBar) Vital(current = 0, max = 10) else null,
             attributes = req.attributes,
             equipment  = req.equipment,
             items      = req.items,
@@ -117,17 +122,27 @@ class PlayerCreationService(
                        resize(existingFree,  newSlotsFree,  "free")  +
                        bonusSlots
 
+        val kitPerks = try { classKitService.getByClass(req.skillClass).perks } catch (_: Exception) { null }
+
+        val updatedPressao = when {
+            kitPerks?.hasPressureBar == true && existing.pressao == null -> Vital(current = 0, max = 10)
+            kitPerks?.hasPressureBar == true -> existing.pressao
+            else -> null
+        }
+
         val updated = existing.copy(
             code = req.code,
             char = existing.char.copy(
-                name        = req.name,
-                skillClass  = req.skillClass,
-                race        = req.race,
-                portraitUrl = req.portraitUrl ?: existing.char.portraitUrl,
-                level       = req.level       ?: existing.char.level,
-                slotsClass  = newSlotsClass,
-                slotsFree   = newSlotsFree,
-                slotsTotal  = newSlotsClass + newSlotsFree
+                name          = req.name,
+                classe        = req.skillClass,
+                skillClass    = req.skillClass,
+                race          = req.race,
+                portraitUrl   = req.portraitUrl ?: existing.char.portraitUrl,
+                level         = req.level       ?: existing.char.level,
+                slotsClass    = newSlotsClass,
+                slotsFree     = newSlotsFree,
+                slotsTotal    = newSlotsClass + newSlotsFree,
+                unarmedDamage = kitPerks?.unarmedDamage ?: existing.char.unarmedDamage
             ),
             hp    = existing.hp.copy(max = hpMax),
             flow  = existing.flow.copy(max = flowMax),
@@ -136,6 +151,7 @@ class PlayerCreationService(
                 max      = minOf(req.attributes.wisdom / 4, 10),
                 current  = minOf(existing.ether.current, minOf(req.attributes.wisdom / 4, 10))
             ),
+            pressao    = updatedPressao,
             attributes = req.attributes,
             exp = Exp(
                 available = req.expAvailable ?: existing.exp.available,
@@ -144,10 +160,33 @@ class PlayerCreationService(
             slots = newSlots,
             sobrecargaDesbloqueada = req.sobrecargaDesbloqueada ?: existing.sobrecargaDesbloqueada
         )
-        playerRepository.save(updated)
-        broadcaster.broadcastPlayer(updated)
+        // Se a classe mudou, remove skills exclusivas da classe antiga
+        if (req.skillClass != existing.char.skillClass) {
+            val newClass = req.skillClass
+            val allPlayerSkills = playerSkillRepository.findByPlayerId(id)
+            val lostSkillIds = allPlayerSkills.mapNotNull { ps ->
+                val skill = skillRepository.findById(ps.skillId).orElse(null)
+                if (skill != null && skill.type == "class" && !skill.skillClass.isNullOrBlank() && skill.skillClass != newClass)
+                    ps.skillId else null
+            }.toSet()
+            if (lostSkillIds.isNotEmpty()) {
+                allPlayerSkills.filter { it.skillId in lostSkillIds }
+                    .forEach { playerSkillRepository.deleteById(it.id) }
+                val clearedSlots = updated.slots.map { slot ->
+                    if (slot.skillId in lostSkillIds) slot.copy(skillId = null, cooldownRemaining = 0) else slot
+                }
+                val withCleared = updated.copy(slots = clearedSlots)
+                val saved = playerRepository.save(withCleared)
+                broadcaster.broadcastPlayer(saved)
+                broadcaster.broadcastPlayers(playerRepository.findAll())
+                return saved
+            }
+        }
+
+        val saved = playerRepository.save(updated)
+        broadcaster.broadcastPlayer(saved)
         broadcaster.broadcastPlayers(playerRepository.findAll())
-        return updated
+        return saved
     }
 
     fun resetAttributes(id: String): Player {

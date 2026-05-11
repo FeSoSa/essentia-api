@@ -32,7 +32,7 @@ class SkillTreeService(
         val relevantSkills = skillRepository.findAll().filter { skill ->
             when (skill.type) {
                 "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
-                "weapon"   -> skill.weaponType in equippedWeaponTypes
+                "weapon"   -> skill.weaponType?.lowercase() in equippedWeaponTypes
                 "essencia" -> skill.essenciaId in obtainedEssenciaIds
                 else       -> false
             }
@@ -60,7 +60,7 @@ class SkillTreeService(
         val relevantSkills = skillRepository.findAll().filter { skill ->
             when (skill.type) {
                 "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
-                "weapon"   -> skill.weaponType in equippedWeaponTypes
+                "weapon"   -> skill.weaponType?.lowercase() in equippedWeaponTypes
                 "essencia" -> skill.essenciaId in obtainedEssenciaIds
                 "mestre"   -> true   // habilidades de mestre sempre visíveis no painel do mestre
                 else       -> false
@@ -105,11 +105,19 @@ class SkillTreeService(
     }
 
     private fun toFlat(skill: Skill, entry: SkillTreeEntry, ps: PlayerSkill?, player: Player): PlayerSkillTreeEntry {
+        val netCostMod = (ps?.maestria?.computed?.custoAumento ?: 0.0) -
+                         (ps?.maestria?.computed?.reducaoCusto  ?: 0.0)
         val custo = skill.costs.joinToString(", ") { c ->
             when {
                 c.percentual != null -> "${c.percentual}% ${costLabel(c.type)}"
-                c.value != null      -> "${c.value} ${costLabel(c.type)}"
-                else                 -> costLabel(c.type)
+                c.value != null -> {
+                    val effective = if (netCostMod != 0.0)
+                        maxOf(0, Math.round(c.value * (1.0 + netCostMod)).toInt())
+                    else
+                        c.value
+                    "$effective ${costLabel(c.type)}"
+                }
+                else -> costLabel(c.type)
             }
         }.ifEmpty { "—" }
 
@@ -120,11 +128,12 @@ class SkillTreeService(
             else       -> "Geral"
         }
 
+        val effectiveAttrMap = (player.effectiveAttributes ?: player.attributes).toMap()
         val reqText = entry.missing?.let { m ->
             listOfNotNull(
                 m.level?.let { "Nível ${player.char.level + it}+" },
                 m.attributes?.entries?.joinToString(", ") { (a, v) ->
-                    "${attrLabel(a)} ${(player.attributes.toMap()[a] ?: 0) + v}+"
+                    "${attrLabel(a)} ${(effectiveAttrMap[a] ?: 0) + v}+"
                 },
                 m.weaponRequired?.let { "Arma: $it" }
             ).joinToString(" · ").ifEmpty { null }
@@ -153,7 +162,23 @@ class SkillTreeService(
                     reducaoCusto  = c.reducaoCusto,
                 )
             },
-            isPassive = skill.passive || !skill.passiveAttributes.isNullOrEmpty()
+            isPassive     = skill.passive || !skill.passiveAttributes.isNullOrEmpty(),
+            skillType     = skill.type,
+            danoFormula   = skill.damage?.let { d ->
+                d.formula.takeIf { it.isNotBlank() } ?: buildString {
+                    if (d.baseFixed != 0) append(d.baseFixed)
+                    d.baseDice?.let { dice ->
+                        if (isNotEmpty()) append(" + ")
+                        append("${dice.quantity}${dice.die}")
+                    }
+                    d.attribute?.let { attr ->
+                        if (isNotEmpty()) append(" + ")
+                        append(attr.take(3).uppercase())
+                    }
+                }.ifEmpty { null }
+            },
+            danoBase      = skill.damage?.baseFixed?.takeIf { it != 0 },
+            cooldownTurns = skill.cooldownTurns
         )
     }
 
@@ -265,7 +290,7 @@ class SkillTreeService(
             ?.ifEmpty { null }
         val missingWeapon = req.weaponRequired?.let { needed ->
             val equipped = weaponTypesEquipped(player)
-            if (needed !in equipped) needed else null
+            if (needed.lowercase() !in equipped) needed else null
         }
 
         return if (missingLevel == null && missingAttrs == null && missingWeapon == null) {
@@ -277,8 +302,8 @@ class SkillTreeService(
 
     private fun weaponTypesEquipped(player: Player): Set<String> =
         listOfNotNull(
-            player.equipment.mainHand?.weaponType,
-            player.equipment.offHand?.weaponType
+            player.equipment.mainHand?.weaponType?.takeIf { it.isNotBlank() }?.lowercase(),
+            player.equipment.offHand?.weaponType?.takeIf { it.isNotBlank() }?.lowercase()
         ).toSet()
 
     private fun loadPlayer(id: String): Player =

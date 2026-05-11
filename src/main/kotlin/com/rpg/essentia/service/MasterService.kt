@@ -74,7 +74,7 @@ class MasterService(
 
     fun setInitiative(entries: List<InitiativeEntry>) {
         val state = gameStateService.getOrCreate()
-        gameStateService.save(state.copy(initiative = entries))
+        gameStateService.save(state.copy(initiative = entries, currentTurnIndex = 0, totalTurns = 0))
         broadcaster.broadcastInitiative(entries)
         // Reset desvios at combat start AND at combat end
         if (entries.isNotEmpty() || state.initiative.isNotEmpty()) {

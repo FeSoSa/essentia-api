@@ -9,6 +9,8 @@ import com.rpg.essentia.service.MasterService
 import com.rpg.essentia.service.PlayerCreationService
 import com.rpg.essentia.service.PlayerService
 import com.rpg.essentia.service.SkillTreeService
+import com.rpg.essentia.service.DamageService
+import com.rpg.essentia.service.SobrecargaService
 import com.rpg.essentia.service.TurnService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -25,7 +27,9 @@ class MasterController(
     private val essenciaService: EssenciaService,
     private val gameStateService: GameStateService,
     private val skillTreeService: SkillTreeService,
-    private val playerSkillRepository: PlayerSkillRepository
+    private val playerSkillRepository: PlayerSkillRepository,
+    private val sobrecargaService: SobrecargaService,
+    private val damageService: DamageService
 ) {
     @GetMapping("/players")
     fun getPlayers(): List<Player> = masterService.getPlayers()
@@ -111,6 +115,19 @@ class MasterController(
     @PostMapping("/reset-skills")
     fun resetSkills(@RequestBody req: ResetSkillsRequest) =
         masterService.resetSkills(req.playerId)
+
+    @GetMapping("/initiative")
+    fun getInitiative(): List<InitiativeEntry> = gameStateService.getOrCreate().initiative
+
+    @GetMapping("/turn-state")
+    fun getTurnState(): Map<String, Any> {
+        val state = gameStateService.getOrCreate()
+        return mapOf(
+            "initiative"        to state.initiative,
+            "currentTurnIndex"  to state.currentTurnIndex,
+            "totalTurns"        to state.totalTurns
+        )
+    }
 
     @PutMapping("/initiative")
     fun setInitiative(@RequestBody entries: List<InitiativeEntry>) =
@@ -226,6 +243,21 @@ class MasterController(
     @DeleteMapping("/players/{id}/custom-bars/{barId}")
     fun removeCustomBar(@PathVariable id: String, @PathVariable barId: String): Player =
         masterService.removeCustomBar(id, barId)
+
+    @PostMapping("/damage/approve")
+    fun approveDamage(@RequestBody req: DamageApproveBody) = damageService.approveDamage(req)
+
+    @PostMapping("/damage/reject")
+    fun rejectDamage(@RequestBody req: Map<String, String>) =
+        damageService.rejectDamage(req["requestId"] ?: "", req["playerId"] ?: "")
+
+    @PostMapping("/players/{id}/sobrecarga/approve")
+    fun approveSobrecarga(@PathVariable id: String): Player =
+        sobrecargaService.approveSobrecarga(id)
+
+    @PostMapping("/players/{id}/sobrecarga/reject")
+    fun rejectSobrecarga(@PathVariable id: String, @RequestBody req: SobrecargaRejectRequest): Player =
+        sobrecargaService.rejectSobrecarga(id, req.roll, req.danoDado)
 
     @PostMapping("/players/{id}/essencias")
     fun grantEssencia(

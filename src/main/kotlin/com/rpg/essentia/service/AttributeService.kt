@@ -54,12 +54,15 @@ class AttributeService(private val skillRepository: SkillRepository) {
         return base.toAttributes()
     }
 
-    fun recalculateVitals(player: Player, effective: Attributes): Player =
-        player.copy(
-            hp = player.hp.copy(max = HP_BASE + effective.resistance * HP_PER_RESISTANCE),
-            flow = player.flow.copy(max = FLOW_BASE + effective.flow * FLOW_PER_FLOW_ATTR)
-            // TODO: adicionar bônus de nível quando definido
+    fun recalculateVitals(player: Player, effective: Attributes): Player {
+        val newHpMax   = HP_BASE + effective.resistance * HP_PER_RESISTANCE
+        val newFlowMax = FLOW_BASE + effective.flow * FLOW_PER_FLOW_ATTR
+        return player.copy(
+            hp   = player.hp.copy(max = newHpMax,   current = minOf(player.hp.current,   newHpMax)),
+            flow = player.flow.copy(max = newFlowMax, current = minOf(player.flow.current, newFlowMax)),
+            effectiveAttributes = effective
         )
+    }
 }
 
 // Canonical keys matching the Attributes field names and attributeBonus maps in MongoDB
