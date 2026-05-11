@@ -70,7 +70,7 @@ class PlayerCreationService(
                 max      = minOf(req.attributes.wisdom / 4, 10),
                 current  = minOf(req.attributes.wisdom / 4, 10)
             ),
-            pressao = if (kit.perks.hasPressureBar) Vital(current = 0, max = 10) else null,
+            pressao = if (kit.perks.hasPressureBar) Vital(current = 0, max = 5) else null,
             attributes = req.attributes,
             equipment  = req.equipment,
             items      = req.items,
@@ -125,7 +125,7 @@ class PlayerCreationService(
         val kitPerks = try { classKitService.getByClass(req.skillClass).perks } catch (_: Exception) { null }
 
         val updatedPressao = when {
-            kitPerks?.hasPressureBar == true && existing.pressao == null -> Vital(current = 0, max = 10)
+            kitPerks?.hasPressureBar == true && existing.pressao == null -> Vital(current = 0, max = 5)
             kitPerks?.hasPressureBar == true -> existing.pressao
             else -> null
         }

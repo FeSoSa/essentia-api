@@ -59,6 +59,11 @@ class DamageService(
                 req.costs["ether"]?.let { c ->
                     updated = updated.copy(ether = updated.ether.copy(current = (updated.ether.current - c).coerceAtLeast(0)))
                 }
+                req.costs["pressao"]?.let { c ->
+                    updated.pressao?.let { p ->
+                        updated = updated.copy(pressao = p.copy(current = (p.current - c).coerceAtLeast(0)))
+                    }
+                }
                 val saved = playerRepository.save(updated)
                 broadcaster.broadcastPlayer(saved)
             }

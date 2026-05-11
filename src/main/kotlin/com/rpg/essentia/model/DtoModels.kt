@@ -179,7 +179,8 @@ data class PlayerSkillTreeEntry(
     val danoFormula: String? = null,
     val danoBase: Int? = null,
     val cooldownTurns: Int = 0,
-    val skillType: String = "class"   // "class" | "weapon" | "essencia" | "mestre"
+    val skillType: String = "class",  // "class" | "weapon" | "essencia" | "mestre"
+    val pressaoDice: Boolean = false  // técnica consome Pressão e ganha +1d6 de dano por ponto
 )
 
 data class MaestriaSimple(

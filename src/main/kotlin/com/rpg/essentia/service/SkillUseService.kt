@@ -91,6 +91,15 @@ class SkillUseService(
             if (player.hp.current < c)
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST, "HP insuficiente ($c requerido)")
         }
+        // Pressão: validar custo mínimo (se definido) OU verificar que há pelo menos 1 ponto para pressaoDice
+        val pressaoCurrent = player.pressao?.current ?: 0
+        costMap["pressao"]?.let { c ->
+            if (pressaoCurrent < c)
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Pressão insuficiente ($c requerida, $pressaoCurrent disponível)")
+        }
+        if (skill.pressaoDice && pressaoCurrent == 0) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Sem Pressão acumulada para usar esta técnica")
+        }
 
         // 6. Calculate damage
         // dano_calculado = baseFixed + atributo + dados
@@ -104,6 +113,10 @@ class SkillUseService(
                 request.diceRoll != null -> danoCalculado += request.diceRoll
                 dmg.baseDice != null     -> danoCalculado += rollDice(dmg.baseDice)
             }
+            // Pressão dice bonus: +1d6 por ponto de Pressão acumulado
+            if (skill.pressaoDice && pressaoCurrent > 0) {
+                repeat(pressaoCurrent) { danoCalculado += rollDice(Dice(1, "d6")) }
+            }
             val danoFinal = if (computed.bonusDano > 0.0)
                 Math.round(danoCalculado * (1.0 + computed.bonusDano)).toInt()
             else
@@ -113,8 +126,13 @@ class SkillUseService(
             null to null
         }
 
-        // 7. Custo será debitado pelo mestre ao aprovar o dano (não debitar aqui)
+        // 7. Todos os custos (incluindo Pressão) são debitados na aprovação ou no erro
         var updatedPlayer = player
+
+        // pressaoDice: inclui a pressão total no costMap para ser debitada ao aprovar/errar
+        if (skill.pressaoDice && pressaoCurrent > 0) {
+            costMap["pressao"] = pressaoCurrent
+        }
 
         // 7b. Criar buff de atributo se a skill tiver buffAttributes
         if (skill.buffAttributes != null && !skill.buffAttributes.isEmpty()) {

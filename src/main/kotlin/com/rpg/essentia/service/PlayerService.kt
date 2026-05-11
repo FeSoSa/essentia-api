@@ -364,6 +364,11 @@ class PlayerService(
         costs["ether"]?.let { c ->
             player = player.copy(ether = player.ether.copy(current = (player.ether.current - c).coerceAtLeast(0)))
         }
+        costs["pressao"]?.let { c ->
+            player.pressao?.let { p ->
+                player = player.copy(pressao = p.copy(current = (p.current - c).coerceAtLeast(0)))
+            }
+        }
         return saveAndBroadcast(player)
     }
 

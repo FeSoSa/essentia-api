@@ -40,5 +40,6 @@ data class Skill(
     val passive: Boolean = false,                      // skill passiva — não é usada ativamente
     val passiveAttributes: Map<String, Int>? = null,  // bônus passivo enquanto equipada
     val buffAttributes: Map<String, Int>? = null,     // bônus de atributo ao usar
-    val buffDurationTurns: Int? = null                // duração do buff (-1 = permanente)
+    val buffDurationTurns: Int? = null,               // duração do buff (-1 = permanente)
+    val pressaoDice: Boolean = false                  // técnica rola +1d6 por ponto de Pressão e consome tudo
 )

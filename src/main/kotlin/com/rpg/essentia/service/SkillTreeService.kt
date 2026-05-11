@@ -164,6 +164,7 @@ class SkillTreeService(
             },
             isPassive     = skill.passive || !skill.passiveAttributes.isNullOrEmpty(),
             skillType     = skill.type,
+            pressaoDice   = skill.pressaoDice,
             danoFormula   = skill.damage?.let { d ->
                 d.formula.takeIf { it.isNotBlank() } ?: buildString {
                     if (d.baseFixed != 0) append(d.baseFixed)
@@ -189,6 +190,7 @@ class SkillTreeService(
         "charge"          -> "Carga"
         "percentual_flow" -> "FLX"
         "percentual_hp"   -> "HP"
+        "pressao"         -> "Pressão"
         else              -> type
     }
 
