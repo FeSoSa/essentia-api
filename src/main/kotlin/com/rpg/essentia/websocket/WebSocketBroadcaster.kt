@@ -37,6 +37,9 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
     fun broadcastCombatBosses(bosses: List<BossInstance>) =
         messagingTemplate.convertAndSend("/topic/combat/bosses", bosses)
 
+    fun broadcastCombatAllies(allies: List<CombatAlly>) =
+        messagingTemplate.convertAndSend("/topic/combat/allies", allies)
+
     fun broadcastCollectiveBars(bars: List<CollectiveBar>) =
         messagingTemplate.convertAndSend("/topic/collective-bars", bars)
 

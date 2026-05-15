@@ -21,7 +21,11 @@ class EssenciaService(
 
     fun create(essencia: Essencia): Essencia = essenciaRepository.save(essencia)
 
-    fun update(id: String, essencia: Essencia): Essencia = essenciaRepository.save(essencia.copy(id = id))
+    fun update(id: String, essencia: Essencia): Essencia {
+        val saved = essenciaRepository.save(essencia.copy(id = id))
+        broadcastAllPlayers()
+        return saved
+    }
 
     fun delete(id: String) = essenciaRepository.deleteById(id)
 
@@ -71,6 +75,16 @@ class EssenciaService(
         playerRepository.findById(id).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado: $id")
         }
+
+    private fun broadcastAllPlayers() {
+        val allEssencias = essenciaRepository.findAll()
+        playerRepository.findAll().forEach { player ->
+            val effective = attributeService.computeEffectiveAttributes(player, allEssencias)
+            val updated = attributeService.recalculateVitals(player, effective)
+            val saved = playerRepository.save(updated)
+            broadcaster.broadcastPlayer(saved)
+        }
+    }
 
     private fun saveAndBroadcast(player: Player): Player {
         val saved = playerRepository.save(player)

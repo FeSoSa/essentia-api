@@ -13,5 +13,6 @@ data class Essencia(
     val attributeBonus: Map<String, Int>,
     val skillIds: List<String>,
     val icon: String? = null,
-    val color: String? = null
+    val color: String? = null,
+    val parentId: String? = null
 )

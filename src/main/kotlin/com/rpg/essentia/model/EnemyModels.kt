@@ -23,6 +23,7 @@ data class EnemyTemplate(
     val attacks: List<EnemyAttack> = emptyList(),
     val drops: List<EnemyDrop> = emptyList(),
     val xp: Int = 0,
+    val desc: String = "",
     val notes: String = ""
 )
 
@@ -41,6 +42,7 @@ data class EnemyInstance(
     val attacks: List<EnemyAttack> = emptyList(),
     val drops: List<EnemyDrop> = emptyList(),
     val xp: Int = 0,
+    val desc: String = "",
     val notes: String = ""
 )
 
