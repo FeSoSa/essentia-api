@@ -28,12 +28,16 @@ class SkillTreeService(
 
         val equippedWeaponTypes = weaponTypesEquipped(player)
         val obtainedEssenciaIds = player.essenciasObtidas.map { it.essenciaId }.toSet()
+        val accessibleEssenciaIds = essencias
+            .filter { e -> e.id in obtainedEssenciaIds ||
+                (e.type == "Derivada" && e.parentId != null && e.parentId in obtainedEssenciaIds) }
+            .map { it.id }.toSet()
 
         val relevantSkills = skillRepository.findAll().filter { skill ->
             when (skill.type) {
                 "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
                 "weapon"   -> skill.weaponType?.lowercase() in equippedWeaponTypes
-                "essencia" -> skill.essenciaId in obtainedEssenciaIds
+                "essencia" -> skill.essenciaId in accessibleEssenciaIds
                 else       -> false
             }
         }
@@ -56,12 +60,16 @@ class SkillTreeService(
 
         val equippedWeaponTypes = weaponTypesEquipped(player)
         val obtainedEssenciaIds = player.essenciasObtidas.map { it.essenciaId }.toSet()
+        val accessibleEssenciaIds = essencias
+            .filter { e -> e.id in obtainedEssenciaIds ||
+                (e.type == "Derivada" && e.parentId != null && e.parentId in obtainedEssenciaIds) }
+            .map { it.id }.toSet()
 
         val relevantSkills = skillRepository.findAll().filter { skill ->
             when (skill.type) {
                 "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
                 "weapon"   -> skill.weaponType?.lowercase() in equippedWeaponTypes
-                "essencia" -> skill.essenciaId in obtainedEssenciaIds
+                "essencia" -> skill.essenciaId in accessibleEssenciaIds
                 "mestre"   -> true   // habilidades de mestre sempre visíveis no painel do mestre
                 else       -> false
             }
@@ -168,17 +176,16 @@ class SkillTreeService(
             danoFormula   = skill.damage?.let { d ->
                 d.formula.takeIf { it.isNotBlank() } ?: buildString {
                     if (d.baseFixed != 0) append(d.baseFixed)
-                    d.baseDice?.let { dice ->
+                    d.atributo?.let { attr ->
                         if (isNotEmpty()) append(" + ")
-                        append("${dice.quantity}${dice.die}")
-                    }
-                    d.attribute?.let { attr ->
-                        if (isNotEmpty()) append(" + ")
-                        append(attr.take(3).uppercase())
+                        append("d20×$attr")
+                        d.equilibrio?.let { eq -> append(" / $eq") }
                     }
                 }.ifEmpty { null }
             },
             danoBase      = skill.damage?.baseFixed?.takeIf { it != 0 },
+            atributo      = skill.damage?.atributo,
+            equilibrio    = skill.damage?.equilibrio,
             cooldownTurns = skill.cooldownTurns
         )
     }
@@ -215,10 +222,15 @@ class SkillTreeService(
         // Validate skill is accessible to this player
         val equippedWeaponTypes = weaponTypesEquipped(player)
         val obtainedEssenciaIds = player.essenciasObtidas.map { it.essenciaId }.toSet()
+        val allEssencias = essenciaRepository.findAll()
+        val accessibleEssenciaIds = allEssencias
+            .filter { e -> e.id in obtainedEssenciaIds ||
+                (e.type == "Derivada" && e.parentId != null && e.parentId in obtainedEssenciaIds) }
+            .map { it.id }.toSet()
         val accessible = when (skill.type) {
             "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
             "weapon"   -> skill.weaponType in equippedWeaponTypes
-            "essencia" -> skill.essenciaId in obtainedEssenciaIds
+            "essencia" -> skill.essenciaId in accessibleEssenciaIds
             else       -> false
         }
         if (!accessible)

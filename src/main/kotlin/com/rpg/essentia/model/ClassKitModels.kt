@@ -5,9 +5,14 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 
+data class UnarmedAttack(
+    @Field("dano_base") val damageBase: Int = 0,
+    val attribute: String = ""
+)
+
 data class ClassPerks(
     val hasPressureBar: Boolean = false,
-    val unarmedDamage: String? = null
+    @Field("ataque_desarmado") val unarmedAttack: UnarmedAttack? = null
 )
 
 @Document(collection = "class_kits")

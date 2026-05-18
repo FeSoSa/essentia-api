@@ -581,12 +581,8 @@
         "name": "Cajado Simples",
         "weaponType": "cajado",
         "rarity": "comum",
-        "damageBase": 0,
-        "damageDice": {
-          "quantity": 1,
-          "die": "d4"
-        },
-        "damageAttribute": "int_",
+        "damageBase": 5,
+        "damageAttribute": "intelligence",
         "attributeBonus": null,
         "properties": "Duas mãos",
         "price": 10

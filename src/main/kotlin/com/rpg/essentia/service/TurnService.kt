@@ -26,26 +26,25 @@ class TurnService(
         players.forEach { player ->
             var updated = player
 
-            // Apply auto-effects only for the player whose turn just started
             if (currentPlayerId.isNotBlank() && player.id == currentPlayerId) {
+                // Auto-effects, cooldowns and effect durations only advance on this player's own turn
                 updated = applyAutoEffects(updated)
-            }
 
-            // Decrement slot cooldowns (min 0)
-            val newSlots = updated.slots.map { slot ->
-                if (slot.cooldownRemaining > 0) slot.copy(cooldownRemaining = slot.cooldownRemaining - 1)
-                else slot
-            }
-
-            // Decrement status effect durations, remove those that expire
-            val newStatusEffects = updated.statusEffects
-                .map { effect ->
-                    if (effect.durationTurns == -1) effect  // permanent
-                    else effect.copy(durationTurns = effect.durationTurns - 1)
+                val newSlots = updated.slots.map { slot ->
+                    if (slot.cooldownRemaining > 0) slot.copy(cooldownRemaining = slot.cooldownRemaining - 1)
+                    else slot
                 }
-                .filter { it.durationTurns != 0 }
 
-            updated = updated.copy(slots = newSlots, statusEffects = newStatusEffects)
+                val newStatusEffects = updated.statusEffects
+                    .map { effect ->
+                        if (effect.durationTurns == -1) effect  // permanent
+                        else effect.copy(durationTurns = effect.durationTurns - 1)
+                    }
+                    .filter { it.durationTurns != 0 }
+
+                updated = updated.copy(slots = newSlots, statusEffects = newStatusEffects)
+            }
+
             val saved = playerRepository.save(updated)
             broadcaster.broadcastPlayer(saved)
         }
@@ -58,13 +57,16 @@ class TurnService(
     private fun applyAutoEffects(player: Player): Player {
         var updated = player
         for (effect in player.statusEffects.filter { it.durationTurns != 0 }) {
-            for (auto in effect.effects) {
+            for (auto in effect.effects.filter { it.trigger == "on_turn_start" }) {
                 val value = auto.value ?: 0
                 updated = when (auto.type) {
-                    "hp"    -> updated.copy(hp    = updated.hp.copy(current = (updated.hp.current + value).coerceIn(0, updated.hp.max)))
-                    "flow"  -> updated.copy(flow  = updated.flow.copy(current = (updated.flow.current + value).coerceIn(0, updated.flow.max)))
-                    "ether" -> updated.copy(ether = updated.ether.copy(current = (updated.ether.current + value).coerceIn(0, updated.ether.max)))
-                    else    -> updated
+                    "damage_hp"   -> updated.copy(hp    = updated.hp.copy(current    = (updated.hp.current    - value).coerceIn(0, updated.hp.max)))
+                    "heal_hp"     -> updated.copy(hp    = updated.hp.copy(current    = (updated.hp.current    + value).coerceIn(0, updated.hp.max)))
+                    "damage_flow" -> updated.copy(flow  = updated.flow.copy(current  = (updated.flow.current  - value).coerceIn(0, updated.flow.max)))
+                    "heal_flow"   -> updated.copy(flow  = updated.flow.copy(current  = (updated.flow.current  + value).coerceIn(0, updated.flow.max)))
+                    "damage_ether" -> updated.copy(ether = updated.ether.copy(current = (updated.ether.current - value).coerceIn(0, updated.ether.max)))
+                    "heal_ether"   -> updated.copy(ether = updated.ether.copy(current = (updated.ether.current + value).coerceIn(0, updated.ether.max)))
+                    else -> updated
                 }
             }
         }

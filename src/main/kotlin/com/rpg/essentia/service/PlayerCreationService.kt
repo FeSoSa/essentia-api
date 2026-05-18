@@ -61,7 +61,7 @@ class PlayerCreationService(
                 slotsClass = slotsClass,
                 slotsFree = slotsFree,
                 slotsTotal = slotsTotal,
-                unarmedDamage = kit.perks.unarmedDamage
+                unarmedAttack = kit.perks.unarmedAttack
             ),
             hp   = Vital(current = hpMax,  max = hpMax),
             flow = Vital(current = flowMax, max = flowMax),
@@ -142,7 +142,7 @@ class PlayerCreationService(
                 slotsClass    = newSlotsClass,
                 slotsFree     = newSlotsFree,
                 slotsTotal    = newSlotsClass + newSlotsFree,
-                unarmedDamage = kitPerks?.unarmedDamage ?: existing.char.unarmedDamage
+                unarmedAttack = kitPerks?.unarmedAttack ?: existing.char.unarmedAttack
             ),
             hp    = existing.hp.copy(max = hpMax),
             flow  = existing.flow.copy(max = flowMax),

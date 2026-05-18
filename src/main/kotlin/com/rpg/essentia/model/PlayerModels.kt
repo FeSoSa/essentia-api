@@ -13,7 +13,7 @@ data class CharInfo(
     val slotsFree: Int = 6,
     val slotsTotal: Int = 8,
     val portraitUrl: String? = null,
-    val unarmedDamage: String? = null
+    val unarmedAttack: UnarmedAttack? = null
 )
 
 data class Vital(val current: Int = 0, val max: Int = 0)
@@ -60,8 +60,8 @@ data class WeaponEquip(
     val name: String = "",
     val weaponType: String = "",
     val damageBase: Int = 0,
-    val damageDice: Dice = Dice(1, "d6"),
     val damageAttribute: String = "",
+    val equilibrio: Int? = null,
     val attributeBonus: Map<String, Int>? = null,
     val rarity: String? = null,
     val twoHanded: Boolean = false
@@ -122,8 +122,8 @@ data class Item(
     // Weapon fields (type == "weapon")
     val weaponType: String? = null,
     val damageBase: Int? = null,
-    val damageDice: Dice? = null,
     val damageAttribute: String? = null,
+    val equilibrio: Int? = null,
     val properties: String? = null,
     // Armor field (type == "armor")
     val damageReduction: Int? = null,

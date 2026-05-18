@@ -10,10 +10,10 @@ data class SkillRequirements(
 )
 
 data class DamageFormula(
-    val formula: String,           // display string, e.g. "4 + 2d6 + int"
+    val formula: String,       // display string, e.g. "17 + d20×FOR/4"
     val baseFixed: Int,
-    val baseDice: Dice?,
-    val attribute: String?         // "strength" | "agility" | "intelligence" | "resistance" | "flow" | "wisdom" | "presence" | "defense" | null
+    val atributo: String?,     // ex: "FOR", "AGI", "FOR/AGI"
+    val equilibrio: Int?
 )
 
 data class Cost(

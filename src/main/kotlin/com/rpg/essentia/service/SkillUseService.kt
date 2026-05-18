@@ -102,25 +102,28 @@ class SkillUseService(
         }
 
         // 6. Calculate damage
-        // dano_calculado = baseFixed + atributo + dados
-        // dano_final     = dano_calculado × (1 + bonusDano)
+        // dano_final = dano_base + (d20 × mod_atributo) / equilibrio
+        // When equilibrio is null: dano_final = dano_base only
         val (totalDamage, displayFormula) = if (skill.damage != null) {
             val dmg = skill.damage
-            var danoCalculado = dmg.baseFixed
-            dmg.attribute?.let { attr -> danoCalculado += attrMap[attr] ?: 0 }
-            // Use player-provided dice roll when available; otherwise roll internally
-            when {
-                request.diceRoll != null -> danoCalculado += request.diceRoll
-                dmg.baseDice != null     -> danoCalculado += rollDice(dmg.baseDice)
+            val danoFinal = if (dmg.equilibrio != null) {
+                val d20 = request.diceRoll ?: 0
+                val modAtributo = resolveAtributo(dmg.atributo, attrMap)
+                var danoCalculado = dmg.baseFixed + (d20 * modAtributo) / dmg.equilibrio
+                if (skill.pressaoDice && pressaoCurrent > 0) {
+                    repeat(pressaoCurrent) { danoCalculado += rollDice(Dice(1, "d6")) }
+                }
+                if (computed.bonusDano > 0.0)
+                    Math.round(danoCalculado * (1.0 + computed.bonusDano)).toInt()
+                else
+                    danoCalculado
+            } else {
+                var dano = dmg.baseFixed
+                if (skill.pressaoDice && pressaoCurrent > 0) {
+                    repeat(pressaoCurrent) { dano += rollDice(Dice(1, "d6")) }
+                }
+                dano
             }
-            // Pressão dice bonus: +1d6 por ponto de Pressão acumulado
-            if (skill.pressaoDice && pressaoCurrent > 0) {
-                repeat(pressaoCurrent) { danoCalculado += rollDice(Dice(1, "d6")) }
-            }
-            val danoFinal = if (computed.bonusDano > 0.0)
-                Math.round(danoCalculado * (1.0 + computed.bonusDano)).toInt()
-            else
-                danoCalculado
             danoFinal to dmg.formula
         } else {
             null to null
@@ -179,6 +182,27 @@ class SkillUseService(
     private fun rollDice(dice: Dice): Int {
         val sides = dice.die.removePrefix("d").toIntOrNull() ?: 6
         return (1..dice.quantity).sumOf { Random.nextInt(1, sides + 1) }
+    }
+
+    private fun getModifier(value: Int): Int = when {
+        value <= 7  -> -1; value <= 11 -> 0;  value <= 15 -> 1;  value <= 19 -> 2
+        value <= 23 -> 3;  value <= 27 -> 4;  value <= 31 -> 5;  value <= 35 -> 6
+        value <= 40 -> 7;  value <= 46 -> 8;  value <= 53 -> 9;  value <= 61 -> 10
+        else        -> 11
+    }
+
+    private val ABBREV_TO_KEY = mapOf(
+        "FOR" to "strength", "AGI" to "agility", "INT" to "intelligence",
+        "RES" to "resistance", "FLX" to "flow", "SAB" to "wisdom",
+        "PRE" to "presence", "DEF" to "defense"
+    )
+
+    private fun resolveAtributo(atributo: String?, attrMap: Map<String, Int>): Int {
+        if (atributo == null) return 0
+        return atributo.split("/")
+            .mapNotNull { abbrev -> ABBREV_TO_KEY[abbrev.trim()]?.let { attrMap[it] } }
+            .maxOrNull()
+            ?.let { getModifier(it) } ?: 0
     }
 
     private fun buildLogText(player: Player, skill: Skill, damage: Int?, costs: Map<String, Int>): String {

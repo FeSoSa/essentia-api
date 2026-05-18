@@ -76,8 +76,8 @@ data class AddItemRequest(
     val icon: String? = null,
     val weaponType: String? = null,
     val damageBase: Int? = null,
-    val damageDice: Dice? = null,
     val damageAttribute: String? = null,
+    val equilibrio: Int? = null,
     val properties: String? = null,
     val damageReduction: Int? = null,
     val armorWeight: String? = null,
@@ -178,6 +178,8 @@ data class PlayerSkillTreeEntry(
     val isPassive: Boolean = false,
     val danoFormula: String? = null,
     val danoBase: Int? = null,
+    val atributo: String? = null,
+    val equilibrio: Int? = null,
     val cooldownTurns: Int = 0,
     val skillType: String = "class",  // "class" | "weapon" | "essencia" | "mestre"
     val pressaoDice: Boolean = false  // técnica consome Pressão e ganha +1d6 de dano por ponto

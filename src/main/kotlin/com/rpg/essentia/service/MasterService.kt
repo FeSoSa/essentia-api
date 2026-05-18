@@ -76,10 +76,14 @@ class MasterService(
         val state = gameStateService.getOrCreate()
         gameStateService.save(state.copy(initiative = entries, currentTurnIndex = 0, totalTurns = 0))
         broadcaster.broadcastInitiative(entries)
-        // Reset desvios at combat start AND at combat end
+        // Reset desvios at combat start AND at combat end; reset cooldowns at combat end
         if (entries.isNotEmpty() || state.initiative.isNotEmpty()) {
             playerRepository.findAll().forEach { p ->
-                saveAndBroadcast(p.copy(desviosRestantes = 3))
+                val resetSlots = if (entries.isEmpty())
+                    p.slots.map { it.copy(cooldownRemaining = 0) }
+                else
+                    p.slots
+                saveAndBroadcast(p.copy(desviosRestantes = 3, slots = resetSlots))
             }
         }
     }
@@ -145,8 +149,8 @@ class MasterService(
             icon = req.icon,
             weaponType = req.weaponType,
             damageBase = req.damageBase,
-            damageDice = req.damageDice,
             damageAttribute = req.damageAttribute,
+            equilibrio = req.equilibrio,
             properties = req.properties,
             damageReduction = req.damageReduction,
             armorWeight = req.armorWeight,
@@ -174,8 +178,8 @@ class MasterService(
     }
 
     private fun slotToItem(slot: String, eq: Equipment): Item? = when (slot) {
-        "mainHand" -> eq.mainHand?.let { Item(id = it.id, name = it.name, type = "weapon",    equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice, damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus) }
-        "offHand"  -> eq.offHand?.let  { Item(id = it.id, name = it.name, type = "weapon",    equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice, damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus) }
+        "mainHand" -> eq.mainHand?.let { Item(id = it.id, name = it.name, type = "weapon",    equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, attributeBonus = it.attributeBonus) }
+        "offHand"  -> eq.offHand?.let  { Item(id = it.id, name = it.name, type = "weapon",    equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, attributeBonus = it.attributeBonus) }
         "armor"    -> eq.armor?.let    { Item(id = it.id, name = it.name, type = "armor",     equipSlot = slot, damageReduction = it.damageReduction, armorWeight = it.armorWeight, attributeBonus = it.attributeBonus) }
         "amulet"   -> eq.amulet?.let   { Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus) }
         "ring"     -> eq.ring?.let     { Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus) }

@@ -183,15 +183,15 @@ class PlayerService(
         val previousItem: Item? = when (slot) {
             "mainHand" -> player.equipment.mainHand?.let {
                 Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
-                    weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice,
-                    damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus,
-                    rarity = it.rarity, twoHanded = it.twoHanded)
+                    weaponType = it.weaponType, damageBase = it.damageBase,
+                    damageAttribute = it.damageAttribute, equilibrio = it.equilibrio,
+                    attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded)
             }
             "offHand" -> player.equipment.offHand?.let {
                 Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
-                    weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice,
-                    damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus,
-                    rarity = it.rarity, twoHanded = it.twoHanded)
+                    weaponType = it.weaponType, damageBase = it.damageBase,
+                    damageAttribute = it.damageAttribute, equilibrio = it.equilibrio,
+                    attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded)
             }
             "armor" -> player.equipment.armor?.let {
                 Item(id = it.id, name = it.name, type = "armor", equipSlot = slot,
@@ -215,13 +215,13 @@ class PlayerService(
         val newEquipment = when (slot) {
             "mainHand" -> player.equipment.copy(mainHand = WeaponEquip(
                 id = item.id, name = item.name, weaponType = item.weaponType ?: "",
-                damageBase = item.damageBase ?: 0, damageDice = item.damageDice ?: Dice(1, "d6"),
-                damageAttribute = item.damageAttribute ?: "", attributeBonus = item.attributeBonus,
+                damageBase = item.damageBase ?: 0, damageAttribute = item.damageAttribute ?: "",
+                equilibrio = item.equilibrio, attributeBonus = item.attributeBonus,
                 rarity = item.rarity, twoHanded = item.twoHanded ?: false))
             "offHand" -> player.equipment.copy(offHand = WeaponEquip(
                 id = item.id, name = item.name, weaponType = item.weaponType ?: "",
-                damageBase = item.damageBase ?: 0, damageDice = item.damageDice ?: Dice(1, "d6"),
-                damageAttribute = item.damageAttribute ?: "", attributeBonus = item.attributeBonus,
+                damageBase = item.damageBase ?: 0, damageAttribute = item.damageAttribute ?: "",
+                equilibrio = item.equilibrio, attributeBonus = item.attributeBonus,
                 rarity = item.rarity, twoHanded = item.twoHanded ?: false))
             "armor" -> player.equipment.copy(armor = ArmorEquip(
                 id = item.id, name = item.name,
@@ -254,13 +254,15 @@ class PlayerService(
         val previousItem: Item = when (slot) {
             "mainHand" -> player.equipment.mainHand?.let {
                 Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
-                    weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice,
-                    damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus)
+                    weaponType = it.weaponType, damageBase = it.damageBase,
+                    damageAttribute = it.damageAttribute, equilibrio = it.equilibrio,
+                    attributeBonus = it.attributeBonus)
             }
             "offHand" -> player.equipment.offHand?.let {
                 Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
-                    weaponType = it.weaponType, damageBase = it.damageBase, damageDice = it.damageDice,
-                    damageAttribute = it.damageAttribute, attributeBonus = it.attributeBonus)
+                    weaponType = it.weaponType, damageBase = it.damageBase,
+                    damageAttribute = it.damageAttribute, equilibrio = it.equilibrio,
+                    attributeBonus = it.attributeBonus)
             }
             "armor" -> player.equipment.armor?.let {
                 Item(id = it.id, name = it.name, type = "armor", equipSlot = slot,

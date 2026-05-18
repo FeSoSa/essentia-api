@@ -30,8 +30,6 @@ class FastActionService(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Option not found")
         if (fa.lockOnePerPlayer && playerId in fa.lockedPlayers)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Player already voted")
-        if (optionId in fa.answers.values)
-            throw ResponseStatusException(HttpStatus.CONFLICT, "Option already taken")
 
         val newAnswers = fa.answers + (playerId to optionId)
         val newLocked = if (fa.lockOnePerPlayer) fa.lockedPlayers + playerId else fa.lockedPlayers
