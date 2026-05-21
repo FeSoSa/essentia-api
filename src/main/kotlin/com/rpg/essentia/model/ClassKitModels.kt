@@ -23,6 +23,6 @@ data class ClassKit(
     val starterSlots: List<Slot> = emptyList(),
     val starterEquipment: Equipment = Equipment(),
     val starterItems: List<Item> = emptyList(),
-    val starterAttributes: Attributes = Attributes(),
+    val starterAttributes: Attributes? = null,
     val perks: ClassPerks = ClassPerks()
 )

@@ -4,6 +4,11 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.util.UUID
 
+data class ItemRequirements(
+    val level: Int? = null,
+    val attributes: Map<String, Int>? = null  // ex: { "strength": 14, "agility": 12 }
+)
+
 @Document(collection = "item_catalog")
 data class ItemCatalog(
     @Id val id: String = UUID.randomUUID().toString(),
@@ -21,5 +26,6 @@ data class ItemCatalog(
     val equipSlot: String? = null,
     val armorWeight: String? = null,  // "leve" | "média" | "pesada"
     val rarity: String? = null,       // "branco" | "verde" | "azul" | "roxo" | "amarelo" | "rosa"
-    val twoHanded: Boolean? = null
+    val twoHanded: Boolean? = null,
+    val requirements: ItemRequirements? = null
 )

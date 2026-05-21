@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException
 
 private val MAESTRIA_THRESHOLDS = listOf(3, 8, 16, 28)
 private const val XP_PER_LEVEL = 100       // nível N requer (N-1) * XP_PER_LEVEL de XP acumulado
-private const val POINTS_PER_LEVEL = 5     // pontos de atributo ganhos por level-up
+private const val POINTS_PER_LEVEL = 3     // pontos de atributo ganhos por level-up
 
 private fun xpThreshold(level: Int) = (level - 1) * XP_PER_LEVEL
 
@@ -157,7 +157,8 @@ class MasterService(
             attributeBonus = req.attributeBonus,
             equipSlot = req.equipSlot,
             rarity = req.rarity,
-            twoHanded = req.twoHanded
+            twoHanded = req.twoHanded,
+            requirements = req.requirements
         )
         val saved = saveAndBroadcast(player.copy(items = player.items + newItem))
         gameStateService.addLogEntry(playerId, "${player.char.name} recebeu ${req.name}${if (req.qty > 1) " ×${req.qty}" else ""}", "item")

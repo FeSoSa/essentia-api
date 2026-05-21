@@ -16,6 +16,7 @@ class PlayerCreationService(
     private val playerSkillRepository: PlayerSkillRepository,
     private val skillRepository: SkillRepository,
     private val classKitService: ClassKitService,
+    private val raceService: RaceService,
     private val broadcaster: WebSocketBroadcaster
 ) {
 
@@ -193,8 +194,9 @@ class PlayerCreationService(
         val player = playerRepository.findById(id).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado: $id")
         }
-        val kit = try { classKitService.getByClass(player.char.skillClass) } catch (_: Exception) { null }
-        val initial = kit?.starterAttributes ?: Attributes()
+        val initial = raceService.getByName(player.char.race)?.starterAttributes
+            ?: try { classKitService.getByClass(player.char.skillClass).starterAttributes } catch (_: Exception) { null }
+            ?: Attributes()
 
         fun cost(v: Int) = when {
             v <= 15 -> 1; v <= 20 -> 2; v <= 25 -> 3; v <= 30 -> 4; else -> 5

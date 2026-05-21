@@ -84,7 +84,8 @@ data class AddItemRequest(
     val attributeBonus: Map<String, Int>? = null,
     val equipSlot: String? = null,
     val rarity: String? = null,
-    val twoHanded: Boolean? = null
+    val twoHanded: Boolean? = null,
+    val requirements: ItemRequirements? = null
 )
 data class AdjustItemQtyRequest(val delta: Int)
 

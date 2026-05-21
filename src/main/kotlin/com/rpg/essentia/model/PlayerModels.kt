@@ -132,7 +132,8 @@ data class Item(
     val attributeBonus: Map<String, Int>? = null,
     val equipSlot: String? = null,     // "mainHand"|"offHand"|"armor"|"amulet"|"ring"|"utility"
     val rarity: String? = null,
-    val twoHanded: Boolean? = null
+    val twoHanded: Boolean? = null,
+    val requirements: ItemRequirements? = null
 )
 
 data class PendingRequest(

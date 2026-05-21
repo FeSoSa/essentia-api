@@ -180,6 +180,21 @@ class PlayerService(
             else     -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Item não tem slot de equipamento")
         }
 
+        item.requirements?.let { req ->
+            val essencias = essenciaRepository.findAll()
+            val effective = attributeService.computeEffectiveAttributes(player, essencias)
+            val attrMap = effective.toMap()
+            req.level?.let { minLevel ->
+                if (player.char.level < minLevel)
+                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nível insuficiente: requer nível $minLevel")
+            }
+            req.attributes?.forEach { (attr, minVal) ->
+                val current = attrMap[attr] ?: 0
+                if (current < minVal)
+                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Atributo insuficiente: ${attr.uppercase()} requer $minVal (atual: $current)")
+            }
+        }
+
         val previousItem: Item? = when (slot) {
             "mainHand" -> player.equipment.mainHand?.let {
                 Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,

@@ -10,6 +10,7 @@ import com.rpg.essentia.service.PlayerCreationService
 import com.rpg.essentia.service.PlayerService
 import com.rpg.essentia.service.SkillTreeService
 import com.rpg.essentia.service.DamageService
+import com.rpg.essentia.service.RaceService
 import com.rpg.essentia.service.SobrecargaService
 import com.rpg.essentia.service.TurnService
 import org.springframework.http.HttpStatus
@@ -29,7 +30,8 @@ class MasterController(
     private val skillTreeService: SkillTreeService,
     private val playerSkillRepository: PlayerSkillRepository,
     private val sobrecargaService: SobrecargaService,
-    private val damageService: DamageService
+    private val damageService: DamageService,
+    private val raceService: RaceService
 ) {
     @GetMapping("/players")
     fun getPlayers(): List<Player> = masterService.getPlayers()
@@ -52,6 +54,24 @@ class MasterController(
         playerSkillRepository.delete(ps)
         // Limpa o slot que tinha essa skill e notifica o jogador
         masterService.clearSkillFromSlots(playerId, skillId)
+        return ResponseEntity.noContent().build()
+    }
+
+    // Raças
+    @GetMapping("/races")
+    fun listRaces(): List<Race> = raceService.listAll()
+
+    @PostMapping("/races")
+    fun createRace(@RequestBody race: Race): ResponseEntity<Race> =
+        ResponseEntity.status(HttpStatus.CREATED).body(raceService.create(race))
+
+    @PutMapping("/races/{id}")
+    fun updateRace(@PathVariable id: String, @RequestBody race: Race): Race =
+        raceService.update(id, race)
+
+    @DeleteMapping("/races/{id}")
+    fun deleteRace(@PathVariable id: String): ResponseEntity<Void> {
+        raceService.delete(id)
         return ResponseEntity.noContent().build()
     }
 
