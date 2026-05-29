@@ -10,10 +10,20 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
 private val MAESTRIA_THRESHOLDS = listOf(3, 8, 16, 28)
-private const val XP_PER_LEVEL = 100       // nível N requer (N-1) * XP_PER_LEVEL de XP acumulado
-private const val POINTS_PER_LEVEL = 3     // pontos de atributo ganhos por level-up
+private const val POINTS_PER_LEVEL = 3
 
-private fun xpThreshold(level: Int) = (level - 1) * XP_PER_LEVEL
+private fun xpParaNivel(n: Int): Int {
+    if (n <= 1) return 0
+    if (n <= 20) return 75 * (n * (n + 1) / 2 - 1) - 50 * (n - 1)
+    val m = n - 20
+    return 14725 + m * (2750 + 150 * m)
+}
+
+private fun nivelParaXp(xp: Int): Int {
+    var nivel = 1
+    while (xpParaNivel(nivel + 1) <= xp) nivel++
+    return nivel
+}
 
 @Service
 class MasterService(
@@ -30,11 +40,42 @@ class MasterService(
         val player = loadPlayer(playerId)
         val request = player.pendingRequests.firstOrNull { it.id == requestId }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found")
+        val usedItem = player.items.find { it.id == request.itemId }
         val newItems = player.items.map { item ->
             if (item.id == request.itemId && item.qty > 0) item.copy(qty = item.qty - 1) else item
         }.filter { it.qty > 0 }
         val newRequests = player.pendingRequests.filter { it.id != requestId }
-        return saveAndBroadcast(player.copy(items = newItems, pendingRequests = newRequests))
+        var updated = player.copy(items = newItems, pendingRequests = newRequests)
+
+        usedItem?.onUseEffect?.let { e ->
+            e.instantHealHp?.let { v ->
+                updated = updated.copy(hp = updated.hp.copy(current = (updated.hp.current + v).coerceIn(0, updated.hp.max)))
+            }
+            e.instantHealFlow?.let { v ->
+                updated = updated.copy(flow = updated.flow.copy(current = (updated.flow.current + v).coerceIn(0, updated.flow.max)))
+            }
+            val hasBonus = !e.attributeBonus.isNullOrEmpty()
+            val hasEffects = e.effects.isNotEmpty()
+            if (hasBonus || hasEffects) {
+                val statusEffect = StatusEffect(
+                    id = java.util.UUID.randomUUID().toString(),
+                    name = e.name,
+                    desc = e.desc,
+                    durationTurns = e.durationTurns,
+                    icon = e.icon,
+                    color = e.color,
+                    attributeBonus = e.attributeBonus,
+                    effects = e.effects,
+                    hitBonus = e.hitBonus,
+                    attackBonus = e.attackBonus,
+                    damageBonus = e.damageBonus,
+                    onExpire = e.onExpire
+                )
+                updated = updated.copy(statusEffects = updated.statusEffects + statusEffect)
+            }
+        }
+
+        return saveAndBroadcast(updated)
     }
 
     fun rejectItem(playerId: String, requestId: String): Player {
@@ -48,10 +89,9 @@ class MasterService(
         val newTotal = player.exp.total + amount
         var newLevel = player.char.level
         var newAvailable = player.exp.available
-        while (newTotal >= xpThreshold(newLevel + 1)) {
-            newLevel++
-            newAvailable += POINTS_PER_LEVEL
-        }
+        newLevel = nivelParaXp(newTotal)
+        val levelDiff = newLevel - player.char.level
+        newAvailable += levelDiff * POINTS_PER_LEVEL
         val leveled = newLevel > player.char.level
         val updated = player.copy(
             exp = player.exp.copy(available = newAvailable, total = newTotal),
@@ -158,7 +198,8 @@ class MasterService(
             equipSlot = req.equipSlot,
             rarity = req.rarity,
             twoHanded = req.twoHanded,
-            requirements = req.requirements
+            requirements = req.requirements,
+            onUseEffect = req.onUseEffect
         )
         val saved = saveAndBroadcast(player.copy(items = player.items + newItem))
         gameStateService.addLogEntry(playerId, "${player.char.name} recebeu ${req.name}${if (req.qty > 1) " ×${req.qty}" else ""}", "item")
@@ -178,15 +219,7 @@ class MasterService(
         return saveAndBroadcast(player.copy(items = updated))
     }
 
-    private fun slotToItem(slot: String, eq: Equipment): Item? = when (slot) {
-        "mainHand" -> eq.mainHand?.let { Item(id = it.id, name = it.name, type = "weapon",    equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, attributeBonus = it.attributeBonus) }
-        "offHand"  -> eq.offHand?.let  { Item(id = it.id, name = it.name, type = "weapon",    equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, attributeBonus = it.attributeBonus) }
-        "armor"    -> eq.armor?.let    { Item(id = it.id, name = it.name, type = "armor",     equipSlot = slot, damageReduction = it.damageReduction, armorWeight = it.armorWeight, attributeBonus = it.attributeBonus) }
-        "amulet"   -> eq.amulet?.let   { Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus) }
-        "ring"     -> eq.ring?.let     { Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus) }
-        "utility"  -> eq.utility?.let  { Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus) }
-        else -> null
-    }
+    private fun slotToItem(slot: String, eq: Equipment): Item? = eq.slotToItem(slot)
 
     fun setEquipment(playerId: String, slot: String, req: SetEquipmentRequest): Player {
         val player = loadPlayer(playerId)

@@ -9,6 +9,22 @@ data class ItemRequirements(
     val attributes: Map<String, Int>? = null  // ex: { "strength": 14, "agility": 12 }
 )
 
+data class OnUseEffect(
+    val name: String = "",
+    val desc: String = "",
+    val durationTurns: Int = 1,
+    val icon: String? = null,
+    val color: String? = null,
+    val instantHealHp: Int? = null,
+    val instantHealFlow: Int? = null,
+    val attributeBonus: Map<String, Int>? = null,
+    val effects: List<AutoEffect> = emptyList(),
+    val hitBonus: Int? = null,
+    val attackBonus: Int? = null,
+    val damageBonus: Int? = null,
+    val onExpire: OnExpireEffect? = null
+)
+
 @Document(collection = "item_catalog")
 data class ItemCatalog(
     @Id val id: String = UUID.randomUUID().toString(),
@@ -27,5 +43,6 @@ data class ItemCatalog(
     val armorWeight: String? = null,  // "leve" | "média" | "pesada"
     val rarity: String? = null,       // "branco" | "verde" | "azul" | "roxo" | "amarelo" | "rosa"
     val twoHanded: Boolean? = null,
-    val requirements: ItemRequirements? = null
+    val requirements: ItemRequirements? = null,
+    val onUseEffect: OnUseEffect? = null
 )

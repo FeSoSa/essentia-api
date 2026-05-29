@@ -48,6 +48,90 @@ class SkillUseService(
             ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found")
         }
 
+        // Toggle: ativar ou desativar sem fluxo de dano
+        if (skill.toggle) {
+            if (slot.toggleActive) {
+                // Desativar: remove o efeito e inicia cooldown
+                val newSlots = player.slots.map { s ->
+                    if (s.id == slot.id) s.copy(toggleActive = false, cooldownRemaining = skill.cooldownTurns) else s
+                }
+                val newEffects = player.statusEffects.filterNot { it.sourceSkillId == skillId }
+                val saved = playerRepository.save(player.copy(slots = newSlots, statusEffects = newEffects))
+                gameStateService.addLogEntry(playerId, "desativou ${skill.name}", "skill")
+                broadcaster.broadcastPlayer(saved)
+                return DamageResult(skillName = skill.name, damage = null, costPaid = emptyList(), cooldownSet = skill.cooldownTurns)
+            } else {
+                // Ativar: valida e debita custo imediatamente, cria efeito permanente
+                val essencias = essenciaRepository.findAll()
+                attributeService.computeEffectiveAttributes(player, essencias)
+                val computed = playerSkill.maestria.computed
+                val netCostMod = computed.custoAumento - computed.reducaoCusto
+                val costMap = mutableMapOf<String, Int>()
+                for (cost in skill.costs) {
+                    val base = when (cost.type) {
+                        "flow", "ether", "hp" -> cost.value ?: 0
+                        "percentual_flow"     -> (player.flow.max * (cost.percentual ?: 0)) / 100
+                        "percentual_hp"       -> (player.hp.max  * (cost.percentual ?: 0)) / 100
+                        else                  -> cost.value ?: 0
+                    }
+                    costMap[cost.type] = maxOf(0, Math.round(base * (1.0 + netCostMod)).toInt())
+                }
+                costMap["flow"]?.let { c ->
+                    if (player.flow.current < c)
+                        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Fluxo insuficiente ($c requerido, ${player.flow.current} disponível)")
+                }
+                costMap["percentual_flow"]?.let { c ->
+                    if (player.flow.current < c)
+                        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Fluxo insuficiente ($c requerido, ${player.flow.current} disponível)")
+                }
+                costMap["hp"]?.let { c ->
+                    if (player.hp.current < c)
+                        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "HP insuficiente ($c requerido)")
+                }
+                costMap["ether"]?.let { c ->
+                    if (!player.ether.unlocked || player.ether.current < c)
+                        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Éter insuficiente ($c requerido)")
+                }
+                var withCosts = player
+                costMap["flow"]?.let { c -> withCosts = withCosts.copy(flow = withCosts.flow.copy(current = (withCosts.flow.current - c).coerceAtLeast(0))) }
+                costMap["percentual_flow"]?.let { c -> withCosts = withCosts.copy(flow = withCosts.flow.copy(current = (withCosts.flow.current - c).coerceAtLeast(0))) }
+                costMap["hp"]?.let { c -> withCosts = withCosts.copy(hp = withCosts.hp.copy(current = (withCosts.hp.current - c).coerceAtLeast(0))) }
+                costMap["ether"]?.let { c -> withCosts = withCosts.copy(ether = withCosts.ether.copy(current = (withCosts.ether.current - c).coerceAtLeast(0))) }
+                val parts = mutableListOf<String>()
+                if (!skill.buffAttributes.isNullOrEmpty()) parts.add("atributos")
+                skill.hitBonus?.let    { parts.add("acerto ${if (it >= 0) "+$it" else "$it"}") }
+                skill.attackBonus?.let { parts.add("ataque ${if (it >= 0) "+$it" else "$it"}") }
+                skill.damageBonus?.let { parts.add("dano ${if (it >= 0) "+$it" else "$it"}")   }
+                val toggleLimit = skill.buffDurationTurns ?: -1
+                val buffEffect = StatusEffect(
+                    id             = UUID.randomUUID().toString(),
+                    name           = skill.name,
+                    desc           = if (parts.isEmpty()) "ativo" else parts.joinToString(", "),
+                    color          = "#f97316",
+                    durationTurns  = toggleLimit,
+                    attributeBonus = skill.buffAttributes,
+                    hitBonus       = skill.hitBonus,
+                    attackBonus    = skill.attackBonus,
+                    damageBonus    = skill.damageBonus,
+                    sourceSkillId  = skillId
+                )
+                val newSlots = withCosts.slots.map { s ->
+                    if (s.id == slot.id) s.copy(toggleActive = true) else s
+                }
+                val saved = playerRepository.save(
+                    withCosts.copy(slots = newSlots, statusEffects = withCosts.statusEffects + buffEffect)
+                )
+                gameStateService.addLogEntry(playerId, "ativou ${skill.name}", "skill")
+                broadcaster.broadcastPlayer(saved)
+                return DamageResult(
+                    skillName  = skill.name,
+                    damage     = null,
+                    costPaid   = costMap.map { (type, value) -> Cost(type = type, value = value, percentual = null) },
+                    cooldownSet = 0
+                )
+            }
+        }
+
         // 3. Compute effective attributes
         val essencias = essenciaRepository.findAll()
         val effectiveAttrs = attributeService.computeEffectiveAttributes(player, essencias)
@@ -137,16 +221,26 @@ class SkillUseService(
             costMap["pressao"] = pressaoCurrent
         }
 
-        // 7b. Criar buff de atributo se a skill tiver buffAttributes
-        if (skill.buffAttributes != null && !skill.buffAttributes.isEmpty()) {
+        // 7b. Criar buff se a skill tiver buffAttributes ou bônus de combate
+        val hasBuff = (!skill.buffAttributes.isNullOrEmpty()) ||
+                      skill.hitBonus != null || skill.attackBonus != null || skill.damageBonus != null
+        if (hasBuff) {
             val duration = skill.buffDurationTurns ?: 1
+            val parts = mutableListOf<String>()
+            if (!skill.buffAttributes.isNullOrEmpty()) parts.add("atributos")
+            skill.hitBonus?.let    { parts.add("acerto ${if (it >= 0) "+$it" else "$it"}") }
+            skill.attackBonus?.let { parts.add("ataque ${if (it >= 0) "+$it" else "$it"}") }
+            skill.damageBonus?.let { parts.add("dano ${if (it >= 0) "+$it" else "$it"}") }
             val buffEffect = StatusEffect(
                 id             = UUID.randomUUID().toString(),
                 name           = skill.name,
-                desc           = "Bônus de atributos por ${if (duration == -1) "∞" else "$duration"} turno(s)",
+                desc           = "${parts.joinToString(", ")} por ${if (duration == -1) "∞" else "$duration"} turno(s)",
                 color          = "#4ade80",
                 durationTurns  = duration,
-                attributeBonus = skill.buffAttributes
+                attributeBonus = skill.buffAttributes,
+                hitBonus       = skill.hitBonus,
+                attackBonus    = skill.attackBonus,
+                damageBonus    = skill.damageBonus
             )
             updatedPlayer = updatedPlayer.copy(
                 statusEffects = updatedPlayer.statusEffects + buffEffect

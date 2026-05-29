@@ -1,8 +1,6 @@
 package com.rpg.essentia.service
 
-import com.rpg.essentia.model.Attributes
-import com.rpg.essentia.model.Essencia
-import com.rpg.essentia.model.Player
+import com.rpg.essentia.model.*
 import com.rpg.essentia.repository.SkillRepository
 import org.springframework.stereotype.Service
 
@@ -63,6 +61,16 @@ class AttributeService(private val skillRepository: SkillRepository) {
             effectiveAttributes = effective
         )
     }
+}
+
+fun Equipment.slotToItem(slot: String): Item? = when (slot) {
+    "mainHand" -> mainHand?.let { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded) }
+    "offHand"  -> offHand?.let  { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded) }
+    "armor"    -> armor?.let    { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "armor",  equipSlot = slot, damageReduction = it.damageReduction, armorWeight = it.armorWeight, attributeBonus = it.attributeBonus, rarity = it.rarity) }
+    "amulet"   -> amulet?.let   { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }
+    "ring"     -> ring?.let     { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }
+    "utility"  -> utility?.let  { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }
+    else -> null
 }
 
 // Canonical keys matching the Attributes field names and attributeBonus maps in MongoDB

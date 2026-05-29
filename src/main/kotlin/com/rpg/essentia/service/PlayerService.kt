@@ -92,12 +92,10 @@ class PlayerService(
             exp = player.exp.copy(available = player.exp.available - delta)
         )
 
-        // Recalculate vitals when resistance or flow changes
-        if (attribute == "resistance" || attribute == "flow") {
-            val essencias = essenciaRepository.findAll()
-            val effective = attributeService.computeEffectiveAttributes(updated, essencias)
-            updated = attributeService.recalculateVitals(updated, effective)
-        }
+        // Always recompute effectiveAttributes so the final column reflects the new base
+        val essencias = essenciaRepository.findAll()
+        val effective = attributeService.computeEffectiveAttributes(updated, essencias)
+        updated = attributeService.recalculateVitals(updated, effective)
 
         // Sempre recalcula éter max quando desbloqueado (min(floor(SAB/4), 10))
         if (updated.ether.unlocked) {
@@ -195,59 +193,36 @@ class PlayerService(
             }
         }
 
-        val previousItem: Item? = when (slot) {
-            "mainHand" -> player.equipment.mainHand?.let {
-                Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
-                    weaponType = it.weaponType, damageBase = it.damageBase,
-                    damageAttribute = it.damageAttribute, equilibrio = it.equilibrio,
-                    attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded)
-            }
-            "offHand" -> player.equipment.offHand?.let {
-                Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
-                    weaponType = it.weaponType, damageBase = it.damageBase,
-                    damageAttribute = it.damageAttribute, equilibrio = it.equilibrio,
-                    attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded)
-            }
-            "armor" -> player.equipment.armor?.let {
-                Item(id = it.id, name = it.name, type = "armor", equipSlot = slot,
-                    damageReduction = it.damageReduction, attributeBonus = it.attributeBonus, rarity = it.rarity)
-            }
-            "amulet" -> player.equipment.amulet?.let {
-                Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus, rarity = it.rarity)
-            }
-            "ring" -> player.equipment.ring?.let {
-                Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus, rarity = it.rarity)
-            }
-            "utility" -> player.equipment.utility?.let {
-                Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus, rarity = it.rarity)
-            }
-            else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot inválido: $slot")
-        }
+        val previousItem: Item? = player.equipment.slotToItem(slot)
+            ?: if (slot !in setOf("mainHand","offHand","armor","amulet","ring","utility"))
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot inválido: $slot") else null
 
         val newEquipment = when (slot) {
             "mainHand" -> player.equipment.copy(mainHand = WeaponEquip(
-                id = item.id, name = item.name, weaponType = item.weaponType ?: "",
-                damageBase = item.damageBase ?: 0, damageAttribute = item.damageAttribute ?: "",
-                equilibrio = item.equilibrio, attributeBonus = item.attributeBonus,
+                id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
+                weaponType = item.weaponType ?: "", damageBase = item.damageBase ?: 0,
+                damageAttribute = item.damageAttribute ?: "", equilibrio = item.equilibrio,
+                properties = item.properties, attributeBonus = item.attributeBonus,
                 rarity = item.rarity, twoHanded = item.twoHanded ?: false))
             "offHand" -> player.equipment.copy(offHand = WeaponEquip(
-                id = item.id, name = item.name, weaponType = item.weaponType ?: "",
-                damageBase = item.damageBase ?: 0, damageAttribute = item.damageAttribute ?: "",
-                equilibrio = item.equilibrio, attributeBonus = item.attributeBonus,
+                id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
+                weaponType = item.weaponType ?: "", damageBase = item.damageBase ?: 0,
+                damageAttribute = item.damageAttribute ?: "", equilibrio = item.equilibrio,
+                properties = item.properties, attributeBonus = item.attributeBonus,
                 rarity = item.rarity, twoHanded = item.twoHanded ?: false))
             "armor" -> player.equipment.copy(armor = ArmorEquip(
-                id = item.id, name = item.name,
+                id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
                 damageReduction = item.damageReduction ?: 0, attributeBonus = item.attributeBonus,
                 armorWeight = item.armorWeight, rarity = item.rarity))
             "amulet" -> player.equipment.copy(amulet = AccessoryEquip(
-                id = item.id, name = item.name, attributeBonus = item.attributeBonus, rarity = item.rarity))
+                id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
+                attributeBonus = item.attributeBonus, rarity = item.rarity))
             "ring" -> player.equipment.copy(ring = AccessoryEquip(
-                id = item.id, name = item.name, attributeBonus = item.attributeBonus, rarity = item.rarity))
+                id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
+                attributeBonus = item.attributeBonus, rarity = item.rarity))
             "utility" -> player.equipment.copy(utility = AccessoryEquip(
-                id = item.id, name = item.name, attributeBonus = item.attributeBonus, rarity = item.rarity))
+                id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
+                attributeBonus = item.attributeBonus, rarity = item.rarity))
             else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot inválido: $slot")
         }
 
@@ -266,37 +241,8 @@ class PlayerService(
         if (nonCurrencyCount >= 16)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Inventário cheio")
 
-        val previousItem: Item = when (slot) {
-            "mainHand" -> player.equipment.mainHand?.let {
-                Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
-                    weaponType = it.weaponType, damageBase = it.damageBase,
-                    damageAttribute = it.damageAttribute, equilibrio = it.equilibrio,
-                    attributeBonus = it.attributeBonus)
-            }
-            "offHand" -> player.equipment.offHand?.let {
-                Item(id = it.id, name = it.name, type = "weapon", equipSlot = slot,
-                    weaponType = it.weaponType, damageBase = it.damageBase,
-                    damageAttribute = it.damageAttribute, equilibrio = it.equilibrio,
-                    attributeBonus = it.attributeBonus)
-            }
-            "armor" -> player.equipment.armor?.let {
-                Item(id = it.id, name = it.name, type = "armor", equipSlot = slot,
-                    damageReduction = it.damageReduction, attributeBonus = it.attributeBonus)
-            }
-            "amulet" -> player.equipment.amulet?.let {
-                Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus)
-            }
-            "ring" -> player.equipment.ring?.let {
-                Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus)
-            }
-            "utility" -> player.equipment.utility?.let {
-                Item(id = it.id, name = it.name, type = "accessory", equipSlot = slot,
-                    attributeBonus = it.attributeBonus)
-            }
-            else -> null
-        } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Slot vazio ou inválido: $slot")
+        val previousItem: Item = player.equipment.slotToItem(slot)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Slot vazio ou inválido: $slot")
 
         val newEquipment = when (slot) {
             "mainHand" -> player.equipment.copy(mainHand = null)
@@ -319,9 +265,10 @@ class PlayerService(
             val allPlayerSkills = playerSkillRepository.findByPlayerId(id)
             val lostSkillIds = allPlayerSkills.mapNotNull { ps ->
                 val skill = skillRepository.findById(ps.skillId).orElse(null)
+                val sTypes = skill?.weaponTypes?.map { it.lowercase() }
+                    ?: listOfNotNull(skill?.weaponType?.lowercase())
                 if (skill != null && skill.type == "weapon" &&
-                    !skill.weaponType.isNullOrBlank() &&
-                    skill.weaponType.lowercase() !in remainingWeaponTypes)
+                    sTypes.isNotEmpty() && sTypes.none { it in remainingWeaponTypes })
                     ps.skillId else null
             }.toSet()
             if (lostSkillIds.isNotEmpty()) {

@@ -36,7 +36,7 @@ class SkillTreeService(
         val relevantSkills = skillRepository.findAll().filter { skill ->
             when (skill.type) {
                 "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
-                "weapon"   -> skill.weaponType?.lowercase() in equippedWeaponTypes
+                "weapon"   -> skillWeaponTypes(skill).any { it in equippedWeaponTypes }
                 "essencia" -> skill.essenciaId in accessibleEssenciaIds
                 else       -> false
             }
@@ -68,7 +68,7 @@ class SkillTreeService(
         val relevantSkills = skillRepository.findAll().filter { skill ->
             when (skill.type) {
                 "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
-                "weapon"   -> skill.weaponType?.lowercase() in equippedWeaponTypes
+                "weapon"   -> skillWeaponTypes(skill).any { it in equippedWeaponTypes }
                 "essencia" -> skill.essenciaId in accessibleEssenciaIds
                 "mestre"   -> true   // habilidades de mestre sempre visíveis no painel do mestre
                 else       -> false
@@ -131,7 +131,7 @@ class SkillTreeService(
 
         val categoria = when (skill.type) {
             "class"    -> skill.skillClass ?: "Geral"
-            "weapon"   -> skill.weaponType ?: "Arma"
+            "weapon"   -> skill.weaponTypes?.joinToString("/") ?: skill.weaponType ?: "Arma"
             "essencia" -> "Essência"
             else       -> "Geral"
         }
@@ -183,10 +183,18 @@ class SkillTreeService(
                     }
                 }.ifEmpty { null }
             },
-            danoBase      = skill.damage?.baseFixed?.takeIf { it != 0 },
-            atributo      = skill.damage?.atributo,
-            equilibrio    = skill.damage?.equilibrio,
-            cooldownTurns = skill.cooldownTurns
+            danoBase          = skill.damage?.baseFixed?.takeIf { it != 0 },
+            atributo          = skill.damage?.atributo,
+            equilibrio        = skill.damage?.equilibrio,
+            cooldownTurns     = skill.cooldownTurns,
+            buffDurationTurns = skill.buffDurationTurns,
+            hitBonus          = skill.hitBonus,
+            attackBonus       = skill.attackBonus,
+            damageBonus       = skill.damageBonus,
+            toggle            = skill.toggle,
+            critThreshold     = skill.critThreshold,
+            actionType        = skill.actionType,
+            multiTarget       = skill.multiTarget
         )
     }
 
@@ -229,7 +237,7 @@ class SkillTreeService(
             .map { it.id }.toSet()
         val accessible = when (skill.type) {
             "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
-            "weapon"   -> skill.weaponType in equippedWeaponTypes
+            "weapon"   -> skillWeaponTypes(skill).any { it in equippedWeaponTypes }
             "essencia" -> skill.essenciaId in accessibleEssenciaIds
             else       -> false
         }
@@ -319,6 +327,11 @@ class SkillTreeService(
             player.equipment.mainHand?.weaponType?.takeIf { it.isNotBlank() }?.lowercase(),
             player.equipment.offHand?.weaponType?.takeIf { it.isNotBlank() }?.lowercase()
         ).toSet()
+
+    // Retorna os tipos de arma da skill — prefere weaponTypes (multi), cai em weaponType (legado)
+    private fun skillWeaponTypes(skill: com.rpg.essentia.model.Skill): List<String> =
+        skill.weaponTypes?.map { it.lowercase() }
+            ?: listOfNotNull(skill.weaponType?.lowercase())
 
     private fun loadPlayer(id: String): Player =
         playerRepository.findById(id).orElseThrow {

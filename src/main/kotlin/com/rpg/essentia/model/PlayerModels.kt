@@ -52,16 +52,20 @@ data class Slot(
     val id: String = "",
     val type: String = "",             // "class" | "free" | "human_bonus"
     val skillId: String? = null,
-    val cooldownRemaining: Int = 0
+    val cooldownRemaining: Int = 0,
+    val toggleActive: Boolean = false
 )
 
 data class WeaponEquip(
     val id: String = "",
     val name: String = "",
+    val desc: String? = null,
+    val icon: String? = null,
     val weaponType: String = "",
     val damageBase: Int = 0,
     val damageAttribute: String = "",
     val equilibrio: Int? = null,
+    val properties: String? = null,
     val attributeBonus: Map<String, Int>? = null,
     val rarity: String? = null,
     val twoHanded: Boolean = false
@@ -70,6 +74,8 @@ data class WeaponEquip(
 data class ArmorEquip(
     val id: String = "",
     val name: String = "",
+    val desc: String? = null,
+    val icon: String? = null,
     val damageReduction: Int = 0,
     val attributeBonus: Map<String, Int>? = null,
     val armorWeight: String? = null,
@@ -79,6 +85,8 @@ data class ArmorEquip(
 data class AccessoryEquip(
     val id: String = "",
     val name: String = "",
+    val desc: String? = null,
+    val icon: String? = null,
     val attributeBonus: Map<String, Int>? = null,
     val rarity: String? = null
 )
@@ -101,6 +109,22 @@ data class AutoEffect(
     val dice: Dice? = null
 )
 
+data class OnExpireEffect(
+    val name: String = "",
+    val desc: String = "",
+    val durationTurns: Int = 1,
+    val icon: String? = null,
+    val color: String? = null,
+    val instantHealHp: Int? = null,
+    val instantHealFlow: Int? = null,
+    val instantDamageHp: Int? = null,
+    val attributeBonus: Map<String, Int>? = null,
+    val effects: List<AutoEffect> = emptyList(),
+    val hitBonus: Int? = null,
+    val attackBonus: Int? = null,
+    val damageBonus: Int? = null
+)
+
 data class StatusEffect(
     val id: String = "",
     val name: String = "",
@@ -109,7 +133,12 @@ data class StatusEffect(
     val color: String? = null,
     val durationTurns: Int = 1,        // -1 = permanent until master removes
     val effects: List<AutoEffect> = emptyList(),
-    val attributeBonus: Map<String, Int>? = null  // bônus de atributos enquanto ativo
+    val attributeBonus: Map<String, Int>? = null,
+    val hitBonus: Int? = null,
+    val attackBonus: Int? = null,
+    val damageBonus: Int? = null,
+    val onExpire: OnExpireEffect? = null,
+    val sourceSkillId: String? = null  // rastreia habilidade toggle que criou este efeito
 )
 
 data class Item(
@@ -133,7 +162,8 @@ data class Item(
     val equipSlot: String? = null,     // "mainHand"|"offHand"|"armor"|"amulet"|"ring"|"utility"
     val rarity: String? = null,
     val twoHanded: Boolean? = null,
-    val requirements: ItemRequirements? = null
+    val requirements: ItemRequirements? = null,
+    val onUseEffect: OnUseEffect? = null
 )
 
 data class PendingRequest(

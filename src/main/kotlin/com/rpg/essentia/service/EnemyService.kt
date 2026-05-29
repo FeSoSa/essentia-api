@@ -13,7 +13,8 @@ class EnemyService(
     private val templateRepository: EnemyTemplateRepository,
     private val instanceRepository: EnemyInstanceRepository,
     private val playerRepository: PlayerRepository,
-    private val broadcaster: WebSocketBroadcaster
+    private val broadcaster: WebSocketBroadcaster,
+    private val masterService: MasterService
 ) {
 
     /* ── Catalog ─────────────────────────────────────────────── */
@@ -77,14 +78,10 @@ class EnemyService(
             }
         }
 
-        if (req.distributeXp && enemy.xp > 0) {
+        val xpToGrant = req.xpAmount ?: enemy.xp
+        if (req.distributeXp && xpToGrant > 0) {
             playerRepository.findAll().forEach { player ->
-                playerRepository.save(
-                    player.copy(exp = player.exp.copy(
-                        available = player.exp.available + enemy.xp,
-                        total = player.exp.total + enemy.xp
-                    ))
-                )
+                masterService.grantExp(player.id, xpToGrant)
             }
         }
 

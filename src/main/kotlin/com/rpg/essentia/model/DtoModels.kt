@@ -85,7 +85,8 @@ data class AddItemRequest(
     val equipSlot: String? = null,
     val rarity: String? = null,
     val twoHanded: Boolean? = null,
-    val requirements: ItemRequirements? = null
+    val requirements: ItemRequirements? = null,
+    val onUseEffect: OnUseEffect? = null
 )
 data class AdjustItemQtyRequest(val delta: Int)
 
@@ -183,7 +184,15 @@ data class PlayerSkillTreeEntry(
     val equilibrio: Int? = null,
     val cooldownTurns: Int = 0,
     val skillType: String = "class",  // "class" | "weapon" | "essencia" | "mestre"
-    val pressaoDice: Boolean = false  // técnica consome Pressão e ganha +1d6 de dano por ponto
+    val pressaoDice: Boolean = false, // técnica consome Pressão e ganha +1d6 de dano por ponto
+    val buffDurationTurns: Int? = null,
+    val hitBonus: Int? = null,
+    val attackBonus: Int? = null,
+    val damageBonus: Int? = null,
+    val toggle: Boolean = false,
+    val critThreshold: Int? = null,
+    val actionType: String = "main",  // "main" | "bonus" | "both"
+    val multiTarget: MultiTarget? = null
 )
 
 data class MaestriaSimple(

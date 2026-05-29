@@ -112,7 +112,8 @@ data class AddEnemyRequest(val templateId: String? = null, val enemy: EnemyInsta
 data class DropAssignment(val itemName: String = "", val icon: String = "", val playerId: String = "")
 data class EnemyDefeatRequest(
     val drops: List<DropAssignment> = emptyList(),
-    val distributeXp: Boolean = true
+    val distributeXp: Boolean = true,
+    val xpAmount: Int? = null
 )
 
 data class BossHpRequest(val delta: Int = 0)
@@ -122,5 +123,6 @@ data class SpecialRewardAssignment(val referenceId: String = "", val playerId: S
 data class BossDefeatRequest(
     val drops: List<DropAssignment> = emptyList(),
     val specialReward: SpecialRewardAssignment? = null,
-    val distributeXp: Boolean = true
+    val distributeXp: Boolean = true,
+    val xpAmount: Int? = null
 )
