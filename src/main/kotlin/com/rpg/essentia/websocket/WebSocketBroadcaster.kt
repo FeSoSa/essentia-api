@@ -54,4 +54,7 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
 
     fun broadcastDamageResult(playerId: String, result: DamageResultNotification) =
         messagingTemplate.convertAndSend("/topic/player/$playerId/damage-result", result)
+
+    fun broadcastShops(shops: List<Shop>) =
+        messagingTemplate.convertAndSend("/topic/shops", shops)
 }

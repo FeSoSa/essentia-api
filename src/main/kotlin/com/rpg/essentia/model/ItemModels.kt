@@ -44,5 +44,6 @@ data class ItemCatalog(
     val rarity: String? = null,       // "branco" | "verde" | "azul" | "roxo" | "amarelo" | "rosa"
     val twoHanded: Boolean? = null,
     val requirements: ItemRequirements? = null,
-    val onUseEffect: OnUseEffect? = null
+    val onUseEffect: OnUseEffect? = null,
+    val goldValue: Int? = null
 )
