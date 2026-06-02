@@ -59,6 +59,13 @@ class EnemyService(
         return broadcastAndReturn()
     }
 
+    fun applyStatusEffects(instanceId: String, effects: List<StatusEffect>): List<EnemyInstance> {
+        val enemy = load(instanceId)
+        val merged = enemy.statusEffects + effects
+        instanceRepository.save(enemy.copy(statusEffects = merged))
+        return broadcastAndReturn()
+    }
+
     fun defeat(instanceId: String, req: EnemyDefeatRequest): List<EnemyInstance> {
         val enemy = load(instanceId)
 

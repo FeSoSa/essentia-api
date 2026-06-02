@@ -6,8 +6,30 @@ import java.util.UUID
 
 /* ── Shared ──────────────────────────────────────────────────── */
 
-data class EnemyAttack(val name: String = "", val damage: String = "")
-data class EnemyDrop(val name: String = "", val icon: String = "")
+data class EnemyAttack(
+    val name: String = "",
+    val damage: String = "",         // fórmula legível gerada pelo frontend (ex: "15 + d20×FOR/4")
+    val damageBase: Int? = null,     // dano fixo base (ataque básico)
+    val damageAttribute: String? = null, // "FOR" | "AGI" | "INT"
+    val equilibrio: Int? = null,     // divisor da escala de atributo
+    val skillId: String? = null,
+    val skillName: String? = null
+)
+
+data class GoldDrop(
+    val tier: String = "comum",
+    val min: Int = 5,
+    val max: Int = 30
+)
+
+data class EnemyDrop(
+    val name: String = "",
+    val icon: String = "",
+    val itemId: String? = null,
+    val targetPlayerId: String? = null,
+    val goldDrop: GoldDrop? = null
+)
+
 data class EnemyAttributes(val strength: Int = 10, val agility: Int = 10, val intelligence: Int = 10, val defense: Int = 5)
 
 /* ── Enemy catalog template ──────────────────────────────────── */
@@ -18,10 +40,12 @@ data class EnemyTemplate(
     val name: String = "",
     val type: String = "",
     val icon: String = "👹",
+    val imageUrl: String? = null,
     val hpMax: Int = 20,
     val attributes: EnemyAttributes = EnemyAttributes(),
     val attacks: List<EnemyAttack> = emptyList(),
     val drops: List<EnemyDrop> = emptyList(),
+    val immunities: List<BossImmunity> = emptyList(),
     val xp: Int = 0,
     val desc: String = "",
     val notes: String = ""
@@ -36,14 +60,17 @@ data class EnemyInstance(
     val name: String = "",
     val type: String = "",
     val icon: String = "👹",
+    val imageUrl: String? = null,
     val hpCurrent: Int = 20,
     val hpMax: Int = 20,
     val attributes: EnemyAttributes = EnemyAttributes(),
     val attacks: List<EnemyAttack> = emptyList(),
     val drops: List<EnemyDrop> = emptyList(),
+    val immunities: List<BossImmunity> = emptyList(),
     val xp: Int = 0,
     val desc: String = "",
-    val notes: String = ""
+    val notes: String = "",
+    val statusEffects: List<StatusEffect> = emptyList()
 )
 
 /* ── Boss models ─────────────────────────────────────────────── */
@@ -54,7 +81,13 @@ data class BossAbility(
     val cooldownTurns: Int = 0
 )
 
-data class BossImmunity(val type: String = "", val icon: String = "")
+data class BossImmunity(
+    val type: String = "",
+    val icon: String = "",
+    val kind: String = "total",
+    val sources: List<String> = emptyList(),
+    val isFlag: Boolean = false
+)
 data class BossResistance(val type: String = "", val reduction: Int = 50)
 data class BossReward(
     val type: String = "essencia",
@@ -101,7 +134,8 @@ data class BossInstance(
     val drops: List<EnemyDrop> = emptyList(),
     val xp: Int = 500,
     val specialReward: BossReward? = null,
-    val notes: String = ""
+    val notes: String = "",
+    val statusEffects: List<StatusEffect> = emptyList()
 )
 
 /* ── DTOs ────────────────────────────────────────────────────── */

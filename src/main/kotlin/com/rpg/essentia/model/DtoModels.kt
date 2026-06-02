@@ -50,6 +50,7 @@ data class UpdatePlayerRequest(
 )
 
 // Master
+data class EnemyAttackRequest(val targetPlayerId: String, val damage: Int)
 data class ApproveRejectItemRequest(val playerId: String, val requestId: String)
 data class ExpRequest(val playerId: String, val amount: Int)
 data class ResetSkillsRequest(val playerId: String?)
@@ -106,7 +107,8 @@ data class DamageApprovalRequest(
     val targetType: String,   // "enemy" | "boss"
     val targetName: String,
     val damage: Int,
-    val costs: Map<String, Int> = emptyMap()
+    val costs: Map<String, Int> = emptyMap(),
+    val onHitEffects: List<StatusEffect> = emptyList()
 )
 data class DamageRequestBody(
     val requestId: String,
@@ -114,7 +116,8 @@ data class DamageRequestBody(
     val targetType: String,
     val targetName: String,
     val damage: Int,
-    val costs: Map<String, Int> = emptyMap()
+    val costs: Map<String, Int> = emptyMap(),
+    val skillId: String? = null
 )
 data class DamageApproveBody(
     val requestId: String,
@@ -122,7 +125,8 @@ data class DamageApproveBody(
     val targetId: String,
     val targetType: String,
     val damage: Int,
-    val costs: Map<String, Int> = emptyMap()  // custo resolvido a debitar ao aprovar
+    val costs: Map<String, Int> = emptyMap(),  // custo resolvido a debitar ao aprovar
+    val onHitEffects: List<StatusEffect> = emptyList()
 )
 data class DamageResultNotification(val requestId: String, val approved: Boolean)
 

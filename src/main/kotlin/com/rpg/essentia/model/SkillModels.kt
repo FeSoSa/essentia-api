@@ -54,5 +54,6 @@ data class Skill(
     val damageBonus: Int? = null,                     // bônus fixo de dano (buff ao usar)
     val pressaoDice: Boolean = false,                  // técnica rola +1d6 por ponto de Pressão e consome tudo
     val critThreshold: Int? = null,                    // mínimo no d20 para crítico (null = 20)
-    val multiTarget: MultiTarget? = null               // habilidade atinge múltiplos inimigos
+    val multiTarget: MultiTarget? = null,              // habilidade atinge múltiplos inimigos
+    val onHitEffects: List<StatusEffect> = emptyList() // status effects aplicados ao inimigo ao acertar
 )

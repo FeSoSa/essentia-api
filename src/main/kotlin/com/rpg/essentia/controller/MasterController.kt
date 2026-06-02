@@ -264,6 +264,10 @@ class MasterController(
     fun removeCustomBar(@PathVariable id: String, @PathVariable barId: String): Player =
         masterService.removeCustomBar(id, barId)
 
+    @PostMapping("/enemy-attack")
+    fun enemyAttack(@RequestBody req: EnemyAttackRequest): Player =
+        playerService.adjustHp(req.targetPlayerId, -req.damage)
+
     @PostMapping("/damage/approve")
     fun approveDamage(@RequestBody req: DamageApproveBody) = damageService.approveDamage(req)
 

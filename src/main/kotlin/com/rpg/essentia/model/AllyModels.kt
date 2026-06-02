@@ -4,7 +4,15 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.util.UUID
 
-data class AllyAttack(val name: String = "", val damage: String = "")
+data class AllyAttack(
+    val name: String = "",
+    val damage: String = "",
+    val damageBase: Int? = null,
+    val damageAttribute: String? = null,
+    val equilibrio: Int? = null,
+    val skillId: String? = null,
+    val skillName: String? = null
+)
 data class AllyAttributes(
     val strength: Int = 10,
     val agility: Int = 10,
@@ -21,6 +29,7 @@ data class AllyTemplate(
     val portraitUrl: String? = null,
     val attributes: AllyAttributes = AllyAttributes(),
     val attacks: List<AllyAttack> = emptyList(),
+    val immunities: List<com.rpg.essentia.model.BossImmunity> = emptyList(),
     val desc: String = "",
     val notes: String = ""
 )
@@ -36,6 +45,7 @@ data class CombatAlly(
     val portraitUrl: String? = null,
     val attributes: AllyAttributes = AllyAttributes(),
     val attacks: List<AllyAttack> = emptyList(),
+    val immunities: List<com.rpg.essentia.model.BossImmunity> = emptyList(),
     val desc: String = "",
     val notes: String = ""
 )

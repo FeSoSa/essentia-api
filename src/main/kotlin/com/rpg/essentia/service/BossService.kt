@@ -66,6 +66,13 @@ class BossService(
         return broadcastAndReturn()
     }
 
+    fun applyStatusEffects(instanceId: String, effects: List<StatusEffect>): List<BossInstance> {
+        val boss = load(instanceId)
+        val merged = boss.statusEffects + effects
+        instanceRepository.save(boss.copy(statusEffects = merged))
+        return broadcastAndReturn()
+    }
+
     fun nextPhase(instanceId: String): List<BossInstance> {
         val boss = load(instanceId)
         val nextIndex = boss.currentPhase + 1

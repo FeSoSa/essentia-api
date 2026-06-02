@@ -2,6 +2,7 @@ package com.rpg.essentia.service
 
 import com.rpg.essentia.model.*
 import com.rpg.essentia.repository.PlayerRepository
+import com.rpg.essentia.repository.SkillRepository
 import com.rpg.essentia.websocket.WebSocketBroadcaster
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -10,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException
 @Service
 class DamageService(
     private val playerRepository: PlayerRepository,
+    private val skillRepository: SkillRepository,
     private val enemyService: EnemyService,
     private val bossService: BossService,
     private val broadcaster: WebSocketBroadcaster
@@ -18,15 +20,20 @@ class DamageService(
         val player = playerRepository.findById(playerId).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado")
         }
+        val onHitEffects = req.skillId
+            ?.let { skillRepository.findById(it).orElse(null) }
+            ?.onHitEffects
+            ?: emptyList()
         val approval = DamageApprovalRequest(
-            requestId   = req.requestId,
-            playerId    = playerId,
-            playerName  = player.char.name,
-            targetId    = req.targetId,
-            targetType  = req.targetType,
-            targetName  = req.targetName,
-            damage      = req.damage,
-            costs       = req.costs
+            requestId    = req.requestId,
+            playerId     = playerId,
+            playerName   = player.char.name,
+            targetId     = req.targetId,
+            targetType   = req.targetType,
+            targetName   = req.targetName,
+            damage       = req.damage,
+            costs        = req.costs,
+            onHitEffects = onHitEffects
         )
         broadcaster.broadcastDamageRequest(approval)
     }
@@ -37,6 +44,14 @@ class DamageService(
             "enemy" -> enemyService.adjustHp(req.targetId, -req.damage)
             "boss"  -> bossService.adjustHp(req.targetId, -req.damage)
             else    -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de alvo inválido")
+        }
+
+        // Aplica status effects no alvo
+        if (req.onHitEffects.isNotEmpty()) {
+            when (req.targetType) {
+                "enemy" -> enemyService.applyStatusEffects(req.targetId, req.onHitEffects)
+                "boss"  -> bossService.applyStatusEffects(req.targetId, req.onHitEffects)
+            }
         }
 
         // Debita custo do jogador
