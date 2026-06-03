@@ -111,6 +111,10 @@ class MasterController(
         return ResponseEntity.noContent().build()
     }
 
+    @PostMapping("/players/{id}/toggle-active")
+    fun toggleActive(@PathVariable id: String): Player =
+        masterService.toggleActive(id)
+
     @PostMapping("/approve-item")
     fun approveItem(@RequestBody req: ApproveRejectItemRequest): Player =
         masterService.approveItem(req.playerId, req.requestId)

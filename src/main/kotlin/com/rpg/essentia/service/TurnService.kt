@@ -25,7 +25,7 @@ class TurnService(
         val currentPlayerId = if (size > 0) state.initiative[newIndex].playerId else ""
         gameStateService.save(state.copy(currentTurnIndex = newIndex, totalTurns = newTotal))
 
-        val players = playerRepository.findAll()
+        val players = playerRepository.findAll().filter { it.active }
 
         players.forEach { player ->
             var updated = player

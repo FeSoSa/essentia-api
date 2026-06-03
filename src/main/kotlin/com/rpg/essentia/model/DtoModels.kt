@@ -90,6 +90,7 @@ data class AddItemRequest(
     val onUseEffect: OnUseEffect? = null
 )
 data class AdjustItemQtyRequest(val delta: Int)
+data class TransferItemRequest(val itemId: String, val targetPlayerId: String, val qty: Int = 1)
 
 // Images
 data class ImageCreateRequest(val url: String, val title: String)

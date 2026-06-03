@@ -196,7 +196,8 @@ data class Player(
     val sobrecargaDesbloqueada: Boolean = false,
     val sobrecargaAtiva: Boolean = false,
     val sobrecargaNivel: Int? = null,
-    val customBars: List<CustomBar> = emptyList()
+    val customBars: List<CustomBar> = emptyList(),
+    val active: Boolean = true
 )
 
 data class CustomBar(

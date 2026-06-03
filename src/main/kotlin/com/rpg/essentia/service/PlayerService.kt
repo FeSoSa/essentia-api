@@ -336,6 +336,45 @@ class PlayerService(
         return saveAndBroadcast(player)
     }
 
+    fun transferItem(senderId: String, itemId: String, targetPlayerId: String, qty: Int): Player {
+        val sender = load(senderId)
+        val target = load(targetPlayerId)
+
+        val sourceItem = sender.items.firstOrNull { it.id == itemId }
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Item não encontrado no inventário")
+        if (qty < 1 || qty > sourceItem.qty)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantidade inválida")
+
+        val targetNonCurrency = target.items.count { it.type != "currency" }
+        if (sourceItem.type != "currency" && targetNonCurrency >= 16)
+            throw ResponseStatusException(HttpStatus.CONFLICT, "Inventário do jogador alvo está cheio")
+
+        // Remove or reduce from sender
+        val newSenderItems = if (sourceItem.qty - qty <= 0)
+            sender.items.filter { it.id != itemId }
+        else
+            sender.items.map { if (it.id == itemId) it.copy(qty = it.qty - qty) else it }
+
+        // Add or stack on target
+        val stackable = sourceItem.type in setOf("normal", "chave", "consumable", "currency")
+        val existing = if (stackable) target.items.find { it.name == sourceItem.name && it.type == sourceItem.type } else null
+        val newTargetItems = if (existing != null)
+            target.items.map { if (it.id == existing.id) it.copy(qty = it.qty + qty) else it }
+        else
+            target.items + sourceItem.copy(id = UUID.randomUUID().toString(), qty = qty)
+
+        saveAndBroadcast(sender.copy(items = newSenderItems))
+        val savedTarget = saveAndBroadcast(target.copy(items = newTargetItems))
+
+        gameStateService.addLogEntry(
+            senderId,
+            "${sender.char.name} transferiu ${sourceItem.name}${if (qty > 1) " ×$qty" else ""} para ${target.char.name}",
+            "item"
+        )
+
+        return playerRepository.findById(senderId).orElse(sender.copy(items = newSenderItems))
+    }
+
     fun saveAndBroadcast(player: Player): Player {
         val saved = playerRepository.save(player)
         broadcaster.broadcastPlayer(saved)

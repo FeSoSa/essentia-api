@@ -122,7 +122,7 @@ class BossService(
 
         val xpToGrant = req.xpAmount ?: boss.xp
         if (req.distributeXp && xpToGrant > 0) {
-            playerRepository.findAll().forEach { player ->
+            playerRepository.findAll().filter { it.active }.forEach { player ->
                 masterService.grantExp(player.id, xpToGrant)
             }
         }

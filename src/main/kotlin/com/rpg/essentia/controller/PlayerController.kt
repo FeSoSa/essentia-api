@@ -93,4 +93,8 @@ class PlayerController(
     @PostMapping("/skill-miss")
     fun skillMiss(@PathVariable id: String, @RequestBody costs: Map<String, Int>): Player =
         playerService.deductCosts(id, costs)
+
+    @PostMapping("/transfer-item")
+    fun transferItem(@PathVariable id: String, @RequestBody req: TransferItemRequest): Player =
+        playerService.transferItem(id, req.itemId, req.targetPlayerId, req.qty)
 }

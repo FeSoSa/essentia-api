@@ -297,6 +297,15 @@ class MasterService(
         }
     }
 
+    fun toggleActive(id: String): Player {
+        val player = loadPlayer(id)
+        val updated = player.copy(active = !player.active)
+        val saved = playerRepository.save(updated)
+        broadcaster.broadcastPlayer(saved)
+        broadcaster.broadcastPlayers(playerRepository.findAll())
+        return saved
+    }
+
     private fun loadPlayer(id: String): Player =
         playerRepository.findById(id).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Player not found")
