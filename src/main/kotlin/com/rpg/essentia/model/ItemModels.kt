@@ -45,5 +45,6 @@ data class ItemCatalog(
     val twoHanded: Boolean? = null,
     val requirements: ItemRequirements? = null,
     val onUseEffect: OnUseEffect? = null,
-    val goldValue: Int? = null
+    val goldValue: Int? = null,
+    val subtype: String? = null
 )

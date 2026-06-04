@@ -163,7 +163,8 @@ data class Item(
     val rarity: String? = null,
     val twoHanded: Boolean? = null,
     val requirements: ItemRequirements? = null,
-    val onUseEffect: OnUseEffect? = null
+    val onUseEffect: OnUseEffect? = null,
+    val goldValue: Int? = null
 )
 
 data class PendingRequest(
@@ -197,6 +198,7 @@ data class Player(
     val sobrecargaAtiva: Boolean = false,
     val sobrecargaNivel: Int? = null,
     val customBars: List<CustomBar> = emptyList(),
+    val inventorySize: Int = 18,
     val active: Boolean = true
 )
 

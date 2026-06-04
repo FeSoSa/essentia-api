@@ -159,7 +159,8 @@ class PlayerCreationService(
                 total     = req.expTotal     ?: existing.exp.total
             ),
             slots = newSlots,
-            sobrecargaDesbloqueada = req.sobrecargaDesbloqueada ?: existing.sobrecargaDesbloqueada
+            sobrecargaDesbloqueada = req.sobrecargaDesbloqueada ?: existing.sobrecargaDesbloqueada,
+            inventorySize = req.inventorySize ?: existing.inventorySize
         )
         // Se a classe mudou, remove skills exclusivas da classe antiga
         if (req.skillClass != existing.char.skillClass) {

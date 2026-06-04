@@ -74,7 +74,8 @@ class ShopService(
             rarity = catalog.rarity,
             twoHanded = catalog.twoHanded,
             requirements = catalog.requirements,
-            onUseEffect = catalog.onUseEffect
+            onUseEffect = catalog.onUseEffect,
+            goldValue = catalog.goldValue
         )
 
         // addItem validates player exists; adjustGold will then run on updated player

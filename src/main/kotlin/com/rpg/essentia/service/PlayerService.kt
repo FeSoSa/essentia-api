@@ -238,7 +238,7 @@ class PlayerService(
     fun unequipItem(id: String, slot: String): Player {
         val player = load(id)
         val nonCurrencyCount = player.items.count { it.type != "currency" }
-        if (nonCurrencyCount >= 16)
+        if (nonCurrencyCount >= player.inventorySize)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Inventário cheio")
 
         val previousItem: Item = player.equipment.slotToItem(slot)
@@ -346,7 +346,7 @@ class PlayerService(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantidade inválida")
 
         val targetNonCurrency = target.items.count { it.type != "currency" }
-        if (sourceItem.type != "currency" && targetNonCurrency >= 16)
+        if (sourceItem.type != "currency" && targetNonCurrency >= target.inventorySize)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Inventário do jogador alvo está cheio")
 
         // Remove or reduce from sender

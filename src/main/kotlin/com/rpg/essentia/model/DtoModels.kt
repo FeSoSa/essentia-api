@@ -28,7 +28,8 @@ data class CreatePlayerRequest(
     val items: List<Item>,
     val slotsClass: Int = 2,
     val slotsFree: Int = 6,
-    val etherUnlocked: Boolean = false
+    val etherUnlocked: Boolean = false,
+    val inventorySize: Int = 18
 )
 
 // Player update (master edits name/code/race/class/attributes/slots/ether)
@@ -46,7 +47,8 @@ data class UpdatePlayerRequest(
     val etherUnlocked: Boolean? = null,
     val sobrecargaDesbloqueada: Boolean? = null,
     val expAvailable: Int? = null,
-    val expTotal: Int? = null
+    val expTotal: Int? = null,
+    val inventorySize: Int? = null
 )
 
 // Master
@@ -87,7 +89,8 @@ data class AddItemRequest(
     val rarity: String? = null,
     val twoHanded: Boolean? = null,
     val requirements: ItemRequirements? = null,
-    val onUseEffect: OnUseEffect? = null
+    val onUseEffect: OnUseEffect? = null,
+    val goldValue: Int? = null
 )
 data class AdjustItemQtyRequest(val delta: Int)
 data class TransferItemRequest(val itemId: String, val targetPlayerId: String, val qty: Int = 1)

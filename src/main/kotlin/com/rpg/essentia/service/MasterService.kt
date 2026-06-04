@@ -199,7 +199,8 @@ class MasterService(
             rarity = req.rarity,
             twoHanded = req.twoHanded,
             requirements = req.requirements,
-            onUseEffect = req.onUseEffect
+            onUseEffect = req.onUseEffect,
+            goldValue = req.goldValue
         )
         val saved = saveAndBroadcast(player.copy(items = player.items + newItem))
         gameStateService.addLogEntry(playerId, "${player.char.name} recebeu ${req.name}${if (req.qty > 1) " ×${req.qty}" else ""}", "item")
@@ -250,7 +251,7 @@ class MasterService(
         val player = loadPlayer(playerId)
         val previous = slotToItem(slot, player.equipment) ?: return player
         val gridItems = player.items.filter { it.type != "currency" }
-        if (gridItems.size >= 16)
+        if (gridItems.size >= player.inventorySize)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Inventário cheio")
         return setEquipment(playerId, slot, SetEquipmentRequest())
     }
