@@ -194,7 +194,8 @@ class SkillTreeService(
             toggle            = skill.toggle,
             critThreshold     = skill.critThreshold,
             actionType        = skill.actionType,
-            multiTarget       = skill.multiTarget
+            multiTarget       = skill.multiTarget,
+            onHitEffects      = skill.onHitEffects
         )
     }
 

@@ -10,6 +10,7 @@ import com.rpg.essentia.service.PlayerCreationService
 import com.rpg.essentia.service.PlayerService
 import com.rpg.essentia.service.SkillTreeService
 import com.rpg.essentia.service.DamageService
+import com.rpg.essentia.service.EffectService
 import com.rpg.essentia.service.RaceService
 import com.rpg.essentia.service.SobrecargaService
 import com.rpg.essentia.service.TurnService
@@ -31,6 +32,7 @@ class MasterController(
     private val playerSkillRepository: PlayerSkillRepository,
     private val sobrecargaService: SobrecargaService,
     private val damageService: DamageService,
+    private val effectService: EffectService,
     private val raceService: RaceService
 ) {
     @GetMapping("/players")
@@ -278,6 +280,13 @@ class MasterController(
     @PostMapping("/damage/reject")
     fun rejectDamage(@RequestBody req: Map<String, String>) =
         damageService.rejectDamage(req["requestId"] ?: "", req["playerId"] ?: "")
+
+    @PostMapping("/effect/approve")
+    fun approveEffect(@RequestBody req: EffectApproveBody) = effectService.approveEffect(req)
+
+    @PostMapping("/effect/reject")
+    fun rejectEffect(@RequestBody req: Map<String, String>) =
+        effectService.rejectEffect(req["requestId"] ?: "")
 
     @PostMapping("/players/{id}/sobrecarga/approve")
     fun approveSobrecarga(@PathVariable id: String): Player =

@@ -6,6 +6,7 @@ import com.rpg.essentia.service.PlayerService
 import com.rpg.essentia.service.SkillTreeService
 import com.rpg.essentia.service.SkillUseService
 import com.rpg.essentia.service.DamageService
+import com.rpg.essentia.service.EffectService
 import com.rpg.essentia.service.SobrecargaService
 import org.springframework.web.bind.annotation.*
 
@@ -17,7 +18,8 @@ class PlayerController(
     private val maestriaService: MaestriaService,
     private val skillTreeService: SkillTreeService,
     private val sobrecargaService: SobrecargaService,
-    private val damageService: DamageService
+    private val damageService: DamageService,
+    private val effectService: EffectService
 ) {
     @PutMapping("/hp")
     fun adjustHp(@PathVariable id: String, @RequestBody req: DeltaRequest): Player =
@@ -88,6 +90,11 @@ class PlayerController(
     @PostMapping("/damage-request")
     fun requestDamage(@PathVariable id: String, @RequestBody req: DamageRequestBody) {
         damageService.requestDamage(id, req)
+    }
+
+    @PostMapping("/effect-request")
+    fun requestEffect(@PathVariable id: String, @RequestBody req: EffectRequestBody) {
+        effectService.requestEffect(id, req)
     }
 
     @PostMapping("/skill-miss")

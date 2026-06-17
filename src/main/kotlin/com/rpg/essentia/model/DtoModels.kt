@@ -134,6 +134,33 @@ data class DamageApproveBody(
 )
 data class DamageResultNotification(val requestId: String, val approved: Boolean)
 
+// Effect approval (separado do damage)
+data class EffectApprovalRequest(
+    val requestId: String,
+    val playerId: String,
+    val playerName: String,
+    val targets: List<EffectTarget>,
+    val onHitEffects: List<StatusEffect>,
+    val skillId: String? = null
+)
+data class EffectTarget(
+    val targetId: String,
+    val targetType: String,   // "enemy" | "boss"
+    val targetName: String
+)
+data class EffectRequestBody(
+    val requestId: String,
+    val targets: List<EffectTarget>,
+    val onHitEffects: List<StatusEffect>,
+    val skillId: String? = null
+)
+data class EffectApproveBody(
+    val requestId: String,
+    val playerId: String,
+    val targets: List<EffectTarget>,
+    val onHitEffects: List<StatusEffect>
+)
+
 // Sobrecarga
 data class SobrecargaRequestBody(val nivel: Int)
 data class SobrecargaRejectRequest(val roll: Int, val danoDado: String)
@@ -200,7 +227,8 @@ data class PlayerSkillTreeEntry(
     val toggle: Boolean = false,
     val critThreshold: Int? = null,
     val actionType: String = "main",  // "main" | "bonus" | "both"
-    val multiTarget: MultiTarget? = null
+    val multiTarget: MultiTarget? = null,
+    val onHitEffects: List<StatusEffect> = emptyList()
 )
 
 data class MaestriaSimple(

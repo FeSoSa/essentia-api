@@ -52,6 +52,9 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
     fun broadcastDamageRequest(req: DamageApprovalRequest) =
         messagingTemplate.convertAndSend("/topic/damage-request", req)
 
+    fun broadcastEffectRequest(req: EffectApprovalRequest) =
+        messagingTemplate.convertAndSend("/topic/effect-request", req)
+
     fun broadcastDamageResult(playerId: String, result: DamageResultNotification) =
         messagingTemplate.convertAndSend("/topic/player/$playerId/damage-result", result)
 
