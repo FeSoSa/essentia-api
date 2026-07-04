@@ -96,6 +96,9 @@ class EnemyService(
         return broadcastAndReturn()
     }
 
+    fun findInstance(instanceId: String): EnemyInstance? =
+        instanceRepository.findById(instanceId).orElse(null)
+
     private fun load(instanceId: String): EnemyInstance =
         instanceRepository.findById(instanceId).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Enemy instance not found")

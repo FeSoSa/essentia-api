@@ -31,5 +31,6 @@ data class PlayerSkill(
     val used: Boolean = false,
     val equipped: Boolean = false,
     val slotId: String? = null,
-    val maestria: Maestria = Maestria()
+    val maestria: Maestria = Maestria(),
+    val blocked: Boolean = false
 )

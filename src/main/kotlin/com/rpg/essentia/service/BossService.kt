@@ -131,6 +131,9 @@ class BossService(
         return broadcastAndReturn()
     }
 
+    fun findInstance(instanceId: String): BossInstance? =
+        instanceRepository.findById(instanceId).orElse(null)
+
     private fun load(instanceId: String): BossInstance =
         instanceRepository.findById(instanceId).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Boss instance not found")

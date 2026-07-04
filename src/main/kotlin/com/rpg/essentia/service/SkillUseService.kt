@@ -48,6 +48,12 @@ class SkillUseService(
             ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found")
         }
 
+        if (player.statusEffects.isSkillBlocked())
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Habilidades bloqueadas por efeito ativo")
+
+        if (playerSkill.blocked)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta habilidade foi bloqueada pelo mestre")
+
         // Toggle: ativar ou desativar sem fluxo de dano
         if (skill.toggle) {
             if (slot.toggleActive) {
@@ -208,7 +214,7 @@ class SkillUseService(
                 }
                 dano
             }
-            danoFinal to dmg.formula
+            applyDamageModifiers(danoFinal, player.statusEffects, emptyList()) to dmg.formula
         } else {
             null to null
         }

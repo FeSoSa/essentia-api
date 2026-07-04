@@ -59,6 +59,7 @@ data class ResetSkillsRequest(val playerId: String?)
 data class StatusEffectRequest(val playerId: String, val effect: StatusEffect)
 data class StatusEffectDeleteRequest(val playerId: String)
 data class MaestriaUsesRequest(val playerSkillId: String, val uses: Int)
+data class SetSkillBlockedRequest(val blocked: Boolean)
 
 // Equipment slot management
 data class SetEquipmentRequest(

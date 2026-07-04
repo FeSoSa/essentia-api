@@ -24,5 +24,6 @@ data class ClassKit(
     val starterEquipment: Equipment = Equipment(),
     val starterItems: List<Item> = emptyList(),
     val starterAttributes: Attributes? = null,
-    val perks: ClassPerks = ClassPerks()
+    val perks: ClassPerks = ClassPerks(),
+    val allowedWeaponTypes: List<String> = emptyList()
 )

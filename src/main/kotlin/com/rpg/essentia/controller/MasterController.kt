@@ -198,6 +198,13 @@ class MasterController(
         @RequestBody req: MaestriaUsesRequest
     ): PlayerSkill = masterService.addMaestriaUses(id, req.playerSkillId, req.uses)
 
+    @PutMapping("/players/{id}/skill/{skillId}/block")
+    fun setSkillBlocked(
+        @PathVariable id: String,
+        @PathVariable skillId: String,
+        @RequestBody req: SetSkillBlockedRequest
+    ): PlayerSkill = masterService.setSkillBlocked(id, skillId, req.blocked)
+
     // Equipamento
     @PutMapping("/players/{id}/equipment/{slot}")
     fun setEquipment(
@@ -307,4 +314,18 @@ class MasterController(
         @PathVariable id: String,
         @PathVariable essenciaId: String
     ): Player = essenciaService.removeEssencia(id, essenciaId)
+
+    // Notas fixas
+    @GetMapping("/notes")
+    fun getNotes(): List<Note> = gameStateService.getNotes()
+
+    @PostMapping("/notes")
+    fun addNote(@RequestBody note: Note): List<Note> = gameStateService.addNote(note)
+
+    @PutMapping("/notes/{noteId}")
+    fun updateNote(@PathVariable noteId: String, @RequestBody req: Map<String, String>): List<Note> =
+        gameStateService.updateNote(noteId, req["text"], req["color"])
+
+    @DeleteMapping("/notes/{noteId}")
+    fun removeNote(@PathVariable noteId: String): List<Note> = gameStateService.removeNote(noteId)
 }

@@ -33,7 +33,7 @@ data class Skill(
     @Id val id: String? = null,
     val name: String,
     val desc: String,
-    val type: String,              // "class" | "weapon" | "essencia" | "mestre"
+    val type: String,              // "class" | "weapon" | "essencia" | "mestre" | "inimigo"
     val skillClass: String?,       // null = Geral (qualquer classe)
     val weaponType: String?,       // legado — usar weaponTypes quando possível
     val weaponTypes: List<String>? = null, // multi-tipo de arma

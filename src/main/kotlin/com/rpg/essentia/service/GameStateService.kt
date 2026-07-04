@@ -65,6 +65,34 @@ class GameStateService(
         return updated.collectiveBars
     }
 
+    fun getNotes(): List<Note> = getOrCreate().notes
+
+    fun addNote(note: Note): List<Note> {
+        val state = getOrCreate()
+        val newNote = note.copy(timestamp = Instant.now().toString())
+        val updated = save(state.copy(notes = state.notes + newNote))
+        broadcaster.broadcastNotes(updated.notes)
+        return updated.notes
+    }
+
+    fun updateNote(noteId: String, text: String?, color: String?): List<Note> {
+        val state = getOrCreate()
+        val notes = state.notes.map { n ->
+            if (n.id != noteId) n
+            else n.copy(text = text ?: n.text, color = color ?: n.color)
+        }
+        val updated = save(state.copy(notes = notes))
+        broadcaster.broadcastNotes(updated.notes)
+        return updated.notes
+    }
+
+    fun removeNote(noteId: String): List<Note> {
+        val state = getOrCreate()
+        val updated = save(state.copy(notes = state.notes.filter { it.id != noteId }))
+        broadcaster.broadcastNotes(updated.notes)
+        return updated.notes
+    }
+
     private fun createDefault() = GameState(
         id = "main",
         images = emptyList(),

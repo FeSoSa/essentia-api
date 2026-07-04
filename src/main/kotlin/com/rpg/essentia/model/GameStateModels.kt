@@ -48,6 +48,13 @@ data class CollectiveBar(
     val max: Int = 10
 )
 
+data class Note(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val text: String = "",
+    val color: String = "#fbbf24",
+    val timestamp: String = ""
+)
+
 @Document(collection = "game_state")
 data class GameState(
     @Id val id: String = "main",
@@ -57,5 +64,6 @@ data class GameState(
     val currentTurnIndex: Int = 0,
     val totalTurns: Int = 0,
     val log: List<LogEntry> = emptyList(),
-    val collectiveBars: List<CollectiveBar> = emptyList()
+    val collectiveBars: List<CollectiveBar> = emptyList(),
+    val notes: List<Note> = emptyList()
 )

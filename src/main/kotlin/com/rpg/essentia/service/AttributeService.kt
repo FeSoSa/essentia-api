@@ -49,6 +49,12 @@ class AttributeService(private val skillRepository: SkillRepository) {
             .mapNotNull { it.attributeBonus }
             .forEach { bonus -> bonus.forEach { (k, v) -> base.merge(k, v, Int::plus) } }
 
+        // Status effect modify_attribute auto-effects (value/percentual sobre o atributo)
+        base.keys.toList().forEach { key ->
+            val mod = player.statusEffects.attributeModifier(key, base[key] ?: 0)
+            if (mod != 0) base.merge(key, mod, Int::plus)
+        }
+
         return base.toAttributes()
     }
 

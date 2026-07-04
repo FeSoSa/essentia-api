@@ -39,10 +39,19 @@ class DamageService(
     }
 
     fun approveDamage(req: DamageApproveBody) {
+        // Aplica modificadores passivos de dano causado/recebido (modify_damage_dealt / modify_damage_received)
+        val attackerEffects = playerRepository.findById(req.playerId).orElse(null)?.statusEffects ?: emptyList()
+        val targetEffects = when (req.targetType) {
+            "enemy" -> enemyService.findInstance(req.targetId)?.statusEffects ?: emptyList()
+            "boss"  -> bossService.findInstance(req.targetId)?.statusEffects ?: emptyList()
+            else    -> emptyList()
+        }
+        val finalDamage = applyDamageModifiers(req.damage, attackerEffects, targetEffects)
+
         // Aplica dano no alvo
         when (req.targetType) {
-            "enemy" -> enemyService.adjustHp(req.targetId, -req.damage)
-            "boss"  -> bossService.adjustHp(req.targetId, -req.damage)
+            "enemy" -> enemyService.adjustHp(req.targetId, -finalDamage)
+            "boss"  -> bossService.adjustHp(req.targetId, -finalDamage)
             else    -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de alvo inválido")
         }
 

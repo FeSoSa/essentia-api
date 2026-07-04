@@ -60,4 +60,7 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
 
     fun broadcastShops(shops: List<Shop>) =
         messagingTemplate.convertAndSend("/topic/shops", shops)
+
+    fun broadcastNotes(notes: List<Note>) =
+        messagingTemplate.convertAndSend("/topic/notes", notes)
 }

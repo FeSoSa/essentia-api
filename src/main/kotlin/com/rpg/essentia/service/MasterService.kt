@@ -168,6 +168,15 @@ class MasterService(
         return saved
     }
 
+    fun setSkillBlocked(playerId: String, skillId: String, blocked: Boolean): PlayerSkill {
+        val playerSkill = playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "PlayerSkill not found")
+
+        val saved = playerSkillRepository.save(playerSkill.copy(blocked = blocked))
+        playerRepository.findById(playerId).ifPresent { broadcaster.broadcastPlayer(it) }
+        return saved
+    }
+
     fun addItem(playerId: String, req: AddItemRequest): Player {
         val player = loadPlayer(playerId)
         val stackableTypes = setOf("normal", "chave", "consumable", "currency")
