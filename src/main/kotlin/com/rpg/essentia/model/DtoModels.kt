@@ -218,6 +218,8 @@ data class PlayerSkillTreeEntry(
     val danoBase: Int? = null,
     val atributo: String? = null,
     val equilibrio: Int? = null,
+    val damageSource: String = "formula", // "formula" | "weapon"
+    val weaponSlot: String? = null,       // "mainHand" | "offHand" — quando damageSource == "weapon"
     val cooldownTurns: Int = 0,
     val skillType: String = "class",  // "class" | "weapon" | "essencia" | "mestre"
     val pressaoDice: Boolean = false, // técnica consome Pressão e ganha +1d6 de dano por ponto

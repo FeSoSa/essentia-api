@@ -55,5 +55,8 @@ data class Skill(
     val pressaoDice: Boolean = false,                  // técnica rola +1d6 por ponto de Pressão e consome tudo
     val critThreshold: Int? = null,                    // mínimo no d20 para crítico (null = 20)
     val multiTarget: MultiTarget? = null,              // habilidade atinge múltiplos inimigos
-    val onHitEffects: List<StatusEffect> = emptyList() // status effects aplicados ao inimigo ao acertar
+    val onHitEffects: List<StatusEffect> = emptyList(), // status effects aplicados ao inimigo ao acertar
+    val damageSource: String = "formula",              // "formula" (usa damage) | "weapon" (usa arma equipada em weaponSlot)
+    val weaponSlot: String? = null,                    // "mainHand" | "offHand" — obrigatório quando damageSource == "weapon"
+    val weaponDamageModifiers: List<AutoEffect> = emptyList() // AutoEffect.type: "flat" | "percent" | "extra_dice"
 )

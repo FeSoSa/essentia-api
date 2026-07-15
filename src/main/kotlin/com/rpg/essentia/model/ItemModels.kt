@@ -37,6 +37,7 @@ data class ItemCatalog(
     val damageAttribute: String? = null,
     val equilibrio: Int? = null,
     val properties: String? = null,
+    val critThreshold: Int? = null,   // mínimo no d20 para crítico (null = 20)
     val damageReduction: Int? = null,
     val attributeBonus: Map<String, Int>? = null,
     val equipSlot: String? = null,

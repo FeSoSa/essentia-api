@@ -194,7 +194,34 @@ class SkillUseService(
         // 6. Calculate damage
         // dano_final = dano_base + (d20 × mod_atributo) / equilibrio
         // When equilibrio is null: dano_final = dano_base only
-        val (totalDamage, displayFormula) = if (skill.damage != null) {
+        val (totalDamage, displayFormula) = if (skill.damageSource == "weapon") {
+            val weapon = when (skill.weaponSlot) {
+                "offHand" -> player.equipment.offHand
+                "mainHand" -> player.equipment.mainHand
+                else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Habilidade sem mão de arma configurada")
+            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma arma equipada em ${skill.weaponSlot}")
+
+            val modAtributo = resolveAtributo(weapon.damageAttribute.ifBlank { null }, attrMap)
+            var danoCalculado = weapon.damageBase + modAtributo
+            skill.weaponDamageModifiers.forEach { mod ->
+                when (mod.type) {
+                    "flat" -> danoCalculado += (mod.value ?: 0)
+                    "extra_dice" -> mod.dice?.let { danoCalculado += rollDice(it) }
+                }
+            }
+            val pctTotal = skill.weaponDamageModifiers
+                .filter { it.type == "percent" }
+                .sumOf { (it.percentual ?: 0) / 100.0 }
+            if (pctTotal != 0.0) danoCalculado = Math.round(danoCalculado * (1.0 + pctTotal)).toInt()
+
+            if (skill.pressaoDice && pressaoCurrent > 0) {
+                repeat(pressaoCurrent) { danoCalculado += rollDice(Dice(1, "d6")) }
+            }
+            if (computed.bonusDano > 0.0)
+                danoCalculado = Math.round(danoCalculado * (1.0 + computed.bonusDano)).toInt()
+
+            applyDamageModifiers(danoCalculado, player.statusEffects, emptyList()) to "${weapon.name} (${skill.weaponSlot})"
+        } else if (skill.damage != null) {
             val dmg = skill.damage
             val danoFinal = if (dmg.equilibrio != null) {
                 val d20 = request.diceRoll ?: 0

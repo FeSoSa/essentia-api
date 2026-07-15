@@ -173,7 +173,9 @@ class SkillTreeService(
             isPassive     = skill.passive || !skill.passiveAttributes.isNullOrEmpty(),
             skillType     = skill.type,
             pressaoDice   = skill.pressaoDice,
-            danoFormula   = skill.damage?.let { d ->
+            danoFormula   = if (skill.damageSource == "weapon") {
+                "Arma (${if (skill.weaponSlot == "offHand") "mão secundária" else "mão principal"})"
+            } else skill.damage?.let { d ->
                 d.formula.takeIf { it.isNotBlank() } ?: buildString {
                     if (d.baseFixed != 0) append(d.baseFixed)
                     d.atributo?.let { attr ->
@@ -186,6 +188,8 @@ class SkillTreeService(
             danoBase          = skill.damage?.baseFixed?.takeIf { it != 0 },
             atributo          = skill.damage?.atributo,
             equilibrio        = skill.damage?.equilibrio,
+            damageSource      = skill.damageSource,
+            weaponSlot        = skill.weaponSlot,
             cooldownTurns     = skill.cooldownTurns,
             buffDurationTurns = skill.buffDurationTurns,
             hitBonus          = skill.hitBonus,

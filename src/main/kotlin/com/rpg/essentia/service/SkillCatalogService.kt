@@ -20,9 +20,13 @@ class SkillCatalogService(
 
     fun list(): List<Skill> = skillRepository.findAll()
 
-    fun create(skill: Skill): Skill = skillRepository.save(skill)
+    fun create(skill: Skill): Skill {
+        validate(skill)
+        return skillRepository.save(skill)
+    }
 
     fun update(id: String, skill: Skill): Skill {
+        validate(skill)
         val saved = skillRepository.save(skill.copy(id = id))
         val allEssencias = essenciaRepository.findAll()
         playerRepository.findAll().forEach { player ->
@@ -38,5 +42,10 @@ class SkillCatalogService(
         if (!skillRepository.existsById(id))
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Skill não encontrada: $id")
         skillRepository.deleteById(id)
+    }
+
+    private fun validate(skill: Skill) {
+        if (skill.damageSource == "weapon" && skill.weaponSlot !in listOf("mainHand", "offHand"))
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "weaponSlot deve ser 'mainHand' ou 'offHand' quando damageSource é 'weapon'")
     }
 }
