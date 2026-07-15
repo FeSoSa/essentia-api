@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 const val HP_BASE = 20
 const val HP_PER_RESISTANCE = 20
 const val FLOW_BASE = 20
-const val FLOW_PER_FLOW_ATTR = 20
+const val FLOW_PER_FLOW_ATTR = 15
 
 @Service
 class AttributeService(private val skillRepository: SkillRepository) {
