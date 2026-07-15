@@ -5,9 +5,9 @@ import com.rpg.essentia.repository.SkillRepository
 import org.springframework.stereotype.Service
 
 const val HP_BASE = 20
-const val HP_PER_RESISTANCE = 5
+const val HP_PER_RESISTANCE = 20
 const val FLOW_BASE = 20
-const val FLOW_PER_FLOW_ATTR = 5
+const val FLOW_PER_FLOW_ATTR = 20
 
 @Service
 class AttributeService(private val skillRepository: SkillRepository) {

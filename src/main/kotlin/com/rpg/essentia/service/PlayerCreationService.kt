@@ -42,8 +42,8 @@ class PlayerCreationService(
         val slotsFree  = req.slotsFree
         val slotsTotal = slotsClass + slotsFree
 
-        val hpMax   = 20 + (req.attributes.resistance * 5)
-        val flowMax = 20 + (req.attributes.flow * 5)
+        val hpMax   = HP_BASE + (req.attributes.resistance * HP_PER_RESISTANCE)
+        val flowMax = FLOW_BASE + (req.attributes.flow * FLOW_PER_FLOW_ATTR)
 
         val slots = mutableListOf<Slot>()
         repeat(slotsClass) { slots.add(Slot(id = UUID.randomUUID().toString(), type = "class")) }
@@ -103,8 +103,8 @@ class PlayerCreationService(
         if (codeConflict != null && codeConflict.id != id)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Código já existe: ${req.code}")
 
-        val hpMax = 20 + (req.attributes.resistance * 5)
-        val flowMax = 20 + (req.attributes.flow * 5)
+        val hpMax = HP_BASE + (req.attributes.resistance * HP_PER_RESISTANCE)
+        val flowMax = FLOW_BASE + (req.attributes.flow * FLOW_PER_FLOW_ATTR)
 
         val newSlotsClass = req.slotsClass ?: existing.char.slotsClass
         val newSlotsFree  = req.slotsFree  ?: existing.char.slotsFree
