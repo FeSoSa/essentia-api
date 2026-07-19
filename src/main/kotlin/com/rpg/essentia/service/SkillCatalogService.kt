@@ -29,9 +29,11 @@ class SkillCatalogService(
         validate(skill)
         val saved = skillRepository.save(skill.copy(id = id))
         val allEssencias = essenciaRepository.findAll()
+        val allSkills = skillRepository.findAll()
         playerRepository.findAll().forEach { player ->
-            val effective = attributeService.computeEffectiveAttributes(player, allEssencias)
-            val updated = attributeService.recalculateVitals(player, effective)
+            val synced = attributeService.syncPassiveSelfEffects(player, allSkills)
+            val effective = attributeService.computeEffectiveAttributes(synced, allEssencias)
+            val updated = attributeService.recalculateVitals(synced, effective)
             val saved2 = playerRepository.save(updated)
             broadcaster.broadcastPlayer(saved2)
         }

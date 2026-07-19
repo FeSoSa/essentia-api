@@ -22,6 +22,9 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
     fun broadcastLog(entry: LogEntry) =
         messagingTemplate.convertAndSend("/topic/log", entry)
 
+    fun broadcastLogCleared() =
+        messagingTemplate.convertAndSend("/topic/log-cleared", true)
+
     fun broadcastPlayer(player: Player) =
         messagingTemplate.convertAndSend("/topic/player/${player.id}", player)
 

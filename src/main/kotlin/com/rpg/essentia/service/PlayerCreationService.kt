@@ -1,6 +1,7 @@
 package com.rpg.essentia.service
 
 import com.rpg.essentia.model.*
+import com.rpg.essentia.repository.EssenciaRepository
 import com.rpg.essentia.repository.PlayerRepository
 import com.rpg.essentia.repository.PlayerSkillRepository
 import com.rpg.essentia.repository.SkillRepository
@@ -17,7 +18,9 @@ class PlayerCreationService(
     private val skillRepository: SkillRepository,
     private val classKitService: ClassKitService,
     private val raceService: RaceService,
-    private val broadcaster: WebSocketBroadcaster
+    private val broadcaster: WebSocketBroadcaster,
+    private val attributeService: AttributeService,
+    private val essenciaRepository: EssenciaRepository
 ) {
 
     fun createPlayer(req: CreatePlayerRequest): Player {
@@ -161,7 +164,10 @@ class PlayerCreationService(
             slots = newSlots,
             sobrecargaDesbloqueada = req.sobrecargaDesbloqueada ?: existing.sobrecargaDesbloqueada,
             inventorySize = req.inventorySize ?: existing.inventorySize
-        )
+        ).let { p ->
+            val essencias = essenciaRepository.findAll()
+            p.copy(effectiveAttributes = attributeService.computeEffectiveAttributes(p, essencias))
+        }
         // Se a classe mudou, remove skills exclusivas da classe antiga
         if (req.skillClass != existing.char.skillClass) {
             val newClass = req.skillClass

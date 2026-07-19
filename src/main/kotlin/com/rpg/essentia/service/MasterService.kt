@@ -72,6 +72,7 @@ class MasterService(
                     onExpire = e.onExpire
                 )
                 updated = updated.copy(statusEffects = updated.statusEffects + statusEffect)
+                updated = recalculateEffective(updated)
             }
         }
 
@@ -130,18 +131,28 @@ class MasterService(
 
     fun addStatusEffect(playerId: String, effect: StatusEffect): Player {
         val player = loadPlayer(playerId)
-        return saveAndBroadcast(player.copy(statusEffects = player.statusEffects + effect))
+        val updated = player.copy(statusEffects = player.statusEffects + effect)
+        return saveAndBroadcast(recalculateEffective(updated))
     }
 
     fun removeStatusEffect(playerId: String, effectId: String): Player {
         val player = loadPlayer(playerId)
         val newEffects = player.statusEffects.filter { it.id != effectId }
-        return saveAndBroadcast(player.copy(statusEffects = newEffects))
+        val updated = player.copy(statusEffects = newEffects)
+        return saveAndBroadcast(recalculateEffective(updated))
     }
 
     fun removeAllStatusEffects(playerId: String): Player {
         val player = loadPlayer(playerId)
-        return saveAndBroadcast(player.copy(statusEffects = emptyList()))
+        val updated = player.copy(statusEffects = emptyList())
+        return saveAndBroadcast(recalculateEffective(updated))
+    }
+
+    /** Recalcula effectiveAttributes/vitais para refletir status effects recém-adicionados/removidos. */
+    private fun recalculateEffective(player: Player): Player {
+        val essencias = essenciaRepository.findAll()
+        val effective = attributeService.computeEffectiveAttributes(player, essencias)
+        return attributeService.recalculateVitals(player, effective)
     }
 
     fun addMaestriaUses(playerId: String, playerSkillId: String, uses: Int): PlayerSkill {

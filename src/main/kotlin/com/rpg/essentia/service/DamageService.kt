@@ -33,7 +33,9 @@ class DamageService(
             targetName   = req.targetName,
             damage       = req.damage,
             costs        = req.costs,
-            onHitEffects = onHitEffects
+            onHitEffects = onHitEffects,
+            slotId       = req.slotId,
+            skillId      = req.skillId
         )
         broadcaster.broadcastDamageRequest(approval)
     }
@@ -63,8 +65,8 @@ class DamageService(
             }
         }
 
-        // Debita custo do jogador
-        if (req.costs.isNotEmpty()) {
+        // Debita custo do jogador e seta cooldown da habilidade (só agora que o dano foi aprovado)
+        if (req.costs.isNotEmpty() || req.slotId != null) {
             val player = playerRepository.findById(req.playerId).orElse(null)
             if (player != null) {
                 var updated = player
@@ -87,6 +89,12 @@ class DamageService(
                     updated.pressao?.let { p ->
                         updated = updated.copy(pressao = p.copy(current = (p.current - c).coerceAtLeast(0)))
                     }
+                }
+                if (req.slotId != null) {
+                    val cooldownTurns = req.skillId?.let { skillRepository.findById(it).orElse(null)?.cooldownTurns } ?: 0
+                    updated = updated.copy(slots = updated.slots.map { s ->
+                        if (s.id == req.slotId) s.copy(cooldownRemaining = cooldownTurns) else s
+                    })
                 }
                 val saved = playerRepository.save(updated)
                 broadcaster.broadcastPlayer(saved)

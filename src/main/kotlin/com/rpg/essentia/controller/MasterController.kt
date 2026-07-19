@@ -11,6 +11,7 @@ import com.rpg.essentia.service.PlayerService
 import com.rpg.essentia.service.SkillTreeService
 import com.rpg.essentia.service.DamageService
 import com.rpg.essentia.service.EffectService
+import com.rpg.essentia.service.applyDamageModifiers
 import com.rpg.essentia.service.RaceService
 import com.rpg.essentia.service.SobrecargaService
 import com.rpg.essentia.service.TurnService
@@ -278,8 +279,11 @@ class MasterController(
         masterService.removeCustomBar(id, barId)
 
     @PostMapping("/enemy-attack")
-    fun enemyAttack(@RequestBody req: EnemyAttackRequest): Player =
-        playerService.adjustHp(req.targetPlayerId, -req.damage)
+    fun enemyAttack(@RequestBody req: EnemyAttackRequest): Player {
+        val targetEffects = playerService.load(req.targetPlayerId).statusEffects
+        val finalDamage = applyDamageModifiers(req.damage, emptyList(), targetEffects)
+        return playerService.adjustHp(req.targetPlayerId, -finalDamage)
+    }
 
     @PostMapping("/damage/approve")
     fun approveDamage(@RequestBody req: DamageApproveBody) = damageService.approveDamage(req)

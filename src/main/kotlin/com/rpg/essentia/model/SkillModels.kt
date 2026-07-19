@@ -42,7 +42,6 @@ data class Skill(
     val damage: DamageFormula?,
     val cooldownTurns: Int,
     val ultimate: Boolean,
-    val toggle: Boolean = false,
     val requirements: SkillRequirements? = null,
     val actionType: String = "main",                     // "main" | "bonus" | "both"
     val passive: Boolean = false,                      // skill passiva — não é usada ativamente
@@ -56,6 +55,7 @@ data class Skill(
     val critThreshold: Int? = null,                    // mínimo no d20 para crítico (null = 20)
     val multiTarget: MultiTarget? = null,              // habilidade atinge múltiplos inimigos
     val onHitEffects: List<StatusEffect> = emptyList(), // status effects aplicados ao inimigo ao acertar
+    val selfEffects: List<StatusEffect> = emptyList(), // status effects aplicados ao usuário ao usar a skill
     val damageSource: String = "formula",              // "formula" (usa damage) | "weapon" (usa arma equipada em weaponSlot)
     val weaponSlot: String? = null,                    // "mainHand" | "offHand" — obrigatório quando damageSource == "weapon"
     val weaponDamageModifiers: List<AutoEffect> = emptyList() // AutoEffect.type: "flat" | "percent" | "extra_dice"

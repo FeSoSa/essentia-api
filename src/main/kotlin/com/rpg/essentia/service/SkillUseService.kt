@@ -54,90 +54,6 @@ class SkillUseService(
         if (playerSkill.blocked)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta habilidade foi bloqueada pelo mestre")
 
-        // Toggle: ativar ou desativar sem fluxo de dano
-        if (skill.toggle) {
-            if (slot.toggleActive) {
-                // Desativar: remove o efeito e inicia cooldown
-                val newSlots = player.slots.map { s ->
-                    if (s.id == slot.id) s.copy(toggleActive = false, cooldownRemaining = skill.cooldownTurns) else s
-                }
-                val newEffects = player.statusEffects.filterNot { it.sourceSkillId == skillId }
-                val saved = playerRepository.save(player.copy(slots = newSlots, statusEffects = newEffects))
-                gameStateService.addLogEntry(playerId, "desativou ${skill.name}", "skill")
-                broadcaster.broadcastPlayer(saved)
-                return DamageResult(skillName = skill.name, damage = null, costPaid = emptyList(), cooldownSet = skill.cooldownTurns)
-            } else {
-                // Ativar: valida e debita custo imediatamente, cria efeito permanente
-                val essencias = essenciaRepository.findAll()
-                attributeService.computeEffectiveAttributes(player, essencias)
-                val computed = playerSkill.maestria.computed
-                val netCostMod = computed.custoAumento - computed.reducaoCusto
-                val costMap = mutableMapOf<String, Int>()
-                for (cost in skill.costs) {
-                    val base = when (cost.type) {
-                        "flow", "ether", "hp" -> cost.value ?: 0
-                        "percentual_flow"     -> (player.flow.max * (cost.percentual ?: 0)) / 100
-                        "percentual_hp"       -> (player.hp.max  * (cost.percentual ?: 0)) / 100
-                        else                  -> cost.value ?: 0
-                    }
-                    costMap[cost.type] = maxOf(0, Math.round(base * (1.0 + netCostMod)).toInt())
-                }
-                costMap["flow"]?.let { c ->
-                    if (player.flow.current < c)
-                        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Fluxo insuficiente ($c requerido, ${player.flow.current} disponível)")
-                }
-                costMap["percentual_flow"]?.let { c ->
-                    if (player.flow.current < c)
-                        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Fluxo insuficiente ($c requerido, ${player.flow.current} disponível)")
-                }
-                costMap["hp"]?.let { c ->
-                    if (player.hp.current < c)
-                        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "HP insuficiente ($c requerido)")
-                }
-                costMap["ether"]?.let { c ->
-                    if (!player.ether.unlocked || player.ether.current < c)
-                        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Éter insuficiente ($c requerido)")
-                }
-                var withCosts = player
-                costMap["flow"]?.let { c -> withCosts = withCosts.copy(flow = withCosts.flow.copy(current = (withCosts.flow.current - c).coerceAtLeast(0))) }
-                costMap["percentual_flow"]?.let { c -> withCosts = withCosts.copy(flow = withCosts.flow.copy(current = (withCosts.flow.current - c).coerceAtLeast(0))) }
-                costMap["hp"]?.let { c -> withCosts = withCosts.copy(hp = withCosts.hp.copy(current = (withCosts.hp.current - c).coerceAtLeast(0))) }
-                costMap["ether"]?.let { c -> withCosts = withCosts.copy(ether = withCosts.ether.copy(current = (withCosts.ether.current - c).coerceAtLeast(0))) }
-                val parts = mutableListOf<String>()
-                if (!skill.buffAttributes.isNullOrEmpty()) parts.add("atributos")
-                skill.hitBonus?.let    { parts.add("acerto ${if (it >= 0) "+$it" else "$it"}") }
-                skill.attackBonus?.let { parts.add("ataque ${if (it >= 0) "+$it" else "$it"}") }
-                skill.damageBonus?.let { parts.add("dano ${if (it >= 0) "+$it" else "$it"}")   }
-                val toggleLimit = skill.buffDurationTurns ?: -1
-                val buffEffect = StatusEffect(
-                    id             = UUID.randomUUID().toString(),
-                    name           = skill.name,
-                    desc           = if (parts.isEmpty()) "ativo" else parts.joinToString(", "),
-                    color          = "#f97316",
-                    durationTurns  = toggleLimit,
-                    attributeBonus = skill.buffAttributes,
-                    hitBonus       = skill.hitBonus,
-                    attackBonus    = skill.attackBonus,
-                    damageBonus    = skill.damageBonus,
-                    sourceSkillId  = skillId
-                )
-                val newSlots = withCosts.slots.map { s ->
-                    if (s.id == slot.id) s.copy(toggleActive = true) else s
-                }
-                val saved = playerRepository.save(
-                    withCosts.copy(slots = newSlots, statusEffects = withCosts.statusEffects + buffEffect)
-                )
-                gameStateService.addLogEntry(playerId, "ativou ${skill.name}", "skill")
-                broadcaster.broadcastPlayer(saved)
-                return DamageResult(
-                    skillName  = skill.name,
-                    damage     = null,
-                    costPaid   = costMap.map { (type, value) -> Cost(type = type, value = value, percentual = null) },
-                    cooldownSet = 0
-                )
-            }
-        }
-
         // 3. Compute effective attributes
         val essencias = essenciaRepository.findAll()
         val effectiveAttrs = attributeService.computeEffectiveAttributes(player, essencias)
@@ -145,9 +61,9 @@ class SkillUseService(
 
         val computed = playerSkill.maestria.computed
 
-        // 4. Compute effective costs (after maestria percentual modifiers)
-        // custo_final = custo_base × (1 + custoAumento - reducaoCusto)
-        val netCostMod = computed.custoAumento - computed.reducaoCusto
+        // 4. Compute effective costs (after maestria percentual modifiers and active status effects)
+        // custo_final = custo_base × (1 + custoAumento - reducaoCusto - reducaoEfeitoAtivo)
+        val baseCostMod = computed.custoAumento - computed.reducaoCusto
         val costMap = mutableMapOf<String, Int>()
         for (cost in skill.costs) {
             val base = when (cost.type) {
@@ -156,6 +72,7 @@ class SkillUseService(
                 "percentual_hp"   -> (player.hp.max  * (cost.percentual ?: 0)) / 100
                 else              -> cost.value ?: 0
             }
+            val netCostMod = baseCostMod - player.statusEffects.resourceCostModifierPercent(cost.type)
             val effectiveCost = maxOf(0, Math.round(base * (1.0 + netCostMod)).toInt())
             costMap[cost.type] = effectiveCost
         }
@@ -192,8 +109,8 @@ class SkillUseService(
         }
 
         // 6. Calculate damage
-        // dano_final = dano_base + (d20 × mod_atributo) / equilibrio
-        // When equilibrio is null: dano_final = dano_base only
+        // Mesma fórmula do ataque básico (essentia-player/basic-attack-modal.tsx):
+        // dano_final = round(dano_base + (d20 × mod_atributo) / equilibrio), equilibrio com fallback 4
         val (totalDamage, displayFormula) = if (skill.damageSource == "weapon") {
             val weapon = when (skill.weaponSlot) {
                 "offHand" -> player.equipment.offHand
@@ -202,7 +119,9 @@ class SkillUseService(
             } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma arma equipada em ${skill.weaponSlot}")
 
             val modAtributo = resolveAtributo(weapon.damageAttribute.ifBlank { null }, attrMap)
-            var danoCalculado = weapon.damageBase + modAtributo
+            val equilibrio = weapon.equilibrio ?: 4
+            val d20 = request.diceRoll ?: 0
+            var danoCalculado = Math.round(weapon.damageBase + (d20.toDouble() * modAtributo) / equilibrio).toInt()
             skill.weaponDamageModifiers.forEach { mod ->
                 when (mod.type) {
                     "flat" -> danoCalculado += (mod.value ?: 0)
@@ -280,22 +199,43 @@ class SkillUseService(
             )
         }
 
-        // 8. Set slot cooldown
-        val newCooldown = skill.cooldownTurns
-        val newSlots = updatedPlayer.slots.map { s ->
-            if (s.id == slot.id) s.copy(cooldownRemaining = newCooldown) else s
+        // 7c. Aplicar selfEffects (efeitos ricos configurados no cadastro da skill)
+        if (skill.selfEffects.isNotEmpty()) {
+            val selfStatusEffects = skill.selfEffects.map { it.copy(id = UUID.randomUUID().toString()) }
+            updatedPlayer = updatedPlayer.copy(
+                statusEffects = updatedPlayer.statusEffects + selfStatusEffects
+            )
         }
-        updatedPlayer = updatedPlayer.copy(slots = newSlots)
 
-        // 9. Mark skill as used (maestria is NOT touched here — master updates it manually)
-        val updatedPlayerSkill = playerSkill.copy(used = true)
+        // 7d. Recalcula effectiveAttributes/vitais para refletir os status effects recém-aplicados
+        // (buffAttributes, modify_attribute de selfEffects) — sem isso o efeito fica salvo mas
+        // não aparece no personagem até algum outro fluxo (equipar item, etc.) forçar o recálculo.
+        if (hasBuff || skill.selfEffects.isNotEmpty()) {
+            val updatedEffective = attributeService.computeEffectiveAttributes(updatedPlayer, essencias)
+            updatedPlayer = attributeService.recalculateVitals(updatedPlayer, updatedEffective)
+        }
+
+        // 8. Set slot cooldown — só no commit real (uso direto sem combate/dano).
+        // Quando há alvo e a técnica passa por acerto/dano, o cooldown só é setado
+        // na aprovação do mestre (DamageService.approveDamage) ou ao errar (PlayerService.skillMiss).
+        val newCooldown = skill.cooldownTurns
+        if (request.commit) {
+            val newSlots = updatedPlayer.slots.map { s ->
+                if (s.id == slot.id) s.copy(cooldownRemaining = newCooldown) else s
+            }
+            updatedPlayer = updatedPlayer.copy(slots = newSlots)
+
+            // 9. Mark skill as used (maestria is NOT touched here — master updates it manually)
+            playerSkillRepository.save(playerSkill.copy(used = true))
+        }
 
         // 10. Save, log, broadcast
-        playerSkillRepository.save(updatedPlayerSkill)
         val savedPlayer = playerRepository.save(updatedPlayer)
 
-        val logText = buildLogText(player, skill, totalDamage, costMap)
-        gameStateService.addLogEntry(playerId, logText, "skill")
+        if (request.commit) {
+            val logText = buildLogText(player, skill, totalDamage, costMap)
+            gameStateService.addLogEntry(playerId, logText, "skill")
+        }
         broadcaster.broadcastPlayer(savedPlayer)
 
         return DamageResult(
@@ -327,7 +267,11 @@ class SkillUseService(
     private fun resolveAtributo(atributo: String?, attrMap: Map<String, Int>): Int {
         if (atributo == null) return 0
         return atributo.split("/")
-            .mapNotNull { abbrev -> ABBREV_TO_KEY[abbrev.trim()]?.let { attrMap[it] } }
+            .mapNotNull { raw ->
+                val key = raw.trim()
+                val resolvedKey = ABBREV_TO_KEY[key.uppercase()] ?: key
+                attrMap[resolvedKey]
+            }
             .maxOrNull()
             ?.let { getModifier(it) } ?: 0
     }

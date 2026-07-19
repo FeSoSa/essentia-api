@@ -3,6 +3,7 @@ package com.rpg.essentia.service
 import com.rpg.essentia.model.*
 import com.rpg.essentia.repository.SkillRepository
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 const val HP_BASE = 20
 const val HP_PER_RESISTANCE = 20
@@ -56,6 +57,27 @@ class AttributeService(private val skillRepository: SkillRepository) {
         }
 
         return base.toAttributes()
+    }
+
+    /** Regenera do zero os StatusEffects derivados de selfEffects de skills passivas equipadas (marcados via sourceSkillId). */
+    fun syncPassiveSelfEffects(player: Player, skills: List<Skill>): Player {
+        val skillById = skills.associateBy { it.id }
+        val equippedIds = player.slots.mapNotNull { it.skillId }.toSet()
+
+        val withoutStale = player.statusEffects.filterNot { it.sourceSkillId != null }
+        val generated = equippedIds
+            .mapNotNull { skillById[it] }
+            .filter { it.passive && it.selfEffects.isNotEmpty() }
+            .flatMap { skill ->
+                skill.selfEffects.map { eff ->
+                    eff.copy(
+                        id = "${skill.id}-${eff.id.ifBlank { UUID.randomUUID().toString() }}",
+                        durationTurns = -1,
+                        sourceSkillId = skill.id
+                    )
+                }
+            }
+        return player.copy(statusEffects = withoutStale + generated)
     }
 
     fun recalculateVitals(player: Player, effective: Attributes): Player {

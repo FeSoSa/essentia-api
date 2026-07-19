@@ -13,12 +13,24 @@ fun List<StatusEffect>.isSkillBlocked(): Boolean =
 fun List<StatusEffect>.damageModifierPercent(type: String): Double =
     activeAutoEffectsOfType(type).sumOf { (it.percentual ?: 0) / 100.0 }
 
+/** Soma valores fixos (ex: -32 para reduzir 32 de dano) de modify_damage_dealt/modify_damage_received ativos. */
+fun List<StatusEffect>.damageModifierFlat(type: String): Int =
+    activeAutoEffectsOfType(type).sumOf { it.value ?: 0 }
+
 fun applyDamageModifiers(baseDamage: Int, attackerEffects: List<StatusEffect>, targetEffects: List<StatusEffect>): Int {
-    val dealtMod = attackerEffects.damageModifierPercent("modify_damage_dealt")
-    val receivedMod = targetEffects.damageModifierPercent("modify_damage_received")
-    val finalDamage = baseDamage * (1.0 + dealtMod + receivedMod)
+    val dealtPercent = attackerEffects.damageModifierPercent("modify_damage_dealt")
+    val receivedPercent = targetEffects.damageModifierPercent("modify_damage_received")
+    val dealtFlat = attackerEffects.damageModifierFlat("modify_damage_dealt")
+    val receivedFlat = targetEffects.damageModifierFlat("modify_damage_received")
+    val finalDamage = baseDamage * (1.0 + dealtPercent + receivedPercent) + dealtFlat + receivedFlat
     return Math.round(finalDamage).toInt().coerceAtLeast(0)
 }
+
+/** Soma percentuais (em fração) de modify_resource_cost ativos para um tipo de custo específico (ex: "flow", "hp"). */
+fun List<StatusEffect>.resourceCostModifierPercent(costType: String): Double =
+    activeAutoEffectsOfType("modify_resource_cost")
+        .filter { it.costType == costType }
+        .sumOf { (it.percentual ?: 0) / 100.0 }
 
 /** Soma value/percentual de modify_attribute ativos para um atributo específico. Percentual aplicado sobre o valor base do atributo. */
 fun List<StatusEffect>.attributeModifier(attribute: String, baseValue: Int): Int =

@@ -8,9 +8,10 @@ data class DeltaRequest(val delta: Int)
 data class AttributeDeltaRequest(val attribute: String, val delta: Int)
 
 // Skills
-data class UseSkillRequest(val slotId: String, val diceRoll: Int? = null)
+data class UseSkillRequest(val slotId: String, val diceRoll: Int? = null, val commit: Boolean = true)
 data class SlotUpdateRequest(val slotId: String, val skillId: String?)
 data class MaestriaUpgradeRequest(val playerSkillId: String, val path: String)
+data class SkillMissRequest(val slotId: String? = null, val costs: Map<String, Int> = emptyMap())
 
 // Items
 data class RequestItemRequest(val itemId: String)
@@ -113,7 +114,9 @@ data class DamageApprovalRequest(
     val targetName: String,
     val damage: Int,
     val costs: Map<String, Int> = emptyMap(),
-    val onHitEffects: List<StatusEffect> = emptyList()
+    val onHitEffects: List<StatusEffect> = emptyList(),
+    val slotId: String? = null,
+    val skillId: String? = null
 )
 data class DamageRequestBody(
     val requestId: String,
@@ -122,7 +125,8 @@ data class DamageRequestBody(
     val targetName: String,
     val damage: Int,
     val costs: Map<String, Int> = emptyMap(),
-    val skillId: String? = null
+    val skillId: String? = null,
+    val slotId: String? = null
 )
 data class DamageApproveBody(
     val requestId: String,
@@ -131,7 +135,9 @@ data class DamageApproveBody(
     val targetType: String,
     val damage: Int,
     val costs: Map<String, Int> = emptyMap(),  // custo resolvido a debitar ao aprovar
-    val onHitEffects: List<StatusEffect> = emptyList()
+    val onHitEffects: List<StatusEffect> = emptyList(),
+    val slotId: String? = null,
+    val skillId: String? = null
 )
 data class DamageResultNotification(val requestId: String, val approved: Boolean)
 
@@ -220,6 +226,7 @@ data class PlayerSkillTreeEntry(
     val equilibrio: Int? = null,
     val damageSource: String = "formula", // "formula" | "weapon"
     val weaponSlot: String? = null,       // "mainHand" | "offHand" — quando damageSource == "weapon"
+    val weaponDamageModifiers: List<AutoEffect> = emptyList(), // modificadores da skill sobre o dano da arma equipada
     val cooldownTurns: Int = 0,
     val skillType: String = "class",  // "class" | "weapon" | "essencia" | "mestre"
     val pressaoDice: Boolean = false, // técnica consome Pressão e ganha +1d6 de dano por ponto
@@ -227,7 +234,6 @@ data class PlayerSkillTreeEntry(
     val hitBonus: Int? = null,
     val attackBonus: Int? = null,
     val damageBonus: Int? = null,
-    val toggle: Boolean = false,
     val critThreshold: Int? = null,
     val actionType: String = "main",  // "main" | "bonus" | "both"
     val multiTarget: MultiTarget? = null,

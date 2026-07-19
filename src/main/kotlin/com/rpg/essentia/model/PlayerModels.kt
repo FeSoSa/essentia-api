@@ -52,8 +52,7 @@ data class Slot(
     val id: String = "",
     val type: String = "",             // "class" | "free" | "human_bonus"
     val skillId: String? = null,
-    val cooldownRemaining: Int = 0,
-    val toggleActive: Boolean = false
+    val cooldownRemaining: Int = 0
 )
 
 data class WeaponEquip(
@@ -106,7 +105,8 @@ data class AutoEffect(
     val value: Int? = null,
     val percentual: Int? = null,
     val attribute: String? = null,
-    val dice: Dice? = null
+    val dice: Dice? = null,
+    val costType: String? = null
 )
 
 data class OnExpireEffect(
@@ -138,7 +138,7 @@ data class StatusEffect(
     val attackBonus: Int? = null,
     val damageBonus: Int? = null,
     val onExpire: OnExpireEffect? = null,
-    val sourceSkillId: String? = null  // rastreia habilidade toggle que criou este efeito
+    val sourceSkillId: String? = null  // rastreia a habilidade que criou este efeito
 )
 
 data class Item(

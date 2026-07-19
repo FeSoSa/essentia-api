@@ -93,6 +93,13 @@ class GameStateService(
         return updated.notes
     }
 
+    fun clearLog(): GameState {
+        val state = getOrCreate()
+        val updated = save(state.copy(log = emptyList()))
+        broadcaster.broadcastLogCleared()
+        return updated
+    }
+
     private fun createDefault() = GameState(
         id = "main",
         images = emptyList(),

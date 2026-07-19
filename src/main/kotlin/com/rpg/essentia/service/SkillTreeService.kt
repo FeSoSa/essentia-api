@@ -113,9 +113,10 @@ class SkillTreeService(
     }
 
     private fun toFlat(skill: Skill, entry: SkillTreeEntry, ps: PlayerSkill?, player: Player): PlayerSkillTreeEntry {
-        val netCostMod = (ps?.maestria?.computed?.custoAumento ?: 0.0) -
+        val baseCostMod = (ps?.maestria?.computed?.custoAumento ?: 0.0) -
                          (ps?.maestria?.computed?.reducaoCusto  ?: 0.0)
         val custo = skill.costs.joinToString(", ") { c ->
+            val netCostMod = baseCostMod - player.statusEffects.resourceCostModifierPercent(c.type)
             when {
                 c.percentual != null -> "${c.percentual}% ${costLabel(c.type)}"
                 c.value != null -> {
@@ -137,6 +138,11 @@ class SkillTreeService(
         }
 
         val effectiveAttrMap = (player.effectiveAttributes ?: player.attributes).toMap()
+        val weapon = if (skill.damageSource == "weapon") when (skill.weaponSlot) {
+            "offHand" -> player.equipment.offHand
+            "mainHand" -> player.equipment.mainHand
+            else -> null
+        } else null
         val reqText = entry.missing?.let { m ->
             listOfNotNull(
                 m.level?.let { "Nível ${player.char.level + it}+" },
@@ -185,17 +191,17 @@ class SkillTreeService(
                     }
                 }.ifEmpty { null }
             },
-            danoBase          = skill.damage?.baseFixed?.takeIf { it != 0 },
-            atributo          = skill.damage?.atributo,
-            equilibrio        = skill.damage?.equilibrio,
+            danoBase          = if (skill.damageSource == "weapon") weapon?.damageBase else skill.damage?.baseFixed?.takeIf { it != 0 },
+            atributo          = if (skill.damageSource == "weapon") weapon?.damageAttribute else skill.damage?.atributo,
+            equilibrio        = if (skill.damageSource == "weapon") (weapon?.equilibrio ?: 4) else skill.damage?.equilibrio,
             damageSource      = skill.damageSource,
             weaponSlot        = skill.weaponSlot,
+            weaponDamageModifiers = skill.weaponDamageModifiers,
             cooldownTurns     = skill.cooldownTurns,
             buffDurationTurns = skill.buffDurationTurns,
             hitBonus          = skill.hitBonus,
             attackBonus       = skill.attackBonus,
             damageBonus       = skill.damageBonus,
-            toggle            = skill.toggle,
             critThreshold     = skill.critThreshold,
             actionType        = skill.actionType,
             multiTarget       = skill.multiTarget,

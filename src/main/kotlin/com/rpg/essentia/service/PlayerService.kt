@@ -95,7 +95,12 @@ class PlayerService(
         // Always recompute effectiveAttributes so the final column reflects the new base
         val essencias = essenciaRepository.findAll()
         val effective = attributeService.computeEffectiveAttributes(updated, essencias)
+        val oldHpMax = updated.hp.max
         updated = attributeService.recalculateVitals(updated, effective)
+        if (attribute == "resistance") {
+            val gained = updated.hp.max - oldHpMax
+            updated = updated.copy(hp = updated.hp.copy(current = minOf(updated.hp.current + gained, updated.hp.max)))
+        }
 
         // Sempre recalcula éter max quando desbloqueado (min(floor(SAB/4), 10))
         if (updated.ether.unlocked) {
@@ -150,7 +155,10 @@ class PlayerService(
         val newSlots = player.slots.map { slot ->
             if (slot.id == slotId) slot.copy(skillId = skillId) else slot
         }
-        return saveAndBroadcast(player.copy(slots = newSlots))
+        val withSlots = player.copy(slots = newSlots)
+        val skills = skillRepository.findAllById(newSlots.mapNotNull { it.skillId })
+        val synced = attributeService.syncPassiveSelfEffects(withSlots, skills)
+        return saveAndBroadcast(synced)
     }
 
     fun requestItem(id: String, itemId: String): Player {
@@ -311,7 +319,7 @@ class PlayerService(
         return saveAndBroadcast(player.copy(desviosRestantes = player.desviosRestantes - 1))
     }
 
-    fun deductCosts(id: String, costs: Map<String, Int>): Player {
+    fun deductCosts(id: String, costs: Map<String, Int>, slotId: String? = null): Player {
         var player = load(id)
         costs["flow"]?.let { c ->
             player = player.copy(flow = player.flow.copy(current = (player.flow.current - c).coerceAtLeast(0)))
@@ -332,6 +340,14 @@ class PlayerService(
             player.pressao?.let { p ->
                 player = player.copy(pressao = p.copy(current = (p.current - c).coerceAtLeast(0)))
             }
+        }
+        // Ao errar, o cooldown da habilidade é setado agora (não no início do uso)
+        if (slotId != null) {
+            val slot = player.slots.firstOrNull { it.id == slotId }
+            val cooldownTurns = slot?.skillId?.let { skillRepository.findById(it).orElse(null)?.cooldownTurns } ?: 0
+            player = player.copy(slots = player.slots.map { s ->
+                if (s.id == slotId) s.copy(cooldownRemaining = cooldownTurns) else s
+            })
         }
         return saveAndBroadcast(player)
     }
