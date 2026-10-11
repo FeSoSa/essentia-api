@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
-private val MAESTRIA_THRESHOLDS = listOf(3, 8, 16, 28)
 private const val POINTS_PER_LEVEL = 3
 
 private fun xpParaNivel(n: Int): Int {
@@ -32,9 +31,13 @@ class MasterService(
     private val gameStateService: GameStateService,
     private val broadcaster: WebSocketBroadcaster,
     private val attributeService: AttributeService,
-    private val essenciaRepository: EssenciaRepository
+    private val essenciaRepository: EssenciaRepository,
+    private val itemCatalogService: ItemCatalogService
 ) {
-    fun getPlayers(): List<Player> = playerRepository.findAll()
+    fun getPlayers(): List<Player> = playerRepository.findAll().map { resolveItems(it) }
+
+    private fun resolveItems(player: Player): Player =
+        player.copy(items = itemCatalogService.resolveAll(player.items))
 
     fun approveItem(playerId: String, requestId: String): Player {
         val player = loadPlayer(playerId)
@@ -71,7 +74,7 @@ class MasterService(
                     damageBonus = e.damageBonus,
                     onExpire = e.onExpire
                 )
-                updated = updated.copy(statusEffects = updated.statusEffects + statusEffect)
+                updated = updated.copy(statusEffects = updated.statusEffects.applyOrStack(statusEffect))
                 updated = recalculateEffective(updated)
             }
         }
@@ -94,10 +97,15 @@ class MasterService(
         val levelDiff = newLevel - player.char.level
         newAvailable += levelDiff * POINTS_PER_LEVEL
         val leveled = newLevel > player.char.level
-        val updated = player.copy(
+        var updated = player.copy(
             exp = player.exp.copy(available = newAvailable, total = newTotal),
             char = player.char.copy(level = newLevel)
         )
+        if (levelDiff != 0) {
+            // Bônus de PV/Fluxo da classe por nível: ao subir, o atual soma o mesmo que o máximo ganhou
+            val effective = attributeService.computeEffectiveAttributes(updated, essenciaRepository.findAll())
+            updated = attributeService.recalculateVitals(updated, effective, somarGanho = leveled)
+        }
         if (leveled) gameStateService.addLogEntry(playerId, "${player.char.name} subiu para nível $newLevel!", "level")
         return saveAndBroadcast(updated)
     }
@@ -113,10 +121,58 @@ class MasterService(
         }
     }
 
+    /**
+     * Coloca um jogador na luta sem reiniciar o combate: entra na posição da iniciativa dele,
+     * quem está na vez continua na vez e a contagem de rodadas é mantida.
+     */
+    fun entrarNaLuta(playerId: String, valor: Int): List<InitiativeEntry> {
+        val state = gameStateService.getOrCreate()
+        if (state.initiative.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há combate em andamento")
+        if (state.initiative.any { it.playerId == playerId }) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Jogador já está na luta")
+        val player = playerRepository.findById(playerId).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado") }
+
+        val pos = state.initiative.indexOfFirst { it.value < valor }.let { if (it < 0) state.initiative.size else it }
+        val nova = state.initiative.toMutableList().apply { add(pos, InitiativeEntry(playerId, player.char.name, valor)) }
+        val atual = state.currentTurnIndex.coerceIn(0, state.initiative.size - 1)
+        val novoIndice = if (pos <= atual) atual + 1 else atual
+        salvarOrdem(state, nova, novoIndice)
+        saveAndBroadcast(player.copy(desviosRestantes = state.combateConfig.desviosPorCombate))
+        gameStateService.addLogEntry(playerId, "${player.char.name} entrou na luta (iniciativa $valor)", "info")
+        return nova
+    }
+
+    /** Tira um jogador da luta sem reiniciar o combate. Se era a vez dele, a vez passa para o próximo. */
+    fun sairDaLuta(playerId: String): List<InitiativeEntry> {
+        val state = gameStateService.getOrCreate()
+        val pos = state.initiative.indexOfFirst { it.playerId == playerId }
+        if (pos < 0) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Jogador não está na luta")
+        val nova = state.initiative.toMutableList().apply { removeAt(pos) }
+        if (nova.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "É o último na luta: encerre o combate")
+        val atual = state.currentTurnIndex.coerceIn(0, state.initiative.size - 1)
+        val novoIndice = (if (pos < atual) atual - 1 else atual) % nova.size
+        salvarOrdem(state, nova, novoIndice)
+        playerRepository.findById(playerId).ifPresent { gameStateService.addLogEntry(playerId, "${it.char.name} saiu da luta", "info") }
+        return nova
+    }
+
+    /** Salva a ordem nova mantendo a rodada: o total de turnos continua batendo com o índice (total % tamanho). */
+    private fun salvarOrdem(state: GameState, nova: List<InitiativeEntry>, novoIndice: Int) {
+        val rodada = if (state.initiative.isEmpty()) 0 else state.totalTurns / state.initiative.size
+        gameStateService.save(state.copy(initiative = nova, currentTurnIndex = novoIndice, totalTurns = rodada * nova.size + novoIndice))
+        broadcaster.broadcastInitiative(nova)
+    }
+
     fun setInitiative(entries: List<InitiativeEntry>) {
         val state = gameStateService.getOrCreate()
-        gameStateService.save(state.copy(initiative = entries, currentTurnIndex = 0, totalTurns = 0))
+        // combatId: novo ao iniciar combate, mantido ao editar a iniciativa, null ao encerrar
+        val combatId = when {
+            entries.isEmpty()          -> null
+            state.combatId != null     -> state.combatId
+            else                       -> java.util.UUID.randomUUID().toString()
+        }
+        gameStateService.save(state.copy(initiative = entries, currentTurnIndex = 0, totalTurns = 0, combatId = combatId))
         broadcaster.broadcastInitiative(entries)
+        val desvios = state.combateConfig.desviosPorCombate
         // Reset desvios at combat start AND at combat end; reset cooldowns at combat end
         if (entries.isNotEmpty() || state.initiative.isNotEmpty()) {
             playerRepository.findAll().forEach { p ->
@@ -124,14 +180,14 @@ class MasterService(
                     p.slots.map { it.copy(cooldownRemaining = 0) }
                 else
                     p.slots
-                saveAndBroadcast(p.copy(desviosRestantes = 3, slots = resetSlots))
+                saveAndBroadcast(p.copy(desviosRestantes = desvios, slots = resetSlots))
             }
         }
     }
 
     fun addStatusEffect(playerId: String, effect: StatusEffect): Player {
         val player = loadPlayer(playerId)
-        val updated = player.copy(statusEffects = player.statusEffects + effect)
+        val updated = player.copy(statusEffects = player.statusEffects.applyOrStack(effect))
         return saveAndBroadcast(recalculateEffective(updated))
     }
 
@@ -153,30 +209,6 @@ class MasterService(
         val essencias = essenciaRepository.findAll()
         val effective = attributeService.computeEffectiveAttributes(player, essencias)
         return attributeService.recalculateVitals(player, effective)
-    }
-
-    fun addMaestriaUses(playerId: String, playerSkillId: String, uses: Int): PlayerSkill {
-        val playerSkill = playerSkillRepository.findById(playerSkillId).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "PlayerSkill not found")
-        }
-        if (playerSkill.playerId != playerId)
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "PlayerSkill does not belong to this player")
-
-        val newTotalUses = playerSkill.maestria.totalUses + uses
-        val newLevel     = minOf(MAESTRIA_THRESHOLDS.count { newTotalUses >= it } + 1, 5)
-        val leveledUp    = newLevel > playerSkill.maestria.level
-
-        val updatedMaestria = playerSkill.maestria.copy(
-            totalUses     = newTotalUses,
-            level         = newLevel,
-            nextLevelUses = if (newLevel < 5) MAESTRIA_THRESHOLDS[newLevel - 1] else Int.MAX_VALUE
-        )
-        val saved = playerSkillRepository.save(playerSkill.copy(maestria = updatedMaestria))
-
-        // Notifica jogador — sempre (progresso) e especialmente se subiu de nível (pode escolher caminho)
-        playerRepository.findById(playerId).ifPresent { broadcaster.broadcastPlayer(it) }
-
-        return saved
     }
 
     fun setSkillBlocked(playerId: String, skillId: String, blocked: Boolean): PlayerSkill {
@@ -202,6 +234,7 @@ class MasterService(
         }
         val newItem = Item(
             id = java.util.UUID.randomUUID().toString(),
+            catalogId = req.catalogId,
             name = req.name,
             desc = req.desc,
             qty = req.qty,
@@ -219,8 +252,11 @@ class MasterService(
             rarity = req.rarity,
             twoHanded = req.twoHanded,
             requirements = req.requirements,
+            requisitoNarrativo = req.requisitoNarrativo,
             onUseEffect = req.onUseEffect,
-            goldValue = req.goldValue
+            goldValue = req.goldValue,
+            margemCritico = req.margemCritico,
+            negaCritico = req.negaCritico
         )
         val saved = saveAndBroadcast(player.copy(items = player.items + newItem))
         gameStateService.addLogEntry(playerId, "${player.char.name} recebeu ${req.name}${if (req.qty > 1) " ×${req.qty}" else ""}", "item")
@@ -321,9 +357,9 @@ class MasterService(
     fun toggleActive(id: String): Player {
         val player = loadPlayer(id)
         val updated = player.copy(active = !player.active)
-        val saved = playerRepository.save(updated)
+        val saved = resolveItems(playerRepository.save(updated))
         broadcaster.broadcastPlayer(saved)
-        broadcaster.broadcastPlayers(playerRepository.findAll())
+        broadcaster.broadcastPlayers(playerRepository.findAll().map { resolveItems(it) })
         return saved
     }
 
@@ -333,7 +369,7 @@ class MasterService(
         }
 
     private fun saveAndBroadcast(player: Player): Player {
-        val saved = playerRepository.save(player)
+        val saved = resolveItems(playerRepository.save(player))
         broadcaster.broadcastPlayer(saved)
         return saved
     }

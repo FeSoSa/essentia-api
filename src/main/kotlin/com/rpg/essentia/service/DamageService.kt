@@ -1,6 +1,7 @@
 package com.rpg.essentia.service
 
 import com.rpg.essentia.model.*
+import com.rpg.essentia.repository.EffectPresetRepository
 import com.rpg.essentia.repository.PlayerRepository
 import com.rpg.essentia.repository.SkillRepository
 import com.rpg.essentia.websocket.WebSocketBroadcaster
@@ -12,8 +13,13 @@ import org.springframework.web.server.ResponseStatusException
 class DamageService(
     private val playerRepository: PlayerRepository,
     private val skillRepository: SkillRepository,
+    private val effectPresetRepository: EffectPresetRepository,
     private val enemyService: EnemyService,
     private val bossService: BossService,
+    private val playerService: PlayerService,
+    private val allyService: AllyService,
+    private val maestriaService: MaestriaService,
+    private val gameStateService: GameStateService,
     private val broadcaster: WebSocketBroadcaster
 ) {
     fun requestDamage(playerId: String, req: DamageRequestBody) {
@@ -22,7 +28,7 @@ class DamageService(
         }
         val onHitEffects = req.skillId
             ?.let { skillRepository.findById(it).orElse(null) }
-            ?.onHitEffects
+            ?.let { EfeitoRules.noAlvo(it, effectPresetRepository.findAll()) }
             ?: emptyList()
         val approval = DamageApprovalRequest(
             requestId    = req.requestId,
@@ -35,9 +41,29 @@ class DamageService(
             costs        = req.costs,
             onHitEffects = onHitEffects,
             slotId       = req.slotId,
-            skillId      = req.skillId
+            skillId      = req.skillId,
+            critico      = req.critico,
+            danoSemCritico = req.danoSemCritico,
+            ataqueBasico = req.ataqueBasico
         )
         broadcaster.broadcastDamageRequest(approval)
+    }
+
+    /**
+     * Skill em área: vira um pedido por alvo. Custo e recarga vão só no primeiro (o id dele é o do pedido,
+     * que o app espera para fechar); os demais não cobram de novo nem contam maestria outra vez.
+     */
+    fun requestMultiDamage(playerId: String, req: MultiDamageRequestBody) {
+        if (req.targets.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Escolha ao menos um alvo")
+        req.targets.forEachIndexed { i, t ->
+            requestDamage(playerId, DamageRequestBody(
+                requestId = if (i == 0) req.requestId else "${req.requestId}-$i",
+                targetId = t.targetId, targetType = t.targetType, targetName = t.targetName, damage = t.damage,
+                costs = if (i == 0) req.costs else emptyMap(),
+                skillId = req.skillId,
+                slotId = if (i == 0) req.slotId else null,
+            ))
+        }
     }
 
     fun approveDamage(req: DamageApproveBody) {
@@ -46,14 +72,21 @@ class DamageService(
         val targetEffects = when (req.targetType) {
             "enemy" -> enemyService.findInstance(req.targetId)?.statusEffects ?: emptyList()
             "boss"  -> bossService.findInstance(req.targetId)?.statusEffects ?: emptyList()
+            "player" -> playerRepository.findById(req.targetId).orElse(null)?.statusEffects ?: emptyList()
             else    -> emptyList()
         }
-        val finalDamage = applyDamageModifiers(req.damage, attackerEffects, targetEffects)
+        // Negação de crítico do alvo (ex: Manto do Vento): checada antes de valer o crítico, 1x por rodada
+        val criticoNegado = req.critico && negarCritico(req.targetType, req.targetId)
+        val danoRolado = if (criticoNegado) (req.danoSemCritico ?: req.damage) else req.damage
+        val finalDamage = applyDamageModifiers(danoRolado, attackerEffects, targetEffects)
 
         // Aplica dano no alvo
         when (req.targetType) {
             "enemy" -> enemyService.adjustHp(req.targetId, -finalDamage)
             "boss"  -> bossService.adjustHp(req.targetId, -finalDamage)
+            // Fogo amigo: o jogador escolheu atingir um aliado (o escudo absorve primeiro)
+            "player" -> playerService.adjustHp(req.targetId, -finalDamage)
+            "ally"   -> allyService.adjustHp(req.targetId, -finalDamage)
             else    -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de alvo inválido")
         }
 
@@ -62,11 +95,21 @@ class DamageService(
             when (req.targetType) {
                 "enemy" -> enemyService.applyStatusEffects(req.targetId, req.onHitEffects)
                 "boss"  -> bossService.applyStatusEffects(req.targetId, req.onHitEffects)
+                "player" -> playerRepository.findById(req.targetId).ifPresent { alvo ->
+                    broadcaster.broadcastPlayer(playerRepository.save(alvo.copy(statusEffects = alvo.statusEffects.applyOrStack(req.onHitEffects))))
+                }
             }
         }
 
+        // Uso válido em combate conta para a maestria
+        // Uso válido em combate conta para a maestria do grupo (skill) ou da arma (ataque básico)
+        // Em área, só o primeiro pedido (o que leva custo ou slot) conta o uso
+        if (req.slotId != null || req.costs.isNotEmpty()) req.skillId?.let { maestriaService.registrarUsoSkill(req.playerId, it) }
+        if (req.ataqueBasico) maestriaService.registrarUsoArma(req.playerId)
+
         // Debita custo do jogador e seta cooldown da habilidade (só agora que o dano foi aprovado)
-        if (req.costs.isNotEmpty() || req.slotId != null) {
+        val esRecuperada = if (req.ataqueBasico) gameStateService.combateConfig().esPorAcertoBasico else 0
+        if (req.costs.isNotEmpty() || req.slotId != null || esRecuperada > 0) {
             val player = playerRepository.findById(req.playerId).orElse(null)
             if (player != null) {
                 var updated = player
@@ -90,8 +133,11 @@ class DamageService(
                         updated = updated.copy(pressao = p.copy(current = (p.current - c).coerceAtLeast(0)))
                     }
                 }
+                if (esRecuperada > 0) {
+                    updated = updated.copy(flow = updated.flow.copy(current = (updated.flow.current + esRecuperada).coerceAtMost(updated.flow.max)))
+                }
                 if (req.slotId != null) {
-                    val cooldownTurns = req.skillId?.let { skillRepository.findById(it).orElse(null)?.cooldownTurns } ?: 0
+                    val cooldownTurns = req.skillId?.let { skillRepository.findById(it).orElse(null) }?.cooldownTurns ?: 0
                     updated = updated.copy(slots = updated.slots.map { s ->
                         if (s.id == req.slotId) s.copy(cooldownRemaining = cooldownTurns) else s
                     })
@@ -101,7 +147,21 @@ class DamageService(
             }
         }
 
-        broadcaster.broadcastDamageResult(req.playerId, DamageResultNotification(req.requestId, true))
+        broadcaster.broadcastDamageResult(req.playerId, DamageResultNotification(req.requestId, true, criticoNegado))
+    }
+
+    /** Consome a negação de crítico do alvo nesta rodada. Retorna true se o crítico foi negado. */
+    private fun negarCritico(targetType: String, targetId: String): Boolean {
+        val rodada = gameStateService.rodadaAtual()
+        return when (targetType) {
+            "enemy" -> enemyService.findInstance(targetId)
+                ?.takeIf { it.negaCritico && it.negaCriticoRodada != rodada }
+                ?.let { enemyService.saveInstance(it.copy(negaCriticoRodada = rodada)); true } ?: false
+            "boss" -> bossService.findInstance(targetId)
+                ?.takeIf { it.negaCritico && it.negaCriticoRodada != rodada }
+                ?.let { bossService.saveInstance(it.copy(negaCriticoRodada = rodada)); true } ?: false
+            else -> false
+        }
     }
 
     fun rejectDamage(requestId: String, playerId: String) {

@@ -1,7 +1,7 @@
 package com.rpg.essentia.controller
 
 import com.rpg.essentia.model.*
-import com.rpg.essentia.service.MaestriaService
+import com.rpg.essentia.service.EnemyTurnService
 import com.rpg.essentia.service.PlayerService
 import com.rpg.essentia.service.SkillTreeService
 import com.rpg.essentia.service.SkillUseService
@@ -15,12 +15,26 @@ import org.springframework.web.bind.annotation.*
 class PlayerController(
     private val playerService: PlayerService,
     private val skillUseService: SkillUseService,
-    private val maestriaService: MaestriaService,
+    private val enemyTurnService: EnemyTurnService,
     private val skillTreeService: SkillTreeService,
     private val sobrecargaService: SobrecargaService,
     private val damageService: DamageService,
-    private val effectService: EffectService
+    private val effectService: EffectService,
+    private val aliadoEfeitoService: com.rpg.essentia.service.AliadoEfeitoService
 ) {
+    /** Jogadores que podem receber uma skill de aliados (os ativos, incluindo o próprio). */
+    @GetMapping("/aliados")
+    fun aliados(@PathVariable id: String): List<AliadoResumo> = aliadoEfeitoService.aliados()
+
+    /** Pede ao mestre para usar uma skill de aliados nos escolhidos. */
+    @PostMapping("/ally-effect-request")
+    fun requestAllyEffect(@PathVariable id: String, @RequestBody req: AllyEffectRequestBody) =
+        aliadoEfeitoService.solicitar(id, req)
+
+    @PutMapping("/anotacoes")
+    fun setAnotacoes(@PathVariable id: String, @RequestBody req: AnotacoesRequest): Player =
+        playerService.setAnotacoes(id, req.texto)
+
     @PutMapping("/hp")
     fun adjustHp(@PathVariable id: String, @RequestBody req: DeltaRequest): Player =
         playerService.adjustHp(id, req.delta)
@@ -49,9 +63,9 @@ class PlayerController(
     fun updateSlot(@PathVariable id: String, @RequestBody req: SlotUpdateRequest): Player =
         playerService.updateSlot(id, req.slotId, req.skillId)
 
-    @PostMapping("/maestria-upgrade")
-    fun maestriaUpgrade(@PathVariable id: String, @RequestBody req: MaestriaUpgradeRequest): PlayerSkill =
-        maestriaService.applyUpgrade(id, req.playerSkillId, req.path)
+    @PostMapping("/enemy-attack/{actionId}/respond")
+    fun respondEnemyAttack(@PathVariable id: String, @PathVariable actionId: String, @RequestBody req: EnemyAttackResponse): EnemyAction =
+        enemyTurnService.responder(actionId, id, req.desviar, req.roll)
 
     @PostMapping("/request-item")
     fun requestItem(@PathVariable id: String, @RequestBody req: RequestItemRequest): Player =
@@ -86,6 +100,10 @@ class PlayerController(
     @PostMapping("/sobrecarga/deactivate")
     fun deactivateSobrecarga(@PathVariable id: String): Player =
         sobrecargaService.deactivateSobrecarga(id)
+
+    @PostMapping("/multi-damage-request")
+    fun requestMultiDamage(@PathVariable id: String, @RequestBody req: MultiDamageRequestBody) =
+        damageService.requestMultiDamage(id, req)
 
     @PostMapping("/damage-request")
     fun requestDamage(@PathVariable id: String, @RequestBody req: DamageRequestBody) {

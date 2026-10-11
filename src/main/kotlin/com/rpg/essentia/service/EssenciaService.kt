@@ -19,10 +19,10 @@ class EssenciaService(
 ) {
     fun listAll(): List<Essencia> = essenciaRepository.findAll()
 
-    fun create(essencia: Essencia): Essencia = essenciaRepository.save(essencia)
+    fun create(essencia: Essencia): Essencia = essenciaRepository.save(validar(essencia))
 
     fun update(id: String, essencia: Essencia): Essencia {
-        val saved = essenciaRepository.save(essencia.copy(id = id))
+        val saved = essenciaRepository.save(validar(essencia.copy(id = id)))
         broadcastAllPlayers()
         return saved
     }
@@ -44,8 +44,23 @@ class EssenciaService(
             attributeBonusActive = true,
             unlockedSkillIds = essencia.skillIds
         )
-        val updated = player.copy(essenciasObtidas = player.essenciasObtidas + obtained)
+        // Receber a Essência coloca o personagem na maestria nível 1 dela
+        val updated = MaestriaRules.garantir(player.copy(essenciasObtidas = player.essenciasObtidas + obtained))
         val effective = attributeService.computeEffectiveAttributes(updated, allEssencias)
+        return saveAndBroadcast(attributeService.recalculateVitals(updated, effective))
+    }
+
+    /** Mestre define o nível (1 a 4); Capacidade, penalidade e vitais são recalculados. */
+    fun setNivel(playerId: String, essenciaId: String, nivel: Int): Player {
+        if (nivel !in EssenciaRules.NIVEL_MIN..EssenciaRules.NIVEL_MAX)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nível de Essência deve ser de 1 a 4")
+        val player = loadPlayer(playerId)
+        if (player.essenciasObtidas.none { it.essenciaId == essenciaId })
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não possui esta essência")
+        val updated = player.copy(essenciasObtidas = player.essenciasObtidas.map {
+            if (it.essenciaId == essenciaId) it.copy(nivel = nivel) else it
+        })
+        val effective = attributeService.computeEffectiveAttributes(updated, essenciaRepository.findAll())
         return saveAndBroadcast(attributeService.recalculateVitals(updated, effective))
     }
 
@@ -69,6 +84,14 @@ class EssenciaService(
         )
         val effective = attributeService.computeEffectiveAttributes(updated, allEssencias)
         return saveAndBroadcast(attributeService.recalculateVitals(updated, effective))
+    }
+
+    /** Nível da mãe para liberar a Derivada: 1 a 4, e só faz sentido em Derivada com mãe. */
+    private fun validar(e: Essencia): Essencia {
+        val nivel = e.nivelMaeNecessario ?: return e
+        if (nivel !in EssenciaRules.NIVEL_MIN..EssenciaRules.NIVEL_MAX)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nível da Essência-mãe deve ser de 1 a 4")
+        return if (e.type == "Derivada" && e.parentId != null) e else e.copy(nivelMaeNecessario = null)
     }
 
     private fun loadPlayer(id: String): Player =

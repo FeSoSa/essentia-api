@@ -13,6 +13,9 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
     fun broadcastImages(images: List<GameImage>) =
         messagingTemplate.convertAndSend("/topic/images", images)
 
+    fun broadcastDocuments(documents: List<GameDocument>) =
+        messagingTemplate.convertAndSend("/topic/documents", documents)
+
     fun broadcastFastAction(fastAction: FastAction) =
         messagingTemplate.convertAndSend("/topic/fast-action", fastAction)
 
@@ -58,6 +61,9 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
     fun broadcastEffectRequest(req: EffectApprovalRequest) =
         messagingTemplate.convertAndSend("/topic/effect-request", req)
 
+    fun broadcastAllyEffectRequest(req: AllyEffectApprovalRequest) =
+        messagingTemplate.convertAndSend("/topic/ally-effect-request", req)
+
     fun broadcastDamageResult(playerId: String, result: DamageResultNotification) =
         messagingTemplate.convertAndSend("/topic/player/$playerId/damage-result", result)
 
@@ -66,4 +72,22 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
 
     fun broadcastNotes(notes: List<Note>) =
         messagingTemplate.convertAndSend("/topic/notes", notes)
+
+    fun broadcastMapMarkers(markers: List<MapMarker>) =
+        messagingTemplate.convertAndSend("/topic/map-markers", markers)
+
+    fun broadcastRegions(regions: List<Region>) =
+        messagingTemplate.convertAndSend("/topic/regions", regions)
+
+    fun broadcastMaestriaConfig(cfg: MaestriaConfig) =
+        messagingTemplate.convertAndSend("/topic/maestria-config", cfg)
+
+    fun broadcastCombateConfig(cfg: CombateConfig) =
+        messagingTemplate.convertAndSend("/topic/combate-config", cfg)
+
+    fun broadcastEnemyAction(action: EnemyAction) =
+        messagingTemplate.convertAndSend("/topic/enemy-action", action)
+
+    fun broadcastEnemyAttackToPlayer(playerId: String, action: EnemyAction) =
+        messagingTemplate.convertAndSend("/topic/player/$playerId/enemy-attack", action)
 }

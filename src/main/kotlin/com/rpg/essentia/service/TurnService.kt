@@ -46,7 +46,7 @@ class TurnService(
                 for (expired in expiring) {
                     expired.onExpire?.let { e ->
                         e.instantHealHp?.let   { v -> withExpiry = withExpiry.copy(hp   = withExpiry.hp.copy(current   = (withExpiry.hp.current   + v).coerceIn(0, withExpiry.hp.max))) }
-                        e.instantDamageHp?.let { v -> withExpiry = withExpiry.copy(hp   = withExpiry.hp.copy(current   = (withExpiry.hp.current   - v).coerceIn(0, withExpiry.hp.max))) }
+                        e.instantDamageHp?.let { v -> withExpiry = EscudoRules.receberDano(withExpiry, v) }
                         e.instantHealFlow?.let { v -> withExpiry = withExpiry.copy(flow = withExpiry.flow.copy(current = (withExpiry.flow.current + v).coerceIn(0, withExpiry.flow.max))) }
                         val hasBonus   = !e.attributeBonus.isNullOrEmpty()
                         val hasEffects = e.effects.isNotEmpty()
@@ -63,11 +63,11 @@ class TurnService(
                                 attackBonus = e.attackBonus,
                                 damageBonus = e.damageBonus
                             )
-                            withExpiry = withExpiry.copy(statusEffects = withExpiry.statusEffects + newEffect)
+                            withExpiry = withExpiry.copy(statusEffects = withExpiry.statusEffects.applyOrStack(newEffect))
                         }
                     }
                 }
-                updated = withExpiry.copy(slots = newSlots)
+                updated = cobrarSobrecarga(withExpiry.copy(slots = newSlots))
             }
 
             val saved = playerRepository.save(updated)
@@ -79,13 +79,25 @@ class TurnService(
         return update
     }
 
+    /** Custo por turno da Sobrecarga ativa; sem ES suficiente ela desliga. */
+    private fun cobrarSobrecarga(player: Player): Player {
+        if (!player.sobrecargaAtiva) return player
+        val custo = SOBRECARGA_LEVELS.firstOrNull { it.nivel == player.sobrecargaNivel }?.custoTurno ?: return player
+        return if (player.flow.current >= custo) {
+            player.copy(flow = player.flow.copy(current = player.flow.current - custo))
+        } else {
+            gameStateService.addLogEntry(player.id, "${player.char.name}: Sobrecarga desligada por falta de ES", "flow")
+            player.copy(sobrecargaAtiva = false, sobrecargaNivel = null)
+        }
+    }
+
     private fun applyAutoEffects(player: Player): Player {
         var updated = player
         for (effect in player.statusEffects.filter { it.durationTurns != 0 }) {
             for (auto in effect.effects.filter { it.trigger == "on_turn_start" }) {
                 val value = auto.value ?: 0
                 updated = when (auto.type) {
-                    "damage_hp"   -> updated.copy(hp    = updated.hp.copy(current    = (updated.hp.current    - value).coerceIn(0, updated.hp.max)))
+                    "damage_hp"   -> EscudoRules.receberDano(updated, value)   // dano contínuo também consome o Escudo primeiro
                     "heal_hp"     -> updated.copy(hp    = updated.hp.copy(current    = (updated.hp.current    + value).coerceIn(0, updated.hp.max)))
                     "damage_flow" -> updated.copy(flow  = updated.flow.copy(current  = (updated.flow.current  - value).coerceIn(0, updated.flow.max)))
                     "heal_flow"   -> updated.copy(flow  = updated.flow.copy(current  = (updated.flow.current  + value).coerceIn(0, updated.flow.max)))

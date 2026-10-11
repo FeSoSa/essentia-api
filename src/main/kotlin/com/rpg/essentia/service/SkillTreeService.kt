@@ -17,76 +17,37 @@ class SkillTreeService(
     private val playerSkillRepository: PlayerSkillRepository,
     private val playerRepository: PlayerRepository,
     private val essenciaRepository: EssenciaRepository,
-    private val attributeService: AttributeService,
     private val gameStateService: GameStateService,
     private val broadcaster: WebSocketBroadcaster
 ) {
     fun getSkillTree(playerId: String): List<PlayerSkillTreeEntry> {
         val player = loadPlayer(playerId)
         val essencias = essenciaRepository.findAll()
-        val effectiveAttrs = attributeService.computeEffectiveAttributes(player, essencias)
-
-        val equippedWeaponTypes = weaponTypesEquipped(player)
-        val obtainedEssenciaIds = player.essenciasObtidas.map { it.essenciaId }.toSet()
-        val accessibleEssenciaIds = essencias
-            .filter { e -> e.id in obtainedEssenciaIds ||
-                (e.type == "Derivada" && e.parentId != null && e.parentId in obtainedEssenciaIds) }
-            .map { it.id }.toSet()
-
-        val relevantSkills = skillRepository.findAll().filter { skill ->
-            when (skill.type) {
-                "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
-                "weapon"   -> skillWeaponTypes(skill).any { it in equippedWeaponTypes }
-                "essencia" -> skill.essenciaId in accessibleEssenciaIds
-                else       -> false
-            }
-        }
-
         val playerSkills = playerSkillRepository.findByPlayerId(playerId)
         val playerSkillMap = playerSkills.associateBy { it.skillId }
-        val unlockedSkillIds = playerSkills.map { it.skillId }.toSet()
-
-        return relevantSkills.map { skill ->
-            val entry = computeEntry(skill, player, unlockedSkillIds, effectiveAttrs)
-            val ps = playerSkillMap[skill.id]
-            toFlat(skill, entry, ps, player)
-        }
+        return skillRepository.findAll()
+            .filter { acessivel(it, player, essencias) }
+            .map { toFlat(it, playerSkillMap[it.id], player, essencias) }
     }
 
     fun getMasterSkillTree(playerId: String): List<MasterSkillTreeEntry> {
         val player = loadPlayer(playerId)
         val essencias = essenciaRepository.findAll()
-        val effectiveAttrs = attributeService.computeEffectiveAttributes(player, essencias)
-
-        val equippedWeaponTypes = weaponTypesEquipped(player)
-        val obtainedEssenciaIds = player.essenciasObtidas.map { it.essenciaId }.toSet()
-        val accessibleEssenciaIds = essencias
-            .filter { e -> e.id in obtainedEssenciaIds ||
-                (e.type == "Derivada" && e.parentId != null && e.parentId in obtainedEssenciaIds) }
-            .map { it.id }.toSet()
-
-        val relevantSkills = skillRepository.findAll().filter { skill ->
-            when (skill.type) {
-                "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
-                "weapon"   -> skillWeaponTypes(skill).any { it in equippedWeaponTypes }
-                "essencia" -> skill.essenciaId in accessibleEssenciaIds
-                "mestre"   -> true   // habilidades de mestre sempre visíveis no painel do mestre
-                else       -> false
+        val cfg = gameStateService.getOrCreate().maestriaConfig
+        val playerSkillMap = playerSkillRepository.findByPlayerId(playerId).associateBy { it.skillId }
+        return skillRepository.findAll()
+            .filter { it.type == "mestre" || acessivel(it, player, essencias) }   // skills de mestre sempre visíveis no painel
+            .map { skill ->
+                val ps = playerSkillMap[skill.id]
+                val bloqueio = MaestriaRules.requisito(skill, player, essencias)
+                MasterSkillTreeEntry(
+                    skill       = skill,
+                    status      = when { ps != null -> SkillStatus.UNLOCKED; bloqueio != null -> SkillStatus.LOCKED; else -> SkillStatus.AVAILABLE },
+                    playerSkill = ps,
+                    maestria    = maestriaDaSkill(skill, player, cfg, essencias),
+                    bloqueio    = bloqueio
+                )
             }
-        }
-
-        val playerSkills = playerSkillRepository.findByPlayerId(playerId)
-        val playerSkillMap = playerSkills.associateBy { it.skillId }
-        val unlockedSkillIds = playerSkills.map { it.skillId }.toSet()
-
-        return relevantSkills.map { skill ->
-            val entry = computeEntry(skill, player, unlockedSkillIds, effectiveAttrs)
-            MasterSkillTreeEntry(
-                skill      = skill,
-                status     = entry.status,
-                playerSkill = playerSkillMap[skill.id]
-            )
-        }
     }
 
     fun grantMasterSkill(playerId: String, skillId: String) {
@@ -98,37 +59,62 @@ class SkillTreeService(
         playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId)?.let {
             playerSkillRepository.delete(it)
         }
-        val playerSkill = PlayerSkill(
-            id        = UUID.randomUUID().toString(),
-            playerId  = playerId,
-            skillId   = skillId,
-            used      = false,
-            equipped  = false,
-            slotId    = null,
-            maestria  = Maestria(level = 1, totalUses = 0, nextLevelUses = 3, upgrades = emptyList(), computed = MaestriaComputed())
-        )
-        playerSkillRepository.save(playerSkill)
+        playerSkillRepository.save(PlayerSkill(id = UUID.randomUUID().toString(), playerId = playerId, skillId = skillId))
         broadcaster.broadcastPlayer(player)
         gameStateService.addLogEntry(playerId, "${player.char.name} recebeu ${skill.name}", "skill")
     }
 
-    private fun toFlat(skill: Skill, entry: SkillTreeEntry, ps: PlayerSkill?, player: Player): PlayerSkillTreeEntry {
-        val baseCostMod = (ps?.maestria?.computed?.custoAumento ?: 0.0) -
-                         (ps?.maestria?.computed?.reducaoCusto  ?: 0.0)
+    fun unlockSkill(playerId: String, skillId: String): PlayerSkill {
+        val player = loadPlayer(playerId)
+        val skill = skillRepository.findById(skillId).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found")
+        }
+        val essencias = essenciaRepository.findAll()
+        if (!acessivel(skill, player, essencias))
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Skill is not accessible to this player")
+
+        // Requisito por origem e tier (nível de classe, nível da Essência ou maestria da arma)
+        MaestriaRules.requisito(skill, player, essencias)?.let {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, it)
+        }
+
+        // Remove qualquer PlayerSkill órfão antes de criar novo (garante estado limpo)
+        playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId)?.let {
+            playerSkillRepository.delete(it)
+        }
+        val saved = playerSkillRepository.save(PlayerSkill(id = UUID.randomUUID().toString(), playerId = playerId, skillId = skillId))
+
+        // Broadcast player so frontend refreshes skill tree
+        broadcaster.broadcastPlayer(player)
+        gameStateService.addLogEntry(playerId, "${player.char.name} desbloqueou ${skill.name}", "skill")
+        return saved
+    }
+
+    /** Skill que aparece para o jogador: da classe dele, de arma equipada ou de Essência acessível. */
+    private fun acessivel(skill: Skill, player: Player, essencias: List<Essencia>): Boolean = when (skill.type) {
+        "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
+        "weapon"   -> skill.categoriasArma().any { it in weaponTypesEquipped(player) }
+        "essencia" -> MaestriaRules.essenciaAcessivel(skill.essenciaId, player, essencias)
+        else -> false
+    }
+
+    private fun maestriaDaSkill(skill: Skill, player: Player, cfg: MaestriaConfig, essencias: List<Essencia>): MaestriaGrupoInfo? {
+        val (grupo, _) = MaestriaRules.grupoDaSkill(skill, player, essencias) ?: return null
+        return MaestriaRules.maestria(player, grupo)?.let { MaestriaRules.info(player, it, cfg, essencias) }
+    }
+
+    private fun toFlat(skill: Skill, ps: PlayerSkill?, player: Player, essencias: List<Essencia>): PlayerSkillTreeEntry {
+        val maestriaCfg = gameStateService.getOrCreate().maestriaConfig
+        val maestria = maestriaDaSkill(skill, player, maestriaCfg, essencias)
+        val reducaoMaestria = if (maestria?.ativa == true) maestria.custoPct / 100.0 else 0.0
         val custo = skill.costs.joinToString(", ") { c ->
-            val netCostMod = baseCostMod - player.statusEffects.resourceCostModifierPercent(c.type)
+            val reducao = reducaoMaestria + player.statusEffects.resourceCostModifierPercent(c.type)
             when {
                 c.percentual != null -> "${c.percentual}% ${costLabel(c.type)}"
-                c.value != null -> {
-                    val effective = if (netCostMod != 0.0)
-                        maxOf(0, Math.round(c.value * (1.0 + netCostMod)).toInt())
-                    else
-                        c.value
-                    "$effective ${costLabel(c.type)}"
-                }
+                c.value != null -> "${CombatRules.custoFinal(c.value, reducao)} ${costLabel(c.type)}"
                 else -> costLabel(c.type)
             }
-        }.ifEmpty { "—" }
+        }.ifEmpty { "sem custo" }
 
         val categoria = when (skill.type) {
             "class"    -> skill.skillClass ?: "Geral"
@@ -137,76 +123,55 @@ class SkillTreeService(
             else       -> "Geral"
         }
 
-        val effectiveAttrMap = (player.effectiveAttributes ?: player.attributes).toMap()
-        val weapon = if (skill.damageSource == "weapon") when (skill.weaponSlot) {
-            "offHand" -> player.equipment.offHand
-            "mainHand" -> player.equipment.mainHand
-            else -> null
-        } else null
-        val reqText = entry.missing?.let { m ->
-            listOfNotNull(
-                m.level?.let { "Nível ${player.char.level + it}+" },
-                m.attributes?.entries?.joinToString(", ") { (a, v) ->
-                    "${attrLabel(a)} ${(effectiveAttrMap[a] ?: 0) + v}+"
-                },
-                m.weaponRequired?.let { "Arma: $it" }
-            ).joinToString(" · ").ifEmpty { null }
-        }
+        val weapon = if (skill.damageSource == "weapon") MaestriaRules.armaDaSkill(skill, player.equipment) else null
+        val combate = gameStateService.combateConfig()
+        val equilibrio = skill.equilibrio(combate)
+            ?: if (skill.damageSource == "weapon") ProficienciaRules.equilibrioAtaqueBasico(weapon, player.proficiencias, combate) else null
+        val bloqueio = MaestriaRules.requisito(skill, player, essencias)
+        val semProficiencia = ProficienciaRules.categoriaSemProficiencia(skill, player.equipment, player.proficiencias)
 
         return PlayerSkillTreeEntry(
             skillId          = skill.id ?: "",
             nome             = skill.name,
             custo            = custo,
+            custoBase        = skill.costs.firstOrNull { it.type == "flow" }?.value,
             descricao        = skill.desc,
             categoria        = categoria,
-            unlocked         = entry.status == SkillStatus.UNLOCKED,
+            unlocked         = ps != null,
             equipped         = ps?.equipped ?: false,
             slotId           = ps?.slotId,
-            requirementsText = reqText,
-            maestria         = ps?.let { playerSkill ->
-                val c = playerSkill.maestria.computed
-                MaestriaSimple(
-                    playerSkillId = playerSkill.id,
-                    level         = playerSkill.maestria.level,
-                    totalUses     = playerSkill.maestria.totalUses,
-                    nextLevelUses = playerSkill.maestria.nextLevelUses,
-                    choices       = playerSkill.maestria.upgrades.map { it.path },
-                    bonusDano     = c.bonusDano,
-                    custoAumento  = c.custoAumento,
-                    reducaoCusto  = c.reducaoCusto,
-                )
-            },
-            isPassive     = skill.passive || !skill.passiveAttributes.isNullOrEmpty(),
+            requirementsText = bloqueio,
+            maestria         = maestria,
+            isPassive     = skill.passive || skill.efeitos.any { it.passivo },
             skillType     = skill.type,
+            origem        = origem(skill.type),
+            alvo          = skill.alvo,
+            grupoMaestria = MaestriaRules.grupoDaSkill(skill, player, essencias)?.first,
             pressaoDice   = skill.pressaoDice,
             danoFormula   = if (skill.damageSource == "weapon") {
                 "Arma (${if (skill.weaponSlot == "offHand") "mão secundária" else "mão principal"})"
             } else skill.damage?.let { d ->
-                d.formula.takeIf { it.isNotBlank() } ?: buildString {
-                    if (d.baseFixed != 0) append(d.baseFixed)
-                    d.atributo?.let { attr ->
-                        if (isNotEmpty()) append(" + ")
-                        append("d20×$attr")
-                        d.equilibrio?.let { eq -> append(" / $eq") }
-                    }
-                }.ifEmpty { null }
+                TierRules.formula(d.baseFixed, d.atributo, equilibrio).ifEmpty { null }
             },
             danoBase          = if (skill.damageSource == "weapon") weapon?.damageBase else skill.damage?.baseFixed?.takeIf { it != 0 },
             atributo          = if (skill.damageSource == "weapon") weapon?.damageAttribute else skill.damage?.atributo,
-            equilibrio        = if (skill.damageSource == "weapon") (weapon?.equilibrio ?: 4) else skill.damage?.equilibrio,
+            equilibrio        = equilibrio,
+            tier              = skill.tier,
+            semProficiencia   = semProficiencia,
+            bloqueio          = bloqueio ?: semProficiencia?.let { "Sem proficiência em $it" },
             damageSource      = skill.damageSource,
             weaponSlot        = skill.weaponSlot,
             weaponDamageModifiers = skill.weaponDamageModifiers,
             cooldownTurns     = skill.cooldownTurns,
-            buffDurationTurns = skill.buffDurationTurns,
-            hitBonus          = skill.hitBonus,
-            attackBonus       = skill.attackBonus,
-            damageBonus       = skill.damageBonus,
             critThreshold     = skill.critThreshold,
             actionType        = skill.actionType,
             multiTarget       = skill.multiTarget,
-            onHitEffects      = skill.onHitEffects
+            efeitos           = skill.efeitos
         )
+    }
+
+    private fun origem(type: String): String? = when (type) {
+        "class" -> "CLASSE"; "weapon" -> "ARMA"; "essencia" -> "ESSENCIA"; else -> null
     }
 
     private fun costLabel(type: String) = when (type) {
@@ -220,129 +185,11 @@ class SkillTreeService(
         else              -> type
     }
 
-    private fun attrLabel(a: String) = when (a) {
-        "strength"     -> "FOR"
-        "agility"      -> "AGI"
-        "intelligence" -> "INT"
-        "resistance"   -> "RES"
-        "flow"         -> "FLX"
-        "wisdom"       -> "SAB"
-        "presence"     -> "PRE"
-        "defense"      -> "DEF"
-        else           -> a
-    }
-
-    fun unlockSkill(playerId: String, skillId: String): PlayerSkill {
-        val player = loadPlayer(playerId)
-        val skill = skillRepository.findById(skillId).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found")
-        }
-
-        // Validate skill is accessible to this player
-        val equippedWeaponTypes = weaponTypesEquipped(player)
-        val obtainedEssenciaIds = player.essenciasObtidas.map { it.essenciaId }.toSet()
-        val allEssencias = essenciaRepository.findAll()
-        val accessibleEssenciaIds = allEssencias
-            .filter { e -> e.id in obtainedEssenciaIds ||
-                (e.type == "Derivada" && e.parentId != null && e.parentId in obtainedEssenciaIds) }
-            .map { it.id }.toSet()
-        val accessible = when (skill.type) {
-            "class"    -> skill.skillClass == null || skill.skillClass == player.char.skillClass
-            "weapon"   -> skillWeaponTypes(skill).any { it in equippedWeaponTypes }
-            "essencia" -> skill.essenciaId in accessibleEssenciaIds
-            else       -> false
-        }
-        if (!accessible)
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Skill is not accessible to this player")
-
-        // Remove qualquer PlayerSkill órfão antes de criar novo (garante estado limpo)
-        playerSkillRepository.findByPlayerIdAndSkillId(playerId, skillId)?.let {
-            playerSkillRepository.delete(it)
-        }
-
-        // Validate requirements
-        val essencias = essenciaRepository.findAll()
-        val effectiveAttrs = attributeService.computeEffectiveAttributes(player, essencias)
-        val unlockedSkillIds = playerSkillRepository.findByPlayerId(playerId).map { it.skillId }.toSet()
-        val entry = computeEntry(skill, player, unlockedSkillIds, effectiveAttrs)
-
-        if (entry.status == SkillStatus.LOCKED)
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Requirements not met: ${entry.missing}"
-            )
-
-        // Create PlayerSkill at maestria level 1
-        val playerSkill = PlayerSkill(
-            id = UUID.randomUUID().toString(),
-            playerId = playerId,
-            skillId = skillId,
-            used = false,
-            equipped = false,
-            slotId = null,
-            maestria = Maestria(
-                level = 1,
-                totalUses = 0,
-                nextLevelUses = 3,
-                upgrades = emptyList(),
-                computed = MaestriaComputed()
-            )
-        )
-        val saved = playerSkillRepository.save(playerSkill)
-
-        // Broadcast player so frontend refreshes skill tree
-        broadcaster.broadcastPlayer(player)
-        gameStateService.addLogEntry(playerId, "${player.char.name} desbloqueou ${skill.name}", "skill")
-
-        return saved
-    }
-
-    private fun computeEntry(
-        skill: Skill,
-        player: Player,
-        unlockedSkillIds: Set<String>,
-        effectiveAttrs: Attributes
-    ): SkillTreeEntry {
-        if (skill.id in unlockedSkillIds)
-            return SkillTreeEntry(skill, SkillStatus.UNLOCKED, null)
-
-        val req = skill.requirements
-            ?: return SkillTreeEntry(skill, SkillStatus.AVAILABLE, null)
-
-        val attrMap = effectiveAttrs.toMap()
-
-        val missingLevel = req.level?.let { needed ->
-            if (player.char.level < needed) needed - player.char.level else null
-        }
-        val missingAttrs = req.attributes
-            ?.mapNotNull { (attr, needed) ->
-                val have = attrMap[attr] ?: 0
-                if (have < needed) attr to (needed - have) else null
-            }
-            ?.toMap()
-            ?.ifEmpty { null }
-        val missingWeapon = req.weaponRequired?.let { needed ->
-            val equipped = weaponTypesEquipped(player)
-            if (needed.lowercase() !in equipped) needed else null
-        }
-
-        return if (missingLevel == null && missingAttrs == null && missingWeapon == null) {
-            SkillTreeEntry(skill, SkillStatus.AVAILABLE, null)
-        } else {
-            SkillTreeEntry(skill, SkillStatus.LOCKED, MissingRequirements(missingLevel, missingAttrs, missingWeapon))
-        }
-    }
-
     private fun weaponTypesEquipped(player: Player): Set<String> =
         listOfNotNull(
             player.equipment.mainHand?.weaponType?.takeIf { it.isNotBlank() }?.lowercase(),
             player.equipment.offHand?.weaponType?.takeIf { it.isNotBlank() }?.lowercase()
         ).toSet()
-
-    // Retorna os tipos de arma da skill — prefere weaponTypes (multi), cai em weaponType (legado)
-    private fun skillWeaponTypes(skill: com.rpg.essentia.model.Skill): List<String> =
-        skill.weaponTypes?.map { it.lowercase() }
-            ?: listOfNotNull(skill.weaponType?.lowercase())
 
     private fun loadPlayer(id: String): Player =
         playerRepository.findById(id).orElseThrow {

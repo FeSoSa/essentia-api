@@ -2,6 +2,7 @@ package com.rpg.essentia.service
 
 import com.rpg.essentia.model.*
 import com.rpg.essentia.repository.BossInstanceRepository
+import com.rpg.essentia.repository.ClassKitRepository
 import com.rpg.essentia.repository.EnemyInstanceRepository
 import com.rpg.essentia.repository.EssenciaRepository
 import com.rpg.essentia.repository.PlayerRepository
@@ -29,6 +30,9 @@ class PlayerService(
     private val broadcaster: WebSocketBroadcaster,
     private val enemyRepository: EnemyInstanceRepository,
     private val bossRepository: BossInstanceRepository,
+    private val itemCatalogService: ItemCatalogService,
+    private val classKitRepository: ClassKitRepository,
+    private val maestriaService: MaestriaService,
 ) {
     private fun combatActive(): Boolean =
         gameStateService.getOrCreate().initiative.isNotEmpty()
@@ -38,14 +42,39 @@ class PlayerService(
             ResponseStatusException(HttpStatus.NOT_FOUND, "Player not found")
         }
 
+    /** Delta negativo é dano (consome o Escudo primeiro); positivo é cura (nunca gera Escudo). */
     fun adjustHp(id: String, delta: Int): Player {
         val player = load(id)
-        val newCurrent = (player.hp.current + delta).coerceIn(0, player.hp.max)
-        val actual = newCurrent - player.hp.current
-        if (actual != 0)
-            gameStateService.addLogEntry(id, "${player.char.name} HP ${if (actual > 0) "+$actual" else "$actual"}", "hp")
-        return saveAndBroadcast(player.copy(hp = player.hp.copy(current = newCurrent)))
+        val updated = if (delta < 0) EscudoRules.receberDano(player, -delta) else EscudoRules.curar(player, delta)
+        val actual = updated.hp.current - player.hp.current
+        val absorvido = player.escudo - updated.escudo
+        if (actual != 0 || absorvido != 0)
+            gameStateService.addLogEntry(id, "${player.char.name} HP ${if (actual >= 0) "+$actual" else "$actual"}" +
+                (if (absorvido > 0) " (Escudo absorveu $absorvido)" else ""), "hp")
+        return saveAndBroadcast(updated)
     }
+
+    /** Mestre (ou skill em aliado) dá Escudo: soma até o teto de 25% do PV máximo. */
+    fun darEscudo(id: String, valor: Int): Player {
+        if (valor <= 0) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "O Escudo precisa ser maior que 0")
+        val player = load(id)
+        val updated = EscudoRules.ganhar(player, valor)
+        gameStateService.addLogEntry(id, "${player.char.name} ganhou ${updated.escudo - player.escudo} de Escudo", "hp")
+        return saveAndBroadcast(updated)
+    }
+
+    /** Ajuste manual do mestre: positivo dá (até o teto), negativo tira (até 0). */
+    fun ajustarEscudo(id: String, delta: Int): Player {
+        val player = load(id)
+        val updated = if (delta >= 0) EscudoRules.ganhar(player, delta) else player.copy(escudo = (player.escudo + delta).coerceAtLeast(0))
+        val mudou = updated.escudo - player.escudo
+        if (mudou != 0) gameStateService.addLogEntry(id, "${player.char.name} Escudo ${if (mudou > 0) "+$mudou" else "$mudou"}", "hp")
+        return saveAndBroadcast(updated)
+    }
+
+    /** Fim do dia: zera o Escudo de todos os jogadores. */
+    fun fimDoDia(): List<Player> =
+        playerRepository.findAll().filter { it.escudo != 0 }.map { saveAndBroadcast(it.copy(escudo = 0)) }
 
     fun adjustFlow(id: String, delta: Int): Player {
         val player = load(id)
@@ -172,21 +201,27 @@ class PlayerService(
             timestamp = Instant.now().toString()
         )
         val saved = saveAndBroadcast(player.copy(pendingRequests = player.pendingRequests + request))
-        broadcaster.broadcastPlayers(playerRepository.findAll())
+        broadcaster.broadcastPlayers(playerRepository.findAll().map { it.copy(items = itemCatalogService.resolveAll(it.items)) })
         return saved
     }
 
     fun equipFromInventory(id: String, itemId: String): Player {
         val player = load(id)
-        val item = player.items.firstOrNull { it.id == itemId }
+        // Resolve contra o catálogo para levar campos novos (ex: margemCritico) ao equipamento
+        val item = player.items.firstOrNull { it.id == itemId }?.let { itemCatalogService.resolve(it) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Item não encontrado no inventário")
-        val slot = item.equipSlot ?: when (item.type) {
-            "armor"  -> "armor"
-            "weapon" -> "mainHand"
-            else     -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Item não tem slot de equipamento")
+        val slot = when (item.equipSlot) {
+            null -> when (item.type) {
+                "armor"  -> "armor"
+                "weapon" -> "mainHand"
+                else     -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Item não tem slot de equipamento")
+            }
+            "both" -> if (player.equipment.mainHand == null) "mainHand" else "offHand"
+            else -> item.equipSlot
         }
 
-        item.requirements?.let { req ->
+        // Armas: qualquer personagem equipa qualquer arma; a proficiência é que libera skills e propriedade
+        if (item.type != "weapon") item.requirements?.let { req ->
             val essencias = essenciaRepository.findAll()
             val effective = attributeService.computeEffectiveAttributes(player, essencias)
             val attrMap = effective.toMap()
@@ -211,17 +246,19 @@ class PlayerService(
                 weaponType = item.weaponType ?: "", damageBase = item.damageBase ?: 0,
                 damageAttribute = item.damageAttribute ?: "", equilibrio = item.equilibrio,
                 properties = item.properties, attributeBonus = item.attributeBonus,
-                rarity = item.rarity, twoHanded = item.twoHanded ?: false))
+                rarity = item.rarity, twoHanded = item.twoHanded ?: false, equipSlot = item.equipSlot,
+                margemCritico = item.margemCritico))
             "offHand" -> player.equipment.copy(offHand = WeaponEquip(
                 id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
                 weaponType = item.weaponType ?: "", damageBase = item.damageBase ?: 0,
                 damageAttribute = item.damageAttribute ?: "", equilibrio = item.equilibrio,
                 properties = item.properties, attributeBonus = item.attributeBonus,
-                rarity = item.rarity, twoHanded = item.twoHanded ?: false))
+                rarity = item.rarity, twoHanded = item.twoHanded ?: false, equipSlot = item.equipSlot,
+                margemCritico = item.margemCritico))
             "armor" -> player.equipment.copy(armor = ArmorEquip(
                 id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
                 damageReduction = item.damageReduction ?: 0, attributeBonus = item.attributeBonus,
-                armorWeight = item.armorWeight, rarity = item.rarity))
+                armorWeight = item.armorWeight, rarity = item.rarity, negaCritico = item.negaCritico ?: false))
             "amulet" -> player.equipment.copy(amulet = AccessoryEquip(
                 id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
                 attributeBonus = item.attributeBonus, rarity = item.rarity))
@@ -295,6 +332,27 @@ class PlayerService(
         return saveAndBroadcast(attributeService.recalculateVitals(finalPlayer, effective))
     }
 
+    /** Mestre define as proficiências em categorias de arma (ganho por treino ou uso é manual). */
+    fun setProficiencias(id: String, proficiencias: List<String>): Player {
+        val player = load(id)
+        val limpas = proficiencias.map { it.trim().lowercase() }.filter { it.isNotBlank() }.distinct()
+        // Ganhar proficiência coloca o personagem na maestria nível 1 da categoria (perder não apaga a maestria)
+        return saveAndBroadcast(MaestriaRules.garantir(player.copy(proficiencias = limpas)))
+    }
+
+    /** Anotações do jogador na aba Personagem (texto livre, só ele edita). */
+    fun setAnotacoes(id: String, texto: String): Player {
+        if (texto.length > 5000) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Anotações com no máximo 5000 caracteres")
+        val player = load(id)
+        return saveAndBroadcast(player.copy(perfil = player.perfil.copy(anotacoes = texto)))
+    }
+
+    /** Nível de classe (1 a 4): só o mestre altera; é o requisito das skills de classe pelo tier. */
+    fun setNivelClasse(id: String, nivel: Int): Player {
+        if (nivel !in 1..4) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nível de classe deve ser de 1 a 4")
+        return saveAndBroadcast(load(id).copy(nivelClasse = nivel))
+    }
+
     fun recalculate(id: String): Player {
         val player = load(id)
         val essencias = essenciaRepository.findAll()
@@ -344,7 +402,7 @@ class PlayerService(
         // Ao errar, o cooldown da habilidade é setado agora (não no início do uso)
         if (slotId != null) {
             val slot = player.slots.firstOrNull { it.id == slotId }
-            val cooldownTurns = slot?.skillId?.let { skillRepository.findById(it).orElse(null)?.cooldownTurns } ?: 0
+            val cooldownTurns = slot?.skillId?.let { skillRepository.findById(it).orElse(null) }?.cooldownTurns ?: 0
             player = player.copy(slots = player.slots.map { s ->
                 if (s.id == slotId) s.copy(cooldownRemaining = cooldownTurns) else s
             })
@@ -393,7 +451,8 @@ class PlayerService(
 
     fun saveAndBroadcast(player: Player): Player {
         val saved = playerRepository.save(player)
-        broadcaster.broadcastPlayer(saved)
-        return saved
+        val resolved = saved.copy(items = itemCatalogService.resolveAll(saved.items))
+        broadcaster.broadcastPlayer(resolved)
+        return resolved
     }
 }

@@ -71,7 +71,9 @@
       "wisdom": 6,
       "presence": 6,
       "defense": 8
-    }
+    },
+    "pvPorNivel": 17,
+    "fluxoPorNivel": 7
   },
   {
     "id": "kit-brutamonte",
@@ -145,7 +147,9 @@
       "wisdom": 4,
       "presence": 6,
       "defense": 10
-    }
+    },
+    "pvPorNivel": 19,
+    "fluxoPorNivel": 5
   },
   {
     "id": "kit-assassino",
@@ -219,7 +223,9 @@
       "wisdom": 6,
       "presence": 8,
       "defense": 6
-    }
+    },
+    "pvPorNivel": 12,
+    "fluxoPorNivel": 12
   },
   {
     "id": "kit-atirador",
@@ -293,7 +299,9 @@
       "wisdom": 8,
       "presence": 6,
       "defense": 6
-    }
+    },
+    "pvPorNivel": 12,
+    "fluxoPorNivel": 12
   },
   {
     "id": "kit-forjado",
@@ -367,7 +375,9 @@
       "wisdom": 6,
       "presence": 6,
       "defense": 6
-    }
+    },
+    "pvPorNivel": 14,
+    "fluxoPorNivel": 10
   },
   {
     "id": "kit-intenso",
@@ -441,7 +451,9 @@
       "wisdom": 6,
       "presence": 6,
       "defense": 6
-    }
+    },
+    "pvPorNivel": 14,
+    "fluxoPorNivel": 10
   },
   {
     "id": "kit-artifice",
@@ -515,7 +527,9 @@
       "wisdom": 10,
       "presence": 6,
       "defense": 6
-    }
+    },
+    "pvPorNivel": 10,
+    "fluxoPorNivel": 14
   },
   {
     "id": "kit_arcanista",
@@ -633,6 +647,8 @@
       "wisdom": 12,
       "presence": 9,
       "defense": 9
-    }
+    },
+    "pvPorNivel": 6,
+    "fluxoPorNivel": 18
   }
 ]

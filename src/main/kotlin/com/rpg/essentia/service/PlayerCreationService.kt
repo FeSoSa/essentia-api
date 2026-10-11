@@ -56,6 +56,7 @@ class PlayerCreationService(
         val player = Player(
             id = UUID.randomUUID().toString(),
             code = req.code,
+            perfil = req.perfil.copy(anotacoes = "", tracos = req.perfil.tracos.map { it.trim() }.filter { it.isNotBlank() }),
             char = CharInfo(
                 name = req.name,
                 classe = req.skillClass,
@@ -78,9 +79,10 @@ class PlayerCreationService(
             attributes = req.attributes,
             equipment  = req.equipment,
             items      = req.items,
-            slots      = slots
+            slots      = slots,
+            proficiencias = kit.proficienciasIniciais
         )
-        playerRepository.save(player)
+        playerRepository.save(MaestriaRules.garantir(player))
 
         kit.starterSkillIds.forEach { skillId ->
             playerSkillRepository.save(
@@ -105,9 +107,6 @@ class PlayerCreationService(
         val codeConflict = playerRepository.findByCode(req.code)
         if (codeConflict != null && codeConflict.id != id)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Código já existe: ${req.code}")
-
-        val hpMax = HP_BASE + (req.attributes.resistance * HP_PER_RESISTANCE)
-        val flowMax = FLOW_BASE + (req.attributes.flow * FLOW_PER_FLOW_ATTR)
 
         val newSlotsClass = req.slotsClass ?: existing.char.slotsClass
         val newSlotsFree  = req.slotsFree  ?: existing.char.slotsFree
@@ -148,8 +147,6 @@ class PlayerCreationService(
                 slotsTotal    = newSlotsClass + newSlotsFree,
                 unarmedAttack = kitPerks?.unarmedAttack ?: existing.char.unarmedAttack
             ),
-            hp    = existing.hp.copy(max = hpMax),
-            flow  = existing.flow.copy(max = flowMax),
             ether = existing.ether.copy(
                 unlocked = req.etherUnlocked ?: existing.ether.unlocked,
                 max      = minOf(req.attributes.wisdom / 4, 10),
@@ -163,10 +160,14 @@ class PlayerCreationService(
             ),
             slots = newSlots,
             sobrecargaDesbloqueada = req.sobrecargaDesbloqueada ?: existing.sobrecargaDesbloqueada,
-            inventorySize = req.inventorySize ?: existing.inventorySize
+            inventorySize = req.inventorySize ?: existing.inventorySize,
+            perfil = req.perfil?.copy(anotacoes = existing.perfil.anotacoes, tracos = req.perfil.tracos.map { it.trim() }.filter { it.isNotBlank() }) ?: existing.perfil
         ).let { p ->
+            // PV/Fluxo pelo mesmo cálculo de todo o resto (atributos efetivos + bônus da classe por nível);
+            // se o mestre subiu o nível, o atual soma o mesmo que o máximo ganhou
             val essencias = essenciaRepository.findAll()
-            p.copy(effectiveAttributes = attributeService.computeEffectiveAttributes(p, essencias))
+            attributeService.recalculateVitals(p, attributeService.computeEffectiveAttributes(p, essencias),
+                somarGanho = p.char.level > existing.char.level)
         }
         // Se a classe mudou, remove skills exclusivas da classe antiga
         if (req.skillClass != existing.char.skillClass) {

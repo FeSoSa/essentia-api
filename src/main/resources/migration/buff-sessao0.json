@@ -1,0 +1,3863 @@
+{
+  "skills": [
+    {
+      "id": "6a07ba7ee66c1bb7925cd7d6",
+      "name": "Jab Cadenciado",
+      "caminhoMaestria": "PODER",
+      "base0": 8,
+      "base25": 10,
+      "atributo": "AGI",
+      "equilibrio": 8,
+      "formula0": "8 + d20×AGI/8",
+      "formula25": "10 + d20×AGI/8",
+      "baseEquilibrio": 16,
+      "formulaEquilibrio": "16 + d20×AGI/8",
+      "motivoEquilibrio": "54% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a07bd4fe66c1bb7925cd7d7",
+      "name": "Golpe Carregado",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "16 + d20×FOR/6",
+      "formula25": "20 + d20×FOR/6"
+    },
+    {
+      "id": "6a07bda0e66c1bb7925cd7d8",
+      "name": "Chute de Pressão",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "FOR",
+      "equilibrio": 7,
+      "formula0": "14 + d20×FOR/7",
+      "formula25": "18 + d20×FOR/7"
+    },
+    {
+      "id": "6a07bf0fe66c1bb7925cd7d9",
+      "name": "Sequência Implacável",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 96,
+      "base25": 120,
+      "atributo": "AGI",
+      "equilibrio": 7,
+      "formula0": "96 + d20×AGI/7",
+      "formula25": "120 + d20×AGI/7",
+      "baseEquilibrio": 68,
+      "formulaEquilibrio": "68 + d20×AGI/7",
+      "motivoEquilibrio": "205% da mediana da faixa 10-13 (61)"
+    },
+    {
+      "id": "6a07bf43e66c1bb7925cd7da",
+      "name": "Explosão Controlada",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 142,
+      "base25": 178,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "142 + d20×FOR/5",
+      "formula25": "178 + d20×FOR/5"
+    },
+    {
+      "id": "6a07bfe3e66c1bb7925cd7db",
+      "name": "Ponto Cego",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 195,
+      "base25": 244,
+      "atributo": "FOR/AGI",
+      "equilibrio": 4,
+      "formula0": "195 + d20×FOR/AGI/4",
+      "formula25": "244 + d20×FOR/AGI/4"
+    },
+    {
+      "id": "6a07c0e0e66c1bb7925cd7dc",
+      "name": "Coluna de Chamas",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 30,
+      "base25": 38,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "30 + d20×INT/6",
+      "formula25": "38 + d20×INT/6"
+    },
+    {
+      "id": "6a07c31c1cfb0832502b7b7a",
+      "name": "Manto da Fênix",
+      "caminhoMaestria": "PODER",
+      "base0": 2,
+      "base25": 3,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "2",
+      "formula25": "3 + d20×INT/6",
+      "fixMotivo": "atributo vazio, a skill não escalava",
+      "baseEquilibrio": 15,
+      "formulaEquilibrio": "15 + d20×INT/6",
+      "motivoEquilibrio": "28% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a07c3551cfb0832502b7b7b",
+      "name": "Explosão Solar",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 42,
+      "base25": 53,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "42 + d20×INT/5",
+      "formula25": "53 + d20×INT/5"
+    },
+    {
+      "id": "6a07c3b01cfb0832502b7b7c",
+      "name": "Chama Devoradora",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 28,
+      "base25": 35,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "28 + d20×INT/6",
+      "formula25": "35 + d20×INT/6",
+      "baseEquilibrio": 24,
+      "formulaEquilibrio": "24 + d20×INT/6",
+      "motivoEquilibrio": "166% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a07c46c1cfb0832502b7b7d",
+      "name": "Renascimento da Fênix",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 66,
+      "base25": 83,
+      "atributo": "INT",
+      "equilibrio": 4,
+      "formula0": "66 + d20×INT/4",
+      "formula25": "83 + d20×INT/4",
+      "baseEquilibrio": 180,
+      "formulaEquilibrio": "180 + d20×INT/4",
+      "motivoEquilibrio": "40% da mediana da faixa ULT 14-17 (241)"
+    },
+    {
+      "id": "6a0fb18fef8157321156725a",
+      "name": "Projétil Arcano",
+      "caminhoMaestria": "PODER",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "14 + d20×INT/7",
+      "formula25": "18 + d20×INT/7"
+    },
+    {
+      "id": "6a0fb1beef8157321156725b",
+      "name": "Aura",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a0fb40a6477bbee4b30efe0",
+      "name": "Imbuir",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a0fb4616477bbee4b30efe1",
+      "name": "Passo Instantâneo",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a0fb4816477bbee4b30efe2",
+      "name": "Luz",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a0fb4af6477bbee4b30efe3",
+      "name": "Eco",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a0fb5016477bbee4b30efe4",
+      "name": "Ocultar Presença",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a0fb52a6477bbee4b30efe5",
+      "name": "Ler Movimentos",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a10802c578a995494c54cb2",
+      "name": "Fio Invisível",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 18,
+      "base25": 23,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "18 + d20×AGI/6",
+      "formula25": "23 + d20×AGI/6"
+    },
+    {
+      "id": "6a108193578a995494c54cb3",
+      "name": "Incisão Progressiva",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "14 + d20×AGI/6",
+      "formula25": "18 + d20×AGI/6"
+    },
+    {
+      "id": "6a1081d4578a995494c54cb4",
+      "name": "Golpe do Executor",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 122,
+      "base25": 153,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "122 + d20×FOR/6",
+      "formula25": "153 + d20×FOR/6"
+    },
+    {
+      "id": "6a10829f578a995494c54cb5",
+      "name": "Dança Mortal",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a108384578a995494c54cb6",
+      "name": "Postura da Linha Final",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 152,
+      "base25": 190,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "152 + d20×FOR/5",
+      "formula25": "190 + d20×FOR/5"
+    },
+    {
+      "id": "6a1083d2578a995494c54cb7",
+      "name": "Ataque Falso",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 76,
+      "base25": 95,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "76 + d20×AGI/6",
+      "formula25": "95 + d20×AGI/6",
+      "baseEquilibrio": 67,
+      "formulaEquilibrio": "67 + d20×AGI/6",
+      "motivoEquilibrio": "166% da mediana da faixa 10-13 (61)"
+    },
+    {
+      "id": "6a1083fe578a995494c54cb8",
+      "name": "Investida Perfurante",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 108,
+      "base25": 135,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "108 + d20×FOR/6",
+      "formula25": "135 + d20×FOR/6"
+    },
+    {
+      "id": "6a108438578a995494c54cb9",
+      "name": "Fio da Verdade",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "14 + d20×AGI/6",
+      "formula25": "18 + d20×AGI/6"
+    },
+    {
+      "id": "6a10855f578a995494c54cba",
+      "name": "Mil Perfurações",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 90,
+      "base25": 113,
+      "atributo": "AGI",
+      "equilibrio": 4,
+      "formula0": "90 + d20×AGI/4",
+      "formula25": "113 + d20×AGI/4",
+      "baseEquilibrio": 180,
+      "formulaEquilibrio": "180 + d20×AGI/4",
+      "motivoEquilibrio": "52% da mediana da faixa ULT 14-17 (241)"
+    },
+    {
+      "id": "6a108628578a995494c54cbb",
+      "name": "Corte Transversal",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "14 + d20×AGI/6",
+      "formula25": "18 + d20×AGI/6"
+    },
+    {
+      "id": "6a10865e578a995494c54cbc",
+      "name": "Quebra-Guarda",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a108d1c10ea8ad260c8262f",
+      "name": "Perfuração Atravessada",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 18,
+      "base25": 23,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "18 + d20×FOR/6",
+      "formula25": "23 + d20×FOR/6"
+    },
+    {
+      "id": "6a108d4e10ea8ad260c82630",
+      "name": "Investida Perfurante",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 20,
+      "base25": 25,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "20 + d20×FOR/6",
+      "formula25": "25 + d20×FOR/6",
+      "baseEquilibrio": 42,
+      "formulaEquilibrio": "42 + d20×FOR/6",
+      "motivoEquilibrio": "52% da mediana da faixa 10-13 (61)"
+    },
+    {
+      "id": "6a108e9c10ea8ad260c82631",
+      "name": "Perfuração do Horizonte Partido",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 115,
+      "base25": 144,
+      "atributo": "FOR",
+      "equilibrio": 4,
+      "formula0": "115 + d20×FOR/4",
+      "formula25": "144 + d20×FOR/4"
+    },
+    {
+      "id": "6a108f2110ea8ad260c82632",
+      "name": "Corte de Ruptura Total",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 115,
+      "base25": 144,
+      "atributo": "FOR",
+      "equilibrio": 4,
+      "formula0": "115 + d20×FOR/4",
+      "formula25": "144 + d20×FOR/4"
+    },
+    {
+      "id": "6a108f6e10ea8ad260c82633",
+      "name": "Fenda Brutal",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 22,
+      "base25": 28,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "22 + d20×FOR/6",
+      "formula25": "28 + d20×FOR/6"
+    },
+    {
+      "id": "6a108fa710ea8ad260c82634",
+      "name": "Giro Devastador",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 18,
+      "base25": 23,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "18 + d20×FOR/5",
+      "formula25": "23 + d20×FOR/5"
+    },
+    {
+      "id": "6a108ff110ea8ad260c82635",
+      "name": "Impacto Descomunal",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 28,
+      "base25": 35,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "28 + d20×FOR/5",
+      "formula25": "35 + d20×FOR/5"
+    },
+    {
+      "id": "6a10903310ea8ad260c82636",
+      "name": "Execução Implacável",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 117,
+      "base25": 146,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "117 + d20×FOR/5",
+      "formula25": "146 + d20×FOR/5"
+    },
+    {
+      "id": "6a10906910ea8ad260c82637",
+      "name": "Martelada Certeira",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 22,
+      "base25": 28,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "22 + d20×FOR/6",
+      "formula25": "28 + d20×FOR/6"
+    },
+    {
+      "id": "6a1090c910ea8ad260c82638",
+      "name": "Onda de Choque",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 28,
+      "base25": 35,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "28 + d20×FOR/5",
+      "formula25": "35 + d20×FOR/5"
+    },
+    {
+      "id": "6a10911210ea8ad260c82639",
+      "name": "Golpe Sísmico",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 36,
+      "base25": 45,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "36 + d20×FOR/5",
+      "formula25": "45 + d20×FOR/5"
+    },
+    {
+      "id": "6a10914b10ea8ad260c8263a",
+      "name": "Veredicto",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 141,
+      "base25": 176,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "141 + d20×FOR/5",
+      "formula25": "176 + d20×FOR/5"
+    },
+    {
+      "id": "6a10918710ea8ad260c8263b",
+      "name": "Investida Colossal",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 24,
+      "base25": 30,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "24 + d20×FOR/6",
+      "formula25": "30 + d20×FOR/6",
+      "baseEquilibrio": 24,
+      "formulaEquilibrio": "24 + d20×FOR/6",
+      "motivoEquilibrio": "144% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a1091c510ea8ad260c8263c",
+      "name": "Esmagamento Total",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 36,
+      "base25": 45,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "36 + d20×FOR/5",
+      "formula25": "45 + d20×FOR/5"
+    },
+    {
+      "id": "6a1091fe10ea8ad260c8263d",
+      "name": "Avalanche",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 48,
+      "base25": 60,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "48 + d20×FOR/5",
+      "formula25": "60 + d20×FOR/5"
+    },
+    {
+      "id": "6a10923910ea8ad260c8263e",
+      "name": "Colapso Total",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 75,
+      "base25": 94,
+      "atributo": "FOR",
+      "equilibrio": 4,
+      "formula0": "75 + d20×FOR/4",
+      "formula25": "94 + d20×FOR/4",
+      "baseEquilibrio": 180,
+      "formulaEquilibrio": "180 + d20×FOR/4",
+      "motivoEquilibrio": "44% da mediana da faixa ULT 14-17 (241)"
+    },
+    {
+      "id": "6a10935f10ea8ad260c8263f",
+      "name": "Punhalada Vital",
+      "caminhoMaestria": "PODER",
+      "base0": 50,
+      "base25": 63,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "50 + d20×AGI/6",
+      "formula25": "63 + d20×AGI/6"
+    },
+    {
+      "id": "6a1093f710ea8ad260c82640",
+      "name": "Sombra Dupla",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 160,
+      "base25": 200,
+      "atributo": "AGI",
+      "equilibrio": 7,
+      "formula0": "160 + d20×AGI/7",
+      "formula25": "200 + d20×AGI/7"
+    },
+    {
+      "id": "6a10943610ea8ad260c82641",
+      "name": "Lâmina Fantasma",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "14 + d20×AGI/6",
+      "formula25": "18 + d20×AGI/6"
+    },
+    {
+      "id": "6a10946510ea8ad260c82642",
+      "name": "Corte Fugitivo",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 12,
+      "base25": 15,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "12 + d20×AGI/6",
+      "formula25": "15 + d20×AGI/6",
+      "baseEquilibrio": 28,
+      "formulaEquilibrio": "28 + d20×AGI/6",
+      "motivoEquilibrio": "49% da mediana da faixa 6-9 (41)"
+    },
+    {
+      "id": "6a10949e10ea8ad260c82643",
+      "name": "Soco Direto",
+      "caminhoMaestria": "PODER",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "16 + d20×FOR/6",
+      "formula25": "20 + d20×FOR/6"
+    },
+    {
+      "id": "6a1094df10ea8ad260c82644",
+      "name": "Jab Quebra-Guarda",
+      "caminhoMaestria": "PODER",
+      "base0": 12,
+      "base25": 15,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "12 + d20×AGI/6",
+      "formula25": "15 + d20×AGI/6"
+    },
+    {
+      "id": "6a10952a10ea8ad260c82645",
+      "name": "Cruzado",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 22,
+      "base25": 28,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "22 + d20×FOR/6",
+      "formula25": "28 + d20×FOR/6"
+    },
+    {
+      "id": "6a10956d10ea8ad260c82646",
+      "name": "Sequência Rápida",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 106,
+      "base25": 133,
+      "atributo": "AGI",
+      "equilibrio": 7,
+      "formula0": "106 + d20×AGI/7",
+      "formula25": "133 + d20×AGI/7",
+      "baseEquilibrio": 68,
+      "formulaEquilibrio": "68 + d20×AGI/7",
+      "motivoEquilibrio": "226% da mediana da faixa 10-13 (61)"
+    },
+    {
+      "id": "6a1095c710ea8ad260c82647",
+      "name": "Uppercut",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 166,
+      "base25": 208,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "166 + d20×FOR/5",
+      "formula25": "208 + d20×FOR/5"
+    },
+    {
+      "id": "6a10965410ea8ad260c82648",
+      "name": "Rajada Imparável",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 329,
+      "base25": 411,
+      "atributo": "FOR/AGI",
+      "equilibrio": 4,
+      "formula0": "329 + d20×FOR/AGI/4",
+      "formula25": "411 + d20×FOR/AGI/4",
+      "baseEquilibrio": 273,
+      "formulaEquilibrio": "273 + d20×FOR/AGI/4",
+      "motivoEquilibrio": "177% da mediana da faixa ULT 18-20 (241)"
+    },
+    {
+      "id": "6a11db130031a9c4987784e9",
+      "name": "Rasgo Selvagem",
+      "caminhoMaestria": "PODER",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "AGI",
+      "equilibrio": 7,
+      "formula0": "14 + d20×AGI/7",
+      "formula25": "18 + d20×AGI/7"
+    },
+    {
+      "id": "6a11db380031a9c4987784ea",
+      "name": "Garra Perfurante",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 66,
+      "base25": 83,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "66 + d20×AGI/6",
+      "formula25": "83 + d20×AGI/6",
+      "baseEquilibrio": 67,
+      "formulaEquilibrio": "67 + d20×AGI/6",
+      "motivoEquilibrio": "147% da mediana da faixa 10-13 (61)"
+    },
+    {
+      "id": "6a11db640031a9c4987784eb",
+      "name": "Investida Felina",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "14 + d20×AGI/6",
+      "formula25": "18 + d20×AGI/6",
+      "baseEquilibrio": 28,
+      "formulaEquilibrio": "28 + d20×AGI/6",
+      "motivoEquilibrio": "56% da mediana da faixa 6-9 (41)"
+    },
+    {
+      "id": "6a11dbb70031a9c4987784ec",
+      "name": "Frenesi",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 154,
+      "base25": 193,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "154 + d20×AGI/6",
+      "formula25": "193 + d20×AGI/6"
+    },
+    {
+      "id": "6a11dcfa0031a9c4987784ed",
+      "name": "Flecha Certeira",
+      "caminhoMaestria": "PODER",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "16 + d20×AGI/6",
+      "formula25": "20 + d20×AGI/6"
+    },
+    {
+      "id": "6a11dd6b0031a9c4987784ee",
+      "name": "Chuva de Flechas",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 56,
+      "base25": 70,
+      "atributo": "AGI",
+      "equilibrio": 5,
+      "formula0": "56 + d20×AGI/5",
+      "formula25": "70 + d20×AGI/5",
+      "baseEquilibrio": 136,
+      "formulaEquilibrio": "136 + d20×AGI/5",
+      "motivoEquilibrio": "44% da mediana da faixa 14-17 (183)"
+    },
+    {
+      "id": "6a11ddc20031a9c4987784ef",
+      "name": "Disparo Perfurante",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "16 + d20×AGI/6",
+      "formula25": "20 + d20×AGI/6"
+    },
+    {
+      "id": "6a11de790031a9c4987784f0",
+      "name": "Tiro Decisivo",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 34,
+      "base25": 43,
+      "atributo": "AGI",
+      "equilibrio": 5,
+      "formula0": "34 + d20×AGI/5",
+      "formula25": "43 + d20×AGI/5"
+    },
+    {
+      "id": "6a11deeb0031a9c4987784f1",
+      "name": "Disparo Perfurador",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 18,
+      "base25": 23,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "18 + d20×AGI/6",
+      "formula25": "23 + d20×AGI/6"
+    },
+    {
+      "id": "6a11df0e0031a9c4987784f2",
+      "name": "Tiro de Contenção",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "14 + d20×AGI/6",
+      "formula25": "18 + d20×AGI/6"
+    },
+    {
+      "id": "6a11df800031a9c4987784f3",
+      "name": "Recarga Rápida",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11dfa30031a9c4987784f4",
+      "name": "Virote Explosivo",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 140,
+      "base25": 175,
+      "atributo": "AGI",
+      "equilibrio": 5,
+      "formula0": "140 + d20×AGI/5",
+      "formula25": "175 + d20×AGI/5"
+    },
+    {
+      "id": "6a11dff30031a9c4987784f5",
+      "name": "Tiro Certeiro",
+      "caminhoMaestria": "PODER",
+      "base0": 22,
+      "base25": 28,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "22 + d20×AGI/6",
+      "formula25": "28 + d20×AGI/6"
+    },
+    {
+      "id": "6a11e01c0031a9c4987784f6",
+      "name": "Tiro na Ferida",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 28,
+      "base25": 35,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "28 + d20×AGI/6",
+      "formula25": "35 + d20×AGI/6"
+    },
+    {
+      "id": "6a11e0970031a9c4987784f7",
+      "name": "Disparo Perfurante",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 24,
+      "base25": 30,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "24 + d20×AGI/6",
+      "formula25": "30 + d20×AGI/6",
+      "baseEquilibrio": 24,
+      "formulaEquilibrio": "24 + d20×AGI/6",
+      "motivoEquilibrio": "144% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a11e0e90031a9c4987784f8",
+      "name": "Tiro à Queima-Roupa",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 129,
+      "base25": 161,
+      "atributo": "AGI",
+      "equilibrio": 5,
+      "formula0": "129 + d20×AGI/5",
+      "formula25": "161 + d20×AGI/5"
+    },
+    {
+      "id": "6a11e11b0031a9c4987784f9",
+      "name": "Tiro Paralisante",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 20,
+      "base25": 25,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "20 + d20×AGI/6",
+      "formula25": "25 + d20×AGI/6",
+      "baseEquilibrio": 42,
+      "formulaEquilibrio": "42 + d20×AGI/6",
+      "motivoEquilibrio": "52% da mediana da faixa 10-13 (61)"
+    },
+    {
+      "id": "6a11e14c0031a9c4987784fa",
+      "name": "Execução à Distância",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 209,
+      "base25": 261,
+      "atributo": "AGI",
+      "equilibrio": 4,
+      "formula0": "209 + d20×AGI/4",
+      "formula25": "261 + d20×AGI/4"
+    },
+    {
+      "id": "6a11e2090031a9c4987784fb",
+      "name": "Investida com Escudo",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "16 + d20×FOR/6",
+      "formula25": "20 + d20×FOR/6"
+    },
+    {
+      "id": "6a11e2690031a9c4987784fc",
+      "name": "Postura Defensiva",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e2a90031a9c4987784fd",
+      "name": "Muralha",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e34a0031a9c4987784fe",
+      "name": "Juramento do Duelista",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e37a0031a9c4987784ff",
+      "name": "Réquiem da Lâmina",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e4340031a9c498778500",
+      "name": "Lâmina da Sentença",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 334,
+      "base25": 418,
+      "atributo": "FOR/AGI",
+      "equilibrio": 4,
+      "formula0": "334 + d20×FOR/AGI/4",
+      "formula25": "418 + d20×FOR/AGI/4",
+      "baseEquilibrio": 276,
+      "formulaEquilibrio": "276 + d20×FOR/AGI/4",
+      "motivoEquilibrio": "179% da mediana da faixa ULT 14-17 (241)"
+    },
+    {
+      "id": "6a11e4810031a9c498778501",
+      "name": "Corpo Inquebrável",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e4a20031a9c498778502",
+      "name": "Grito de Desafio",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "base 0"
+    },
+    {
+      "id": "6a11e5010031a9c498778503",
+      "name": "Colapso da Montanha",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 239,
+      "base25": 299,
+      "atributo": "FOR",
+      "equilibrio": 4,
+      "formula0": "239 + d20×FOR/4",
+      "formula25": "299 + d20×FOR/4"
+    },
+    {
+      "id": "6a11e5280031a9c498778504",
+      "name": "Golpe Preciso",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e5410031a9c498778505",
+      "name": "Execução",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e5aa0031a9c498778506",
+      "name": "Dança da Morte",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 185,
+      "base25": 231,
+      "atributo": "AGI",
+      "equilibrio": 4,
+      "formula0": "185 + d20×AGI/4",
+      "formula25": "231 + d20×AGI/4"
+    },
+    {
+      "id": "6a11e6470031a9c498778507",
+      "name": "Mira Estável",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e6670031a9c498778508",
+      "name": "Caçador Paciente",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11e6cd0031a9c498778509",
+      "name": "Tiro do Horizonte",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 298,
+      "base25": 373,
+      "atributo": "AGI",
+      "equilibrio": 4,
+      "formula0": "298 + d20×AGI/4",
+      "formula25": "373 + d20×AGI/4",
+      "baseEquilibrio": 276,
+      "formulaEquilibrio": "276 + d20×AGI/4",
+      "motivoEquilibrio": "160% da mediana da faixa ULT 14-17 (241)"
+    },
+    {
+      "id": "6a11e7cd0031a9c49877850a",
+      "name": "Singularidade",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 334,
+      "base25": 418,
+      "atributo": "INT/FLX",
+      "equilibrio": 4,
+      "formula0": "334 + d20×INT/FLX/4",
+      "formula25": "418 + d20×INT/FLX/4",
+      "baseEquilibrio": 276,
+      "formulaEquilibrio": "276 + d20×INT/FLX/4",
+      "motivoEquilibrio": "179% da mediana da faixa ULT 14-17 (241)"
+    },
+    {
+      "id": "6a11ea510031a9c49877850b",
+      "name": "Sobrecarga Arcana",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11ea830031a9c49877850c",
+      "name": "Pulso Arcano",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 120,
+      "base25": 150,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "120 + d20×INT/5",
+      "formula25": "150 + d20×INT/5",
+      "baseEquilibrio": 24,
+      "formulaEquilibrio": "24 + d20×INT/5",
+      "motivoEquilibrio": "663% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a11eaca0031a9c49877850d",
+      "name": "Criar Torreta",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11eb130031a9c49877850e",
+      "name": "Atirar!",
+      "caminhoMaestria": "PODER",
+      "pulo": "dano da arma"
+    },
+    {
+      "id": "6a11eb630031a9c49877850f",
+      "name": "Aprimorar Torreta",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11ebe20031a9c498778510",
+      "name": "Arte Gnômica - Foguetes",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 48,
+      "base25": 60,
+      "atributo": "INT/FLX",
+      "equilibrio": 4,
+      "formula0": "48 + d20×INT/FLX/4",
+      "formula25": "60 + d20×INT/FLX/4"
+    },
+    {
+      "id": "6a11ec7e0031a9c498778511",
+      "name": "Arte Gnômica - Autômato",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 88,
+      "base25": 110,
+      "atributo": "INT/FLX",
+      "equilibrio": 4,
+      "formula0": "88 + d20×INT/FLX/4",
+      "formula25": "110 + d20×INT/FLX/4",
+      "baseEquilibrio": 180,
+      "formulaEquilibrio": "180 + d20×INT/FLX/4",
+      "motivoEquilibrio": "51% da mediana da faixa ULT 14-17 (241)"
+    },
+    {
+      "id": "6a11ed880031a9c498778513",
+      "name": "Postura do Fogo",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11eda30031a9c498778514",
+      "name": "Postura da Água",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11edf90031a9c498778515",
+      "name": "Postura da Terra",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11ee1a0031a9c498778516",
+      "name": "Postura do Vento",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11ee2b0031a9c498778517",
+      "name": "Postura da Tempestade",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11eeb20031a9c498778518",
+      "name": "Cristal de Gelo",
+      "caminhoMaestria": "PODER",
+      "base0": 12,
+      "base25": 15,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "12 + d20×INT/7",
+      "formula25": "15 + d20×INT/7"
+    },
+    {
+      "id": "6a11eee20031a9c498778519",
+      "name": "Neblina Gélida",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "base 0"
+    },
+    {
+      "id": "6a11ef1a0031a9c49877851a",
+      "name": "Rajada de Areia",
+      "caminhoMaestria": "PODER",
+      "base0": 12,
+      "base25": 15,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "12 + d20×INT/7",
+      "formula25": "15 + d20×INT/7"
+    },
+    {
+      "id": "6a11ef470031a9c49877851b",
+      "name": "Tempestade de Areia",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 40,
+      "base25": 50,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "40 + d20×INT/6",
+      "formula25": "50 + d20×INT/6"
+    },
+    {
+      "id": "6a11efbb0031a9c49877851c",
+      "name": "Projétil de Éter",
+      "caminhoMaestria": "PODER",
+      "base0": 32,
+      "base25": 40,
+      "atributo": "SAB",
+      "equilibrio": 6,
+      "formula0": "32 + d20×SAB/SAB/6",
+      "formula25": "40 + d20×SAB/6",
+      "fixMotivo": "atributo duplicado (SAB/SAB)",
+      "baseEquilibrio": 24,
+      "formulaEquilibrio": "24 + d20×SAB/6",
+      "motivoEquilibrio": "187% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a11f00d0031a9c49877851d",
+      "name": "Domo de Supressão",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11f05e0031a9c49877851e",
+      "name": "Colapso de Éter",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 239,
+      "base25": 299,
+      "atributo": "SAB",
+      "equilibrio": 4,
+      "formula0": "239 + d20×SAB/4",
+      "formula25": "299 + d20×SAB/4"
+    },
+    {
+      "id": "6a11f0c10031a9c49877851f",
+      "name": "Escudo de Éter",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11f0fd0031a9c498778520",
+      "name": "Pulso do Ser",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 134,
+      "base25": 168,
+      "atributo": "FLX",
+      "equilibrio": 4,
+      "formula0": "134 + d20×FLX/4",
+      "formula25": "168 + d20×FLX/4"
+    },
+    {
+      "id": "6a11f1460031a9c498778521",
+      "name": "Convergência",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11f1940031a9c498778522",
+      "name": "Relâmpago Direto",
+      "caminhoMaestria": "PODER",
+      "base0": 42,
+      "base25": 53,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "42 + d20×INT/5",
+      "formula25": "53 + d20×INT/5"
+    },
+    {
+      "id": "6a11f1d80031a9c498778523",
+      "name": "Carga Relâmpago",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 28,
+      "base25": 35,
+      "atributo": "AGI",
+      "equilibrio": 5,
+      "formula0": "28 + d20×AGI/5",
+      "formula25": "35 + d20×AGI/5"
+    },
+    {
+      "id": "6a11f2370031a9c498778524",
+      "name": "Campo de Tempestade",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a11f2cd0031a9c498778525",
+      "name": "Fúria do Sabre",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 170,
+      "base25": 213,
+      "atributo": "INT/AGI",
+      "equilibrio": 4,
+      "formula0": "170 + d20×INT/AGI/4",
+      "formula25": "213 + d20×INT/AGI/4"
+    },
+    {
+      "id": "6a1720e516b879eff28330c8",
+      "name": "Canhão de Vento",
+      "caminhoMaestria": "PODER",
+      "base0": 48,
+      "base25": 60,
+      "atributo": "AGI/INT",
+      "equilibrio": 5,
+      "formula0": "48 + d20×AGI/INT/5",
+      "formula25": "60 + d20×AGI/INT/5"
+    },
+    {
+      "id": "6a17213e16b879eff28330c9",
+      "name": "Prisão Abissal",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a17217b16b879eff28330ca",
+      "name": "Espinhos Terrestres",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 32,
+      "base25": 40,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "32 + d20×INT/5",
+      "formula25": "40 + d20×INT/5"
+    },
+    {
+      "id": "6a1721a516b879eff28330cb",
+      "name": "Passo Relâmpago",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1dd77a0e9e80b728283454",
+      "name": "Torrente",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 30,
+      "base25": 38,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "30 + d20×INT/5",
+      "formula25": "38 + d20×INT/5"
+    },
+    {
+      "id": "6a1dd7b70e9e80b728283455",
+      "name": "Correntes do Abismo",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1dd7f90e9e80b728283456",
+      "name": "Voz das Profundezas",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 166,
+      "base25": 208,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "166 + d20×INT/6",
+      "formula25": "208 + d20×INT/6"
+    },
+    {
+      "id": "6a1dd86c0e9e80b728283457",
+      "name": "Maré Controlada",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1dd8d10e9e80b728283458",
+      "name": "Fúria do Kraken",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 231,
+      "base25": 289,
+      "atributo": "INT",
+      "equilibrio": 4,
+      "formula0": "231 + d20×INT/4",
+      "formula25": "289 + d20×INT/4"
+    },
+    {
+      "id": "6a1dd9930e9e80b728283459",
+      "name": "Punho da Montanha",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 159,
+      "base25": 199,
+      "atributo": "FOR/INT",
+      "equilibrio": 5,
+      "formula0": "159 + d20×FOR/INT/5",
+      "formula25": "199 + d20×FOR/INT/5"
+    },
+    {
+      "id": "6a1dda500e9e80b72828345a",
+      "name": "Fortaleza de Pedra",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1ddad80e9e80b72828345b",
+      "name": "Fissura",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 28,
+      "base25": 35,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "28 + d20×INT/5",
+      "formula25": "35 + d20×INT/5",
+      "baseEquilibrio": 24,
+      "formulaEquilibrio": "24 + d20×INT/5",
+      "motivoEquilibrio": "169% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a1ddb6a0e9e80b72828345c",
+      "name": "Coluna de Granito",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 30,
+      "base25": 38,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "30 + d20×INT/6",
+      "formula25": "38 + d20×INT/6"
+    },
+    {
+      "id": "6a1ddc120e9e80b72828345d",
+      "name": "Ira do Golem",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1ddc470e9e80b72828345e",
+      "name": "Rajada Livre",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 28,
+      "base25": 35,
+      "atributo": "AGI/INT",
+      "equilibrio": 5,
+      "formula0": "28 + d20×AGI/INT/5",
+      "formula25": "35 + d20×AGI/INT/5"
+    },
+    {
+      "id": "6a1ddcc50e9e80b72828345f",
+      "name": "Dança do Vento",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1dde180e9e80b728283460",
+      "name": "Véu de Neblina",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1ddead0e9e80b728283461",
+      "name": "Asas Efêmeras",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 149,
+      "base25": 186,
+      "atributo": "AGI",
+      "equilibrio": 5,
+      "formula0": "149 + d20×AGI/5",
+      "formula25": "186 + d20×AGI/5"
+    },
+    {
+      "id": "6a1ddf1b0e9e80b728283462",
+      "name": "Liberdade Absoluta",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 154,
+      "base25": 193,
+      "atributo": "AGI/INT",
+      "equilibrio": 4,
+      "formula0": "154 + d20×AGI/INT/4",
+      "formula25": "193 + d20×AGI/INT/4"
+    },
+    {
+      "id": "6a1ddfb80e9e80b728283463",
+      "name": "Descarga Total",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 152,
+      "base25": 190,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "152 + d20×INT/5",
+      "formula25": "190 + d20×INT/5"
+    },
+    {
+      "id": "6a1de00d0e9e80b728283464",
+      "name": "Selo Temporal",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1de0640e9e80b728283465",
+      "name": "Zona Congelada",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1de0d00e9e80b728283466",
+      "name": "Grande Selo",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1de1b50e9e80b728283468",
+      "name": "Lança de Luz",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 30,
+      "base25": 38,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "30 + d20×INT/6",
+      "formula25": "38 + d20×INT/6"
+    },
+    {
+      "id": "6a1de21c0e9e80b728283469",
+      "name": "Escudo Sagrado",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a1de2930e9e80b72828346a",
+      "name": "Purificação em Área",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 28,
+      "base25": 35,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "28 + d20×INT/5",
+      "formula25": "35 + d20×INT/5"
+    },
+    {
+      "id": "6a1de2c80e9e80b72828346b",
+      "name": "Julgamento",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 152,
+      "base25": 190,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "152 + d20×INT/5",
+      "formula25": "190 + d20×INT/5"
+    },
+    {
+      "id": "6a1de3250e9e80b72828346c",
+      "name": "Resplandecência",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 270,
+      "base25": 338,
+      "atributo": "INT",
+      "equilibrio": 4,
+      "formula0": "270 + d20×INT/4",
+      "formula25": "338 + d20×INT/4",
+      "baseEquilibrio": 273,
+      "formulaEquilibrio": "273 + d20×INT/4",
+      "motivoEquilibrio": "147% da mediana da faixa ULT 18-20 (241)"
+    },
+    {
+      "id": "6a32d3a1ea45e5cad4b187cc",
+      "name": "Garranchos",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32d3caea45e5cad4b187cd",
+      "name": "Barreira Vegeta",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32d5efea45e5cad4b187cf",
+      "name": "Raízes Profundas",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32de10ea45e5cad4b187d0",
+      "name": "Raiz Repentina",
+      "caminhoMaestria": "PODER",
+      "base0": 50,
+      "base25": 63,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "50 + d20×INT/6",
+      "formula25": "63 + d20×INT/6"
+    },
+    {
+      "id": "6a32df96ea45e5cad4b187d1",
+      "name": "Armadura de Aço",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32dfd5ea45e5cad4b187d2",
+      "name": "Estilhaço de Metal",
+      "caminhoMaestria": "PODER",
+      "base0": 40,
+      "base25": 50,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "40 + d20×INT/6",
+      "formula25": "50 + d20×INT/6"
+    },
+    {
+      "id": "6a32e10aea45e5cad4b187d3",
+      "name": "Corte Sangrento",
+      "caminhoMaestria": "PODER",
+      "base0": 20,
+      "base25": 25,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "20 + d20×INT/6",
+      "formula25": "25 + d20×INT/6"
+    },
+    {
+      "id": "6a32e1b2ea45e5cad4b187d4",
+      "name": "Coagulação Forçada",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e269ea45e5cad4b187d5",
+      "name": "Lança de Sangue",
+      "caminhoMaestria": "PODER",
+      "base0": 273,
+      "base25": 341,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "273 + d20×INT/5",
+      "formula25": "341 + d20×INT/5"
+    },
+    {
+      "id": "6a32e2e3ea45e5cad4b187d6",
+      "name": "Pele de Magma",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e321ea45e5cad4b187d7",
+      "name": "Projeção de Magma",
+      "caminhoMaestria": "PODER",
+      "base0": 12,
+      "base25": 15,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "12 + d20×INT/7",
+      "formula25": "15 + d20×INT/7"
+    },
+    {
+      "id": "6a32e377ea45e5cad4b187d8",
+      "name": "Gotejo de Magma",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 45,
+      "base25": 56,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "45 + d20×INT/6",
+      "formula25": "56 + d20×INT/6",
+      "baseEquilibrio": 44,
+      "formulaEquilibrio": "44 + d20×INT/6",
+      "motivoEquilibrio": "148% da mediana da faixa 6-9 (41)"
+    },
+    {
+      "id": "6a32e3beea45e5cad4b187d9",
+      "name": "Choque",
+      "caminhoMaestria": "PODER",
+      "base0": 10,
+      "base25": 13,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "10 + d20×INT/7",
+      "formula25": "13 + d20×INT/7"
+    },
+    {
+      "id": "6a32e3edea45e5cad4b187da",
+      "name": "Campo Reativo",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e415ea45e5cad4b187db",
+      "name": "Descarga",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 38,
+      "base25": 48,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "38 + d20×INT/6",
+      "formula25": "48 + d20×INT/6"
+    },
+    {
+      "id": "6a32e4cfea45e5cad4b187dd",
+      "name": "Lâmina de Vento",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e553ea45e5cad4b187de",
+      "name": "Rajada Defensiva",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e572ea45e5cad4b187df",
+      "name": "Passo do Vento",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e5b2ea45e5cad4b187e0",
+      "name": "Lança de Areia",
+      "caminhoMaestria": "PODER",
+      "base0": 43,
+      "base25": 54,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "43 + d20×INT/7",
+      "formula25": "54 + d20×INT/7"
+    },
+    {
+      "id": "6a32e670ea45e5cad4b187e2",
+      "name": "Congelamento Absoluto",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 45,
+      "base25": 56,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "45 + d20×INT/6",
+      "formula25": "56 + d20×INT/6"
+    },
+    {
+      "id": "6a32e6ebea45e5cad4b187e3",
+      "name": "Salto Dimensional",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e718ea45e5cad4b187e4",
+      "name": "Dobra Espacial",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e75cea45e5cad4b187e5",
+      "name": "Ruptura Cinética",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 46,
+      "base25": 58,
+      "atributo": "AGI",
+      "equilibrio": 5,
+      "formula0": "46 + d20×AGI/5",
+      "formula25": "58 + d20×AGI/5",
+      "baseEquilibrio": 24,
+      "formulaEquilibrio": "24 + d20×AGI/5",
+      "motivoEquilibrio": "268% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a32e7b3ea45e5cad4b187e6",
+      "name": "Tempestade Dimensional",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 34,
+      "base25": 43,
+      "atributo": "AGI",
+      "equilibrio": 4,
+      "formula0": "34 + d20×AGI/4",
+      "formula25": "43 + d20×AGI/4"
+    },
+    {
+      "id": "6a32e821ea45e5cad4b187e7",
+      "name": "Sucção de Essência",
+      "caminhoMaestria": "PODER",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "16 + d20×INT/7",
+      "formula25": "20 + d20×INT/7"
+    },
+    {
+      "id": "6a32e84cea45e5cad4b187e8",
+      "name": "Pulso do Vazio",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32e8acea45e5cad4b187e9",
+      "name": "Fome Infinita",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 30,
+      "base25": 38,
+      "atributo": "INT",
+      "equilibrio": 4,
+      "formula0": "30 + d20×INT/4",
+      "formula25": "38 + d20×INT/4",
+      "baseEquilibrio": 177,
+      "formulaEquilibrio": "177 + d20×INT/4",
+      "motivoEquilibrio": "22% da mediana da faixa ULT 18-20 (241)"
+    },
+    {
+      "id": "6a32e946ea45e5cad4b187ea",
+      "name": "Onda de Loucura",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 30,
+      "base25": 38,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "30",
+      "formula25": "38 + d20×INT/5",
+      "fixMotivo": "atributo vazio, a skill não escalava"
+    },
+    {
+      "id": "6a32ea4fea45e5cad4b187eb",
+      "name": "Corrupção do Ambiente",
+      "caminhoMaestria": "EFICIENCIA",
+      "damage": null,
+      "fixMotivo": "dano 0 sem atributo nem equilíbrio: skill de efeito, sem dano",
+      "pulo": "dano 0 sem atributo nem equilíbrio: skill de efeito, sem dano"
+    },
+    {
+      "id": "6a32ea7bea45e5cad4b187ec",
+      "name": "Fragmentação da Mente",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 145,
+      "base25": 181,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "145 + d20×INT/5",
+      "formula25": "181 + d20×INT/5"
+    },
+    {
+      "id": "6a32eaceea45e5cad4b187ed",
+      "name": "Véu do Caos",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a32eb11ea45e5cad4b187ee",
+      "name": "Colapso da Realidade",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 231,
+      "base25": 289,
+      "atributo": "INT",
+      "equilibrio": 4,
+      "formula0": "231 + d20×INT/4",
+      "formula25": "289 + d20×INT/4"
+    },
+    {
+      "id": "6a3c37d3954109fc821da537",
+      "name": "Projétil Arcano",
+      "caminhoMaestria": "PODER",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "14 + d20×INT/7",
+      "formula25": "18 + d20×INT/7"
+    },
+    {
+      "id": "6a3c3802954109fc821da538",
+      "name": "Golpe Canalizado",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 20,
+      "base25": 25,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "20 + d20×INT/6",
+      "formula25": "25 + d20×INT/6"
+    },
+    {
+      "id": "6a3c3846954109fc821da539",
+      "name": "Feixe Perfurante",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 24,
+      "base25": 30,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "24 + d20×INT/6",
+      "formula25": "30 + d20×INT/6"
+    },
+    {
+      "id": "6a3c387e954109fc821da53a",
+      "name": "Explosão Arcana",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 30,
+      "base25": 38,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "30 + d20×INT/5",
+      "formula25": "38 + d20×INT/5",
+      "baseEquilibrio": 136,
+      "formulaEquilibrio": "136 + d20×INT/5",
+      "motivoEquilibrio": "26% da mediana da faixa 14-17 (183)"
+    },
+    {
+      "id": "6a3c38ba954109fc821da53b",
+      "name": "Tempestade Arcana",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 180,
+      "base25": 225,
+      "atributo": "INT",
+      "equilibrio": 4,
+      "formula0": "180 + d20×INT/4",
+      "formula25": "225 + d20×INT/4"
+    },
+    {
+      "id": "6a3c38f1954109fc821da53c",
+      "name": "Pulso de Fluxo",
+      "caminhoMaestria": "PODER",
+      "base0": 12,
+      "base25": 15,
+      "atributo": "FLX",
+      "equilibrio": 7,
+      "formula0": "12 + d20×FLX/7",
+      "formula25": "15 + d20×FLX/7"
+    },
+    {
+      "id": "6a3c3918954109fc821da53d",
+      "name": "Esfera Supressora",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "FLX",
+      "equilibrio": 6,
+      "formula0": "16 + d20×FLX/6",
+      "formula25": "20 + d20×FLX/6"
+    },
+    {
+      "id": "6a3c3943954109fc821da53e",
+      "name": "Esfera Contida",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 20,
+      "base25": 25,
+      "atributo": "FLX",
+      "equilibrio": 6,
+      "formula0": "20 + d20×FLX/6",
+      "formula25": "25 + d20×FLX/6",
+      "baseEquilibrio": 42,
+      "formulaEquilibrio": "42 + d20×FLX/6",
+      "motivoEquilibrio": "52% da mediana da faixa 10-13 (61)"
+    },
+    {
+      "id": "6a3c396d954109fc821da53f",
+      "name": "Rajada de Orbe",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 127,
+      "base25": 159,
+      "atributo": "FLX/INT",
+      "equilibrio": 5,
+      "formula0": "127 + d20×FLX/INT/5",
+      "formula25": "159 + d20×FLX/INT/5"
+    },
+    {
+      "id": "6a3c39a3954109fc821da540",
+      "name": "Colapso do Orbe",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 173,
+      "base25": 216,
+      "atributo": "FLX/INT",
+      "equilibrio": 4,
+      "formula0": "173 + d20×FLX/INT/4",
+      "formula25": "216 + d20×FLX/INT/4"
+    },
+    {
+      "id": "6a3c39cc954109fc821da541",
+      "name": "Leitura de Brecha",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a3c39f7954109fc821da542",
+      "name": "Fragmento Inscrito",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "INT/SAB",
+      "equilibrio": 6,
+      "formula0": "16 + d20×INT/SAB/6",
+      "formula25": "20 + d20×INT/SAB/6"
+    },
+    {
+      "id": "6a3c3a1a954109fc821da543",
+      "name": "Página Explosiva",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 22,
+      "base25": 28,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "22 + d20×INT/6",
+      "formula25": "28 + d20×INT/6",
+      "baseEquilibrio": 42,
+      "formulaEquilibrio": "42 + d20×INT/6",
+      "motivoEquilibrio": "57% da mediana da faixa 10-13 (61)"
+    },
+    {
+      "id": "6a3c3a41954109fc821da544",
+      "name": "Inscrição de Fraqueza",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 87,
+      "base25": 109,
+      "atributo": "INT/SAB",
+      "equilibrio": 5,
+      "formula0": "87 + d20×INT/SAB/5",
+      "formula25": "109 + d20×INT/SAB/5"
+    },
+    {
+      "id": "6a3c3a7c954109fc821da545",
+      "name": "Tomo do Fim",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 180,
+      "base25": 225,
+      "atributo": "INT/SAB",
+      "equilibrio": 4,
+      "formula0": "180 + d20×INT/SAB/4",
+      "formula25": "225 + d20×INT/SAB/4"
+    },
+    {
+      "id": "6a47b5362b4f0ca6596996fa",
+      "name": "Toque Lúcido",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a47b5b12b4f0ca6596996fb",
+      "name": "Expurgo",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a47b6b52b4f0ca6596996fc",
+      "name": "Onda de Clareza",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 32,
+      "base25": 40,
+      "atributo": "FLX",
+      "equilibrio": 5,
+      "formula0": "32 + d20×FLX/5",
+      "formula25": "40 + d20×FLX/5"
+    },
+    {
+      "id": "6a47b71a2b4f0ca6596996fd",
+      "name": "Lança Cristalina",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 56,
+      "base25": 70,
+      "atributo": "FLX",
+      "equilibrio": 4,
+      "formula0": "56 + d20×FLX/4",
+      "formula25": "70 + d20×FLX/4",
+      "baseEquilibrio": 134,
+      "formulaEquilibrio": "134 + d20×FLX/4",
+      "motivoEquilibrio": "45% da mediana da faixa 14-17 (183)"
+    },
+    {
+      "id": "6a47b8a52b4f0ca6596996fe",
+      "name": "Fulgor Absoluto",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 219,
+      "base25": 274,
+      "atributo": "FLX",
+      "equilibrio": 4,
+      "formula0": "219 + d20×FLX/4",
+      "formula25": "274 + d20×FLX/4"
+    },
+    {
+      "id": "6a47c54a2b4f0ca6596996ff",
+      "name": "Estocada Precisa",
+      "caminhoMaestria": "PODER",
+      "base0": 14,
+      "base25": 18,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "14 + d20×AGI/6",
+      "formula25": "18 + d20×AGI/6"
+    },
+    {
+      "id": "6a47c5872b4f0ca659699700",
+      "name": "Passo em Linha",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "16 + d20×AGI/6",
+      "formula25": "20 + d20×AGI/6"
+    },
+    {
+      "id": "6a47c63a2b4f0ca659699701",
+      "name": "Ripostada",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a47c7342b4f0ca659699702",
+      "name": "Giro da Lâmina Longa",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 20,
+      "base25": 25,
+      "atributo": "FOR",
+      "equilibrio": 6,
+      "formula0": "20 + d20×FOR/6",
+      "formula25": "25 + d20×FOR/6"
+    },
+    {
+      "id": "6a47c77f2b4f0ca659699703",
+      "name": "Cravar e Arrastar",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 40,
+      "base25": 50,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "40 + d20×FOR/5",
+      "formula25": "50 + d20×FOR/5",
+      "baseEquilibrio": 136,
+      "formulaEquilibrio": "136 + d20×FOR/5",
+      "motivoEquilibrio": "33% da mediana da faixa 14-17 (183)"
+    },
+    {
+      "id": "6a47c7cc2b4f0ca659699704",
+      "name": "Guarda Alongada",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a47c82d2b4f0ca659699705",
+      "name": "Lança Giratória",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 45,
+      "base25": 56,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "45 + d20×FOR/5",
+      "formula25": "56 + d20×FOR/5",
+      "baseEquilibrio": 136,
+      "formulaEquilibrio": "136 + d20×FOR/5",
+      "motivoEquilibrio": "36% da mediana da faixa 14-17 (183)"
+    },
+    {
+      "id": "6a47c88e2b4f0ca659699706",
+      "name": "Escudo Reativo",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a47c8c62b4f0ca659699707",
+      "name": "Golpe do Guardião",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 40,
+      "base25": 50,
+      "atributo": "FOR",
+      "equilibrio": 5,
+      "formula0": "40 + d20×FOR/5",
+      "formula25": "50 + d20×FOR/5",
+      "baseEquilibrio": 136,
+      "formulaEquilibrio": "136 + d20×FOR/5",
+      "motivoEquilibrio": "33% da mediana da faixa 14-17 (183)"
+    },
+    {
+      "id": "6a579b67a88f804c601d0a66",
+      "name": "Golpe na Ferida",
+      "caminhoMaestria": "PODER",
+      "base0": 48,
+      "base25": 60,
+      "atributo": "FOR/AGI",
+      "equilibrio": 6,
+      "formula0": "48 + d20×FOR/AGI/6",
+      "formula25": "60 + d20×FOR/AGI/6"
+    },
+    {
+      "id": "6a579ba9a88f804c601d0a67",
+      "name": "Sangria em Cadeia",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a579bf8a88f804c601d0a68",
+      "name": "Fenda Recíproca",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 16,
+      "base25": 20,
+      "atributo": "FOR/AGI",
+      "equilibrio": 6,
+      "formula0": "16 + d20×FOR/AGI/6",
+      "formula25": "20 + d20×FOR/AGI/6"
+    },
+    {
+      "id": "6a579c56a88f804c601d0a69",
+      "name": "Fúria das Duas Lâminas",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 150,
+      "base25": 188,
+      "atributo": "FOR/AGI",
+      "equilibrio": 7,
+      "formula0": "150 + d20×FOR/AGI/7",
+      "formula25": "188 + d20×FOR/AGI/7"
+    },
+    {
+      "id": "6a579d9ca88f804c601d0a6a",
+      "name": "Atacar (segunda mão)",
+      "caminhoMaestria": "PODER",
+      "pulo": "dano da arma"
+    },
+    {
+      "id": "6a57e799b241ca10d7eea39d",
+      "name": "Arte Gnômica - Arma Suprema (Incompleta)",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 220,
+      "base25": 275,
+      "atributo": "INT/FLX",
+      "equilibrio": 6,
+      "formula0": "220 + d20×INT/FLX/6",
+      "formula25": "275 + d20×INT/FLX/6"
+    },
+    {
+      "id": "6a5982a8df7f6f7df8811699",
+      "name": "Peso Esmagador",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 24,
+      "base25": 30,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "24 + d20×INT/5",
+      "formula25": "30 + d20×INT/5",
+      "baseEquilibrio": 24,
+      "formulaEquilibrio": "24 + d20×INT/5",
+      "motivoEquilibrio": "147% da mediana da faixa 1-5 (23)"
+    },
+    {
+      "id": "6a5982fddf7f6f7df881169a",
+      "name": "Campo Gravitacional",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a598348df7f6f7df881169b",
+      "name": "Manto das Trevas",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a5983aadf7f6f7df881169c",
+      "name": "Golpe das Trevas",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 40,
+      "base25": 50,
+      "atributo": "AGI",
+      "equilibrio": 6,
+      "formula0": "40 + d20×AGI/6",
+      "formula25": "50 + d20×AGI/6"
+    },
+    {
+      "id": "6a59840bdf7f6f7df881169d",
+      "name": "Véu Absoluto",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a598484df7f6f7df881169e",
+      "name": "Colapso Gravitacional",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 180,
+      "base25": 225,
+      "atributo": "INT",
+      "equilibrio": 4,
+      "formula0": "180 + d20×INT/4",
+      "formula25": "225 + d20×INT/4"
+    },
+    {
+      "id": "6a5984ffdf7f6f7df881169f",
+      "name": "Farpa de Cristal",
+      "caminhoMaestria": "PODER",
+      "base0": 12,
+      "base25": 15,
+      "atributo": "INT",
+      "equilibrio": 7,
+      "formula0": "12 + d20×INT/7",
+      "formula25": "15 + d20×INT/7"
+    },
+    {
+      "id": "6a59857edf7f6f7df88116a0",
+      "name": "Barreira Cristalina",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a5985bcdf7f6f7df88116a1",
+      "name": "Estilhaçar",
+      "caminhoMaestria": "PODER",
+      "base0": 38,
+      "base25": 48,
+      "atributo": "INT",
+      "equilibrio": 6,
+      "formula0": "38 + d20×INT/6",
+      "formula25": "48 + d20×INT/6"
+    },
+    {
+      "id": "6a598c33df7f6f7df88116a2",
+      "name": "Brasa Viva",
+      "caminhoMaestria": "PODER",
+      "base0": 12,
+      "base25": 15,
+      "atributo": "INT",
+      "equilibrio": 17,
+      "formula0": "12 + d20×INT/17",
+      "formula25": "15 + d20×INT/17"
+    },
+    {
+      "id": "6a598ccedf7f6f7df88116a3",
+      "name": "Explosão de Brasas",
+      "caminhoMaestria": "EFICIENCIA",
+      "base0": 55,
+      "base25": 69,
+      "atributo": "INT",
+      "equilibrio": 5,
+      "formula0": "55 + d20×INT/5",
+      "formula25": "69 + d20×INT/5",
+      "baseEquilibrio": 43,
+      "formulaEquilibrio": "43 + d20×INT/5",
+      "motivoEquilibrio": "182% da mediana da faixa 6-9 (41)"
+    },
+    {
+      "id": "6a598d54df7f6f7df88116a4",
+      "name": "Fervor das Brasas",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a598db8df7f6f7df88116a5",
+      "name": "Ponta Afiada",
+      "caminhoMaestria": "PODER",
+      "pulo": "sem dano"
+    },
+    {
+      "id": "6a5a30085b58aa119aa6bc65",
+      "name": "Fortificar arma",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "dano da arma"
+    },
+    {
+      "id": "6a5a30fd5b58aa119aa6bc66",
+      "name": "Lâmina Gélida",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "dano da arma"
+    },
+    {
+      "id": "6a5a31685b58aa119aa6bc67",
+      "name": "Lâmina Incandescente",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "dano da arma"
+    },
+    {
+      "id": "6a5a31c55b58aa119aa6bc68",
+      "name": "Lâmina Eletrificada",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "dano da arma"
+    },
+    {
+      "id": "6a5a32425b58aa119aa6bc69",
+      "name": "Lâmina Sangrenta",
+      "caminhoMaestria": "EFICIENCIA",
+      "pulo": "dano da arma"
+    }
+  ],
+  "items": [
+    {
+      "id": "f49afa3e-78d2-4b1c-acb6-d26491abc96a",
+      "name": "Espada Aguçada",
+      "margemCritico": 19,
+      "motivo": "descrição: crítico em 19 e 20"
+    },
+    {
+      "id": "c9e7964d-11b7-4368-bd5f-8528a2aab352",
+      "name": "Espada Sem Nome",
+      "margemCritico": 18,
+      "motivo": "descrição: crítico em 18, 19 e 20",
+      "opcional": true
+    },
+    {
+      "id": "e3f97e8b-0b63-482c-b452-4d1c4c914518",
+      "name": "Arco de Caçador",
+      "damageAttribute": "AGI",
+      "motivo": "atributo de dano vazio"
+    },
+    {
+      "id": "330ddb79-25e5-4fd1-bd3b-9c200f17da84",
+      "name": "Revólver de Pressão",
+      "damageAttribute": "INT",
+      "motivo": "atributo de dano vazio (igual ao Revólver Steamforged)"
+    },
+    {
+      "id": "90e3079c-e95c-45fb-beb0-1676fd4e2416",
+      "name": "Manto do Vento",
+      "negaCritico": true,
+      "motivo": "descrição: nega acerto crítico 1x por rodada"
+    },
+    {
+      "id": "08a21286-eaec-4928-aec8-5d9bf3d10f03",
+      "name": "Bastão da Singularidade",
+      "rarity": "amarelo",
+      "motivo": "raridade vazia (dano 44 = faixa amarela)"
+    }
+  ],
+  "enemyTemplates": [
+    {
+      "id": "68a9d3af-29b2-4731-a39d-e158202400ab",
+      "name": "Sentinela do Templo",
+      "defesa": 7,
+      "modAcerto": 2,
+      "esMax": 0,
+      "custos": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "xp0": 50,
+      "xp": 75,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "62cfbbf4-938a-4e5f-a6a8-5ee3a8ac838b",
+      "name": "Javali",
+      "defesa": 11,
+      "modAcerto": 1,
+      "esMax": 0,
+      "custos": [
+        0,
+        0,
+        0
+      ],
+      "xp0": 20,
+      "xp": 30,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "137aa04b-f7af-44f8-a999-732f094ddeb9",
+      "name": "Cobra",
+      "defesa": 12,
+      "modAcerto": 1,
+      "esMax": 0,
+      "custos": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "xp0": 15,
+      "xp": 23,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "afa3671b-bf80-4e7a-8b0b-32439bf145e1",
+      "name": "Gosma",
+      "defesa": 9,
+      "modAcerto": 0,
+      "esMax": 0,
+      "custos": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "xp0": 25,
+      "xp": 38,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "335b20f1-13aa-4ec9-b124-77acb2001726",
+      "name": "Sentinela Atirador",
+      "defesa": 14,
+      "modAcerto": 1,
+      "esMax": 0,
+      "custos": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "xp0": 55,
+      "xp": 83,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "6ae0b627-67c7-4fc0-a58b-84e28ff923b9",
+      "name": "Vorruk",
+      "defesa": 10,
+      "modAcerto": 3,
+      "esMax": 0,
+      "custos": [
+        0
+      ],
+      "xp0": 400,
+      "xp": 600,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "b1d24085-eb01-49da-9749-08fe50b40fea",
+      "name": "Meryn Faulk",
+      "defesa": 4,
+      "modAcerto": 1,
+      "esMax": 0,
+      "custos": [
+        0
+      ],
+      "xp0": 500,
+      "xp": 750,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "bc1c08a4-a6d9-424b-90c0-35b5b113309f",
+      "name": "Kael",
+      "defesa": 6,
+      "modAcerto": 2,
+      "esMax": 0,
+      "custos": [
+        0
+      ],
+      "xp0": 400,
+      "xp": 600,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "e825f75c-1850-4fd4-9cdc-55c4a3ffd5e1",
+      "name": "BoB",
+      "defesa": 12,
+      "modAcerto": 4,
+      "esMax": 0,
+      "custos": [
+        0
+      ],
+      "xp0": 50,
+      "xp": 75,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "ef2837d4-d3a3-4df8-9549-5d5eb6df992e",
+      "name": "Darian Silverhart",
+      "defesa": 10,
+      "modAcerto": 3,
+      "esMax": 0,
+      "custos": [
+        0
+      ],
+      "xp0": 300,
+      "xp": 450,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "49c14aa5-9016-442d-8fcd-5c47e6d7af9f",
+      "name": "Torjin",
+      "defesa": 8,
+      "modAcerto": 2,
+      "esMax": 0,
+      "custos": [
+        0
+      ],
+      "xp0": 248,
+      "xp": 372,
+      "equilibrioZeroFix": []
+    },
+    {
+      "id": "b975fccf-b60c-4aef-a6b4-bd8d76bbcdee",
+      "name": "Kestrel Draye",
+      "defesa": 8,
+      "modAcerto": 3,
+      "esMax": 120,
+      "custos": [
+        0,
+        23,
+        40
+      ],
+      "xp0": 100,
+      "xp": 150,
+      "equilibrioZeroFix": []
+    }
+  ],
+  "bossTemplates": [
+    {
+      "id": "45757544-6e6e-46f8-b783-5cc18d0beed7",
+      "name": "Ciclope",
+      "fases": [
+        {
+          "defesa": 11,
+          "modAcerto": 4,
+          "esMax": 0,
+          "custos": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "xp0": 800,
+      "xp": 1200
+    },
+    {
+      "id": "a072eb2b-b2a5-4e25-929d-21e1d9490c22",
+      "name": "Malek",
+      "fases": [
+        {
+          "defesa": 10,
+          "modAcerto": 1,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 12,
+          "modAcerto": 1,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        }
+      ],
+      "xp0": 5000,
+      "xp": 7500
+    },
+    {
+      "id": "ca97a791-c8df-4115-a6b1-291f8b829201",
+      "name": "Tyrian Silverhart",
+      "fases": [
+        {
+          "defesa": 10,
+          "modAcerto": 3,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 15,
+          "modAcerto": 4,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        }
+      ],
+      "xp0": 1500,
+      "xp": 2250
+    },
+    {
+      "id": "f41b01f9-1aca-4f37-b1d3-4f12c4933d6d",
+      "name": "Erevan Ashkael",
+      "fases": [
+        {
+          "defesa": 6,
+          "modAcerto": 2,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 4,
+          "modAcerto": 3,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        }
+      ],
+      "xp0": 600,
+      "xp": 900
+    },
+    {
+      "id": "3252c427-9fd9-4af7-989d-65a745b6e56a",
+      "name": "Fênix",
+      "fases": [
+        {
+          "defesa": 10,
+          "modAcerto": 2,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 8,
+          "modAcerto": 3,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 6,
+          "modAcerto": 3,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        }
+      ],
+      "xp0": 2000,
+      "xp": 3000
+    },
+    {
+      "id": "fae04b59-6ee5-4963-8167-c3f3d2fd1670",
+      "name": "Kraken",
+      "fases": [
+        {
+          "defesa": 10,
+          "modAcerto": 4,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 8,
+          "modAcerto": 4,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        }
+      ],
+      "xp0": 1800,
+      "xp": 2700
+    },
+    {
+      "id": "a93b635a-9b5e-44d3-bb47-a5b7311d0c58",
+      "name": "Golem",
+      "fases": [
+        {
+          "defesa": 14,
+          "modAcerto": 4,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 10,
+          "modAcerto": 5,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        }
+      ],
+      "xp0": 1800,
+      "xp": 2700
+    },
+    {
+      "id": "ff5977a2-1882-4006-9477-ac95d2e69a51",
+      "name": "Dragão",
+      "fases": [
+        {
+          "defesa": 10,
+          "modAcerto": 3,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 8,
+          "modAcerto": 4,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        }
+      ],
+      "xp0": 1800,
+      "xp": 2700
+    },
+    {
+      "id": "148ac230-2408-497c-8506-06b2e8ac7a77",
+      "name": "Sabre",
+      "fases": [
+        {
+          "defesa": 10,
+          "modAcerto": 3,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 8,
+          "modAcerto": 4,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        },
+        {
+          "defesa": 6,
+          "modAcerto": 5,
+          "esMax": 0,
+          "custos": [
+            0
+          ]
+        }
+      ],
+      "xp0": 2000,
+      "xp": 3000
+    }
+  ],
+  "playerSkills": [
+    {
+      "id": "69ea36ab2fd0a05d7e3d9911",
+      "jogador": "(jogador apagado)",
+      "skill": "(skill apagada)",
+      "usos": 5,
+      "nivelAntes": 2,
+      "nivelDepois": 3,
+      "escolhasAntigas": "aumento, otimizacao",
+      "caminho": "-",
+      "legado": true
+    },
+    {
+      "id": "69ea36ab2fd0a05d7e3d9912",
+      "jogador": "(jogador apagado)",
+      "skill": "(skill apagada)",
+      "usos": 2,
+      "nivelAntes": 1,
+      "nivelDepois": 2,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": true
+    },
+    {
+      "id": "69ea36ab2fd0a05d7e3d9913",
+      "jogador": "(jogador apagado)",
+      "skill": "(skill apagada)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": true
+    },
+    {
+      "id": "69ea36ab2fd0a05d7e3d9914",
+      "jogador": "(jogador apagado)",
+      "skill": "(skill apagada)",
+      "usos": 1,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": true
+    },
+    {
+      "id": "69ea36ab2fd0a05d7e3d9915",
+      "jogador": "(jogador apagado)",
+      "skill": "(skill apagada)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": true
+    },
+    {
+      "id": "dfbcb83f-1fc4-4c87-b51f-17da327a9480",
+      "jogador": "Jin Rucandell",
+      "skill": "(skill apagada)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": false
+    },
+    {
+      "id": "14db897f-0b34-4ad8-b7d3-cd01c3d0e5be",
+      "jogador": "Jin Rucandell",
+      "skill": "Projétil Arcano",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "dbe916fb-a0cc-4c4f-be0c-d89d38e77419",
+      "jogador": "Jin Rucandell",
+      "skill": "Aura",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "0ed6b3dd-dd8f-4b33-b4f8-10c05668655b",
+      "jogador": "Jin Rucandell",
+      "skill": "Imbuir",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "1cd628e0-807f-4df6-933d-9657d8ebfad2",
+      "jogador": "Jin Rucandell",
+      "skill": "Passo Instantâneo",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "b1207b31-fee5-4ec6-9b3c-cdbe6c3c43b5",
+      "jogador": "Jin Rucandell",
+      "skill": "Luz",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "9f5f3543-4a4d-4050-aeb7-7827fd8398e6",
+      "jogador": "Jin Rucandell",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "38b6c356-95ed-457f-a648-69aa72227c0c",
+      "jogador": "Jin Rucandell",
+      "skill": "Explosão Controlada",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "602b6438-b8a6-4525-ad4e-e1c7f20a4e28",
+      "jogador": "Jin Rucandell",
+      "skill": "Ler Movimentos",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "155d0eb5-1956-4df3-a301-46954e604f3b",
+      "jogador": "Jin Rucandell",
+      "skill": "Ocultar Presença",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "4dd6e294-9323-4a99-a1d4-ccfa3b7a1f93",
+      "jogador": "Jin Rucandell",
+      "skill": "Relâmpago Direto",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "5a946255-3a78-444f-b6d9-bd7c297c316a",
+      "jogador": "Jin Rucandell",
+      "skill": "Jab Cadenciado",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "6fa83e39-eff8-449f-b15f-5b09e15df41a",
+      "jogador": "Jin Rucandell",
+      "skill": "Golpe Carregado",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "2b4fa3a9-53f2-4f26-bbc4-705540ddea48",
+      "jogador": "Jin Rucandell",
+      "skill": "Chute de Pressão",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "75964d43-d2b9-4b6b-a261-768d58178565",
+      "jogador": "Jin Rucandell",
+      "skill": "Sequência Implacável",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "5b64222d-7c8c-4998-9fe9-dfad786b3478",
+      "jogador": "Jin Rucandell",
+      "skill": "Coluna de Chamas",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "ab744df5-089c-4d18-a20c-8541d81da21b",
+      "jogador": "Jin Rucandell",
+      "skill": "Manto da Fênix",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "9c5ebbfb-e400-4b07-aba2-0fc46a334f37",
+      "jogador": "Jin Rucandell",
+      "skill": "Chama Devoradora",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "50fda765-00cf-4dcc-9c35-6696c771781f",
+      "jogador": "Jin Rucandell",
+      "skill": "(skill apagada)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": false
+    },
+    {
+      "id": "182cf73a-1b1f-4c46-90d7-987218a35b44",
+      "jogador": "Jin Rucandell",
+      "skill": "(skill apagada)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": false
+    },
+    {
+      "id": "bc01700c-d973-4d72-9e93-0c5efa7cc267",
+      "jogador": "Jin Rucandell",
+      "skill": "Ponto Cego",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "8b99d5c6-8eff-4235-b00b-2ef82043341a",
+      "jogador": "Wirian",
+      "skill": "Réquiem da Lâmina",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "1db9cd02-2633-4964-ab02-b8feac57aa9b",
+      "jogador": "Wirian",
+      "skill": "Lâmina da Sentença",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "a5928622-a329-4bd4-bf4e-22fe63fdd9ce",
+      "jogador": "Wirian",
+      "skill": "Juramento do Duelista",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "8cbf6aeb-6374-44cf-96a3-bdfd7b36e126",
+      "jogador": "Wirian",
+      "skill": "Coluna de Chamas",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "5af511b0-26f8-4ce6-87ed-b3b2d1ff7fad",
+      "jogador": "Wirian",
+      "skill": "Chama Devoradora",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "8c678886-a85a-4f78-8f7c-bde85d28ebff",
+      "jogador": "Wirian",
+      "skill": "Explosão Solar",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "273f5a6d-ef24-4a0f-a60f-b94ed6fc54aa",
+      "jogador": "Jin Rucandell",
+      "skill": "Soco Direto",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "9523a29c-529f-4696-bc04-fb337c1bf5d6",
+      "jogador": "Jin Rucandell",
+      "skill": "Renascimento da Fênix",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "65b1c2ea-2845-4198-8c04-5cb96548c936",
+      "jogador": "Jin Rucandell",
+      "skill": "Jab Quebra-Guarda",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "b0a90650-32f3-450e-9186-abd91533773f",
+      "jogador": "Jin Rucandell",
+      "skill": "Cruzado",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "dd2fe049-6958-49ba-9159-9b387348bf56",
+      "jogador": "Jin Rucandell",
+      "skill": "Sequência Rápida",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "46a69fb2-06e3-4de1-89a9-1e1338bdf5f8",
+      "jogador": "Jin Rucandell",
+      "skill": "Uppercut",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "9c8ec19a-5323-4741-bffc-0c7851b69e95",
+      "jogador": "Jin Rucandell",
+      "skill": "Rajada Imparável",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "36afd147-bc44-4702-9eec-c2d4f46293ac",
+      "jogador": "Jin Rucandell",
+      "skill": "Rajada de Areia",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "21066364-162f-4a54-be08-29a8f1bf5d67",
+      "jogador": "Jin Rucandell",
+      "skill": "Tempestade de Areia",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "e8c082de-183e-4d94-a1a1-08097942f2ea",
+      "jogador": "Jin Rucandell",
+      "skill": "Espinhos Terrestres",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "4fa3c378-38c5-4459-b9ff-0f2a3af89d9d",
+      "jogador": "Jin Rucandell",
+      "skill": "Punho da Montanha",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "ae8cdfb1-d430-4285-b758-d9875f1c23a0",
+      "jogador": "Jin Rucandell",
+      "skill": "Fortaleza de Pedra",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "8f84e572-9148-4b2a-b89c-c44b247a7ce8",
+      "jogador": "Jin Rucandell",
+      "skill": "Fissura",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "48ea9745-b13b-4ba2-b853-e7d14942ab21",
+      "jogador": "Jin Rucandell",
+      "skill": "Coluna de Granito",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "a5e1c895-d36d-4789-bcc2-65b88d827272",
+      "jogador": "Jin Rucandell",
+      "skill": "Ira do Golem",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "15783360-747d-4570-94a8-f707e93f18bd",
+      "jogador": "Jin Rucandell",
+      "skill": "Carga Relâmpago",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "b28649bc-73f6-4785-80fc-214da3bfb92d",
+      "jogador": "Jin Rucandell",
+      "skill": "Canhão de Vento",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "8f319c9c-8d05-4827-909a-337d4def522e",
+      "jogador": "Jin Rucandell",
+      "skill": "Explosão Solar",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "48bc331f-71c5-4017-ac3e-42261f6b2df9",
+      "jogador": "Lyra Valeborn",
+      "skill": "Golpe Preciso",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "6b89d204-3baa-4d1f-b467-76f75e556c10",
+      "jogador": "Varkhan Sighart",
+      "skill": "Corpo Inquebrável",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "fe3ac4e8-8bbb-469a-808b-feda0b6bc98e",
+      "jogador": "Kayna Windfang",
+      "skill": "Mira Estável",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "eb448536-8778-41f8-b6f0-7c01fbfddc43",
+      "jogador": "Zara Liadon",
+      "skill": "Sobrecarga Arcana",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "93b475e8-94da-4655-be7c-d7cf0388c5ad",
+      "jogador": "Kairen Kozuki",
+      "skill": "Postura do Fogo",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "90da817b-80ff-4a62-b0d8-9726b724141f",
+      "jogador": "Jin Rucandell",
+      "skill": "(skill apagada)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": false
+    },
+    {
+      "id": "d44ff1f8-20bf-4622-a67a-7c60f801c6b4",
+      "jogador": "Jin Rucandell",
+      "skill": "(skill apagada)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "-",
+      "legado": false
+    },
+    {
+      "id": "f4044e1e-1f28-4520-90f7-511b34f68c85",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Criar Torreta",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "6ae8b7f9-37f4-4c33-a639-c1c5348bb84d",
+      "jogador": "Varkhan  Teste",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "0c75b109-c8ea-4414-8cdc-d50c02189c2d",
+      "jogador": "Varkhan  Teste",
+      "skill": "Atacar (segunda mão)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "904146ee-b592-4a38-9f89-1edf31331d5e",
+      "jogador": "Varkhan  Teste",
+      "skill": "Fortificar arma",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "46aee0a1-a967-4fd8-98c6-1ac4948035b5",
+      "jogador": "Varkhan  Teste",
+      "skill": "Ponta Afiada",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "ec5cbf28-be23-4825-93f2-8e309d314f8e",
+      "jogador": "Aurora Frost",
+      "skill": "Juramento do Duelista",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "e8bc4958-cd85-48b9-8632-c0875dc5c4a2",
+      "jogador": "Zara Liadon",
+      "skill": "Ler Movimentos",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "8bc05887-0898-404c-be95-99fefc70f467",
+      "jogador": "Zara Liadon",
+      "skill": "Luz",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "cda426e9-8ac9-4c52-8807-676413368f52",
+      "jogador": "Lyra Valeborn",
+      "skill": "Atacar (segunda mão)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "b4140956-a1f3-4282-adb3-c88b6bb4b6df",
+      "jogador": "Lyra Valeborn",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "15f2f7e5-c152-43b7-bb86-5733b281db6f",
+      "jogador": "Zara Liadon",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "b997b371-4891-47d2-a109-f42d9ddb350e",
+      "jogador": "Zara Liadon",
+      "skill": "Atacar (segunda mão)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "fe34ad87-13a9-4e53-97c5-0eaa4d151e7b",
+      "jogador": "Aurora Frost",
+      "skill": "Atacar (segunda mão)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "311c7065-9f64-4594-aaa4-7f06ec14e57c",
+      "jogador": "Kayna Windfang",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "dca357fb-f555-4bd7-b4ce-b0c937ee5b83",
+      "jogador": "Zara Liadon",
+      "skill": "Farpa de Cristal",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "aumento",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "706cc085-0218-4f81-bd3a-aabe2c949c94",
+      "jogador": "Kairen Kozuki",
+      "skill": "Atacar (segunda mão)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "dfe9c84a-f816-427b-ac13-13f4d0860068",
+      "jogador": "Kairen Kozuki",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "d14d757d-7dbc-4dda-a7be-12ff5546a019",
+      "jogador": "Kairen Kozuki",
+      "skill": "Passo Instantâneo",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "a9ba1478-8ada-4cfb-a7d1-72d0e82f1dab",
+      "jogador": "Varkhan Sighart",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "3dec9679-c547-4a8e-8dba-32174cc56860",
+      "jogador": "Varkhan Sighart",
+      "skill": "Fenda Brutal",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "aumento",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "dfc76b1f-0b6e-409a-a85a-52cf463929cc",
+      "jogador": "Varkhan Sighart",
+      "skill": "Atacar (segunda mão)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "f4bfeafa-a341-4f07-b6d6-5eeb8d043ff8",
+      "jogador": "Kayna Windfang",
+      "skill": "Atacar (segunda mão)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "87f77456-f621-4014-b060-eeaa7284b12e",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Luz",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "1cad095d-53bc-448d-a1c3-47b52278155f",
+      "jogador": "Aurora Frost",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "eb972b1a-d97b-4187-9d52-1a363c11c306",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Aura",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "2c085672-1c05-4da5-84b5-35b4074fe470",
+      "jogador": "Aurora Frost",
+      "skill": "Incisão Progressiva",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "5775c362-baf7-469d-80d1-33ef8388d42a",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Imbuir",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "30785d0e-2b5b-4901-b6d1-09e570dd609f",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Eco",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "b1c2c347-94c7-4d61-ad7d-97ad3c5bbdcd",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Atacar (segunda mão)",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "ea59a280-5512-4d5c-85a0-b15697932b1b",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Atirar!",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "aumento",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "6ad993e1-9ced-43ed-8674-03bd7bf5bdd3",
+      "jogador": "Zara Liadon",
+      "skill": "Projétil Arcano",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "e77b515e-96fd-4f5d-b18c-0b7e16364d6f",
+      "jogador": "Varkhan Sighart",
+      "skill": "Fortificar arma",
+      "usos": 1,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "3187c1bc-73dc-4e6a-b249-3567760a807b",
+      "jogador": "Lyra Valeborn",
+      "skill": "Brasa Viva",
+      "usos": 1,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "83552f5c-d545-4882-9e70-83bd37d96c8a",
+      "jogador": "Kayna Windfang",
+      "skill": "Garranchos",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "f75b7322-76fe-48f7-b010-8a0a233554dc",
+      "jogador": "Aurora Frost",
+      "skill": "Cristal de Gelo",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "7e209e36-bcbc-4113-b3df-89e83df2c1ed",
+      "jogador": "Aurora Frost",
+      "skill": "Lâmina Gélida",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "58bbfe43-b059-49e8-a78e-85c82e140e9c",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Rajada de Areia",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "45209ffb-0a86-4bfd-af96-3808c7b97e7d",
+      "jogador": "Kairen Kozuki",
+      "skill": "Postura da Água",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "d0fd7bad-0ce5-4513-8500-50b1bbeaf86b",
+      "jogador": "Zara Liadon",
+      "skill": "Choque",
+      "usos": 1,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "a9149262-7109-4787-bb84-f710b0562d8c",
+      "jogador": "Kairen Kozuki",
+      "skill": "Passo do Vento",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "3445c1e0-595e-42e7-afb3-222f1b498578",
+      "jogador": "Zara Liadon",
+      "skill": "Lâmina Eletrificada",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "aumento",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "aa4b3de2-33a8-4336-934a-6fadeb623012",
+      "jogador": "Lyra Valeborn",
+      "skill": "Lâmina Incandescente",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "db56d943-c288-4bb6-b191-12b4c5db6066",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Projétil Arcano",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "79eea28a-341c-4d67-ad3c-60d22ecc4627",
+      "jogador": "Orion, O Engenheiro",
+      "skill": "Projétil Arcano",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "f092c20a-cb9c-4cd9-b076-0c72fb42976b",
+      "jogador": "Kayna Windfang",
+      "skill": "Imbuir",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "ca8e1e56-a6b7-4efe-a80d-187057582645",
+      "jogador": "Aurora Frost",
+      "skill": "Imbuir",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "68f4017a-d363-4642-9aaf-5631d4319a3e",
+      "jogador": "Aurora Frost",
+      "skill": "Investida com Escudo",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    },
+    {
+      "id": "6300b24c-b31c-460c-8ab7-ec6911fe5825",
+      "jogador": "Kairen Kozuki",
+      "skill": "Jab Quebra-Guarda",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "aumento",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "7a423856-1d15-45ff-b618-a5f1e6773a42",
+      "jogador": "Varkhan Sighart",
+      "skill": "Ponta Afiada",
+      "usos": 3,
+      "nivelAntes": 2,
+      "nivelDepois": 2,
+      "escolhasAntigas": "otimizacao",
+      "caminho": "PODER",
+      "legado": false
+    },
+    {
+      "id": "34e58368-25e9-48f1-ae76-213dbd76b80d",
+      "jogador": "Lyra Valeborn",
+      "skill": "Passo Instantâneo",
+      "usos": 0,
+      "nivelAntes": 1,
+      "nivelDepois": 1,
+      "escolhasAntigas": "",
+      "caminho": "EFICIENCIA",
+      "legado": false
+    }
+  ]
+}

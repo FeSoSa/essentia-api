@@ -61,7 +61,7 @@ class EnemyService(
 
     fun applyStatusEffects(instanceId: String, effects: List<StatusEffect>): List<EnemyInstance> {
         val enemy = load(instanceId)
-        val merged = enemy.statusEffects + effects
+        val merged = enemy.statusEffects.applyOrStack(effects)
         instanceRepository.save(enemy.copy(statusEffects = merged))
         return broadcastAndReturn()
     }
@@ -74,6 +74,7 @@ class EnemyService(
                 playerRepository.findById(drop.playerId).ifPresent { player ->
                     val item = Item(
                         id = UUID.randomUUID().toString(),
+                        catalogId = drop.itemId,
                         name = drop.itemName,
                         desc = "Drop de ${enemy.name}",
                         qty = 1,
@@ -93,6 +94,12 @@ class EnemyService(
         }
 
         instanceRepository.deleteById(instanceId)
+        return broadcastAndReturn()
+    }
+
+    /** Salva uma instância alterada por outro serviço (ES, negação de crítico) e avisa o mestre. */
+    fun saveInstance(instance: EnemyInstance): List<EnemyInstance> {
+        instanceRepository.save(instance)
         return broadcastAndReturn()
     }
 

@@ -8,9 +8,8 @@ data class DeltaRequest(val delta: Int)
 data class AttributeDeltaRequest(val attribute: String, val delta: Int)
 
 // Skills
-data class UseSkillRequest(val slotId: String, val diceRoll: Int? = null, val commit: Boolean = true)
+data class UseSkillRequest(val slotId: String, val diceRoll: Int? = null, val commit: Boolean = true, val critico: Boolean = false)
 data class SlotUpdateRequest(val slotId: String, val skillId: String?)
-data class MaestriaUpgradeRequest(val playerSkillId: String, val path: String)
 data class SkillMissRequest(val slotId: String? = null, val costs: Map<String, Int> = emptyMap())
 
 // Items
@@ -30,7 +29,8 @@ data class CreatePlayerRequest(
     val slotsClass: Int = 2,
     val slotsFree: Int = 6,
     val etherUnlocked: Boolean = false,
-    val inventorySize: Int = 18
+    val inventorySize: Int = 18,
+    val perfil: Perfil = Perfil()
 )
 
 // Player update (master edits name/code/race/class/attributes/slots/ether)
@@ -49,8 +49,15 @@ data class UpdatePlayerRequest(
     val sobrecargaDesbloqueada: Boolean? = null,
     val expAvailable: Int? = null,
     val expTotal: Int? = null,
-    val inventorySize: Int? = null
+    val inventorySize: Int? = null,
+    val perfil: Perfil? = null      // as anotações do jogador são mantidas, o mestre não as sobrescreve
 )
+
+data class AnotacoesRequest(val texto: String)
+
+/** Jogador entra num combate já em andamento, com a iniciativa rolada. */
+data class EntrarNaLutaRequest(val playerId: String, val valor: Int)
+data class SairDaLutaRequest(val playerId: String)
 
 // Master
 data class EnemyAttackRequest(val targetPlayerId: String, val damage: Int)
@@ -59,7 +66,8 @@ data class ExpRequest(val playerId: String, val amount: Int)
 data class ResetSkillsRequest(val playerId: String?)
 data class StatusEffectRequest(val playerId: String, val effect: StatusEffect)
 data class StatusEffectDeleteRequest(val playerId: String)
-data class MaestriaUsesRequest(val playerSkillId: String, val uses: Int)
+data class MaestriaUsesRequest(val uses: Int)
+data class NivelClasseRequest(val nivel: Int)
 data class SetSkillBlockedRequest(val blocked: Boolean)
 
 // Equipment slot management
@@ -71,9 +79,12 @@ data class SetEquipmentRequest(
 
 // Essências
 data class GrantEssenciaRequest(val essenciaId: String)
+data class NivelEssenciaRequest(val nivel: Int)
+data class ProficienciasRequest(val proficiencias: List<String>)
 
 // Master item management
 data class AddItemRequest(
+    val catalogId: String? = null,
     val name: String,
     val desc: String = "",
     val qty: Int = 1,
@@ -91,8 +102,11 @@ data class AddItemRequest(
     val rarity: String? = null,
     val twoHanded: Boolean? = null,
     val requirements: ItemRequirements? = null,
+    val requisitoNarrativo: String? = null,
     val onUseEffect: OnUseEffect? = null,
-    val goldValue: Int? = null
+    val goldValue: Int? = null,
+    val margemCritico: Int? = null,
+    val negaCritico: Boolean? = null
 )
 data class AdjustItemQtyRequest(val delta: Int)
 data class TransferItemRequest(val itemId: String, val targetPlayerId: String, val qty: Int = 1)
@@ -100,6 +114,10 @@ data class TransferItemRequest(val itemId: String, val targetPlayerId: String, v
 // Images
 data class ImageCreateRequest(val url: String, val title: String)
 data class ImageUpdateRequest(val url: String, val title: String)
+
+// Documents
+data class DocumentCreateRequest(val url: String, val title: String)
+data class DocumentUpdateRequest(val url: String, val title: String)
 
 // Fast action
 data class VoteRequest(val playerId: String, val optionId: String)
@@ -110,13 +128,16 @@ data class DamageApprovalRequest(
     val playerId: String,
     val playerName: String,
     val targetId: String,
-    val targetType: String,   // "enemy" | "boss"
+    val targetType: String,   // "enemy" | "boss" | "player" | "ally" (fogo amigo)
     val targetName: String,
     val damage: Int,
     val costs: Map<String, Int> = emptyMap(),
     val onHitEffects: List<StatusEffect> = emptyList(),
     val slotId: String? = null,
-    val skillId: String? = null
+    val skillId: String? = null,
+    val critico: Boolean = false,          // acerto crítico (d20 de acerto >= margem)
+    val danoSemCritico: Int? = null,       // dano da mesma rolagem sem o crítico (usado se o alvo negar)
+    val ataqueBasico: Boolean = false      // ataque básico: recupera ES ao acertar
 )
 data class DamageRequestBody(
     val requestId: String,
@@ -126,8 +147,21 @@ data class DamageRequestBody(
     val damage: Int,
     val costs: Map<String, Int> = emptyMap(),
     val skillId: String? = null,
+    val slotId: String? = null,
+    val critico: Boolean = false,
+    val danoSemCritico: Int? = null,
+    val ataqueBasico: Boolean = false
+)
+/** Skill em área: um pedido com vários alvos (o servidor separa em um pedido por alvo para o mestre). */
+data class MultiDamageTarget(val targetId: String, val targetType: String, val targetName: String, val damage: Int)
+data class MultiDamageRequestBody(
+    val requestId: String,
+    val targets: List<MultiDamageTarget>,
+    val costs: Map<String, Int> = emptyMap(),
+    val skillId: String? = null,
     val slotId: String? = null
 )
+
 data class DamageApproveBody(
     val requestId: String,
     val playerId: String,
@@ -137,9 +171,12 @@ data class DamageApproveBody(
     val costs: Map<String, Int> = emptyMap(),  // custo resolvido a debitar ao aprovar
     val onHitEffects: List<StatusEffect> = emptyList(),
     val slotId: String? = null,
-    val skillId: String? = null
+    val skillId: String? = null,
+    val critico: Boolean = false,          // acerto crítico (d20 de acerto >= margem)
+    val danoSemCritico: Int? = null,       // dano da mesma rolagem sem o crítico (usado se o alvo negar)
+    val ataqueBasico: Boolean = false      // ataque básico: recupera ES ao acertar
 )
-data class DamageResultNotification(val requestId: String, val approved: Boolean)
+data class DamageResultNotification(val requestId: String, val approved: Boolean, val criticoNegado: Boolean = false)
 
 // Effect approval (separado do damage)
 data class EffectApprovalRequest(
@@ -152,13 +189,13 @@ data class EffectApprovalRequest(
 )
 data class EffectTarget(
     val targetId: String,
-    val targetType: String,   // "enemy" | "boss"
+    val targetType: String,   // "enemy" | "boss" | "player" | "ally" (fogo amigo)
     val targetName: String
 )
 data class EffectRequestBody(
     val requestId: String,
     val targets: List<EffectTarget>,
-    val onHitEffects: List<StatusEffect>,
+    val onHitEffects: List<StatusEffect> = emptyList(),   // ignorado quando skillId vem preenchido
     val skillId: String? = null
 )
 data class EffectApproveBody(
@@ -167,6 +204,24 @@ data class EffectApproveBody(
     val targets: List<EffectTarget>,
     val onHitEffects: List<StatusEffect>
 )
+
+// Skill em aliados (cura, Escudo, buffs): o jogador escolhe quem recebe e o mestre aprova
+data class AliadoResumo(val id: String, val nome: String, val hp: Int, val hpMax: Int, val escudo: Int, val portraitUrl: String?)
+data class AllyEffectRequestBody(val requestId: String, val slotId: String, val alvos: List<String>)
+data class AllyEffectApprovalRequest(
+    val requestId: String,
+    val playerId: String,
+    val playerName: String,
+    val skillId: String,
+    val skillName: String,
+    val slotId: String,
+    val alvos: List<AliadoResumo>,
+    val cura: Int,                       // cura na hora em cada aliado
+    val escudo: Int,                     // Escudo em cada aliado
+    val efeitos: List<StatusEffect>,     // buffs, condições e cura por turno em cada aliado
+    val costs: Map<String, Int>
+)
+data class AllyEffectApproveBody(val requestId: String, val playerId: String, val slotId: String, val alvos: List<String>)
 
 // Sobrecarga
 data class SobrecargaRequestBody(val nivel: Int)
@@ -201,66 +256,48 @@ data class UnlockSkillRequest(val skillId: String)
 
 enum class SkillStatus { UNLOCKED, AVAILABLE, LOCKED }
 
-data class MissingRequirements(
-    val level: Int?,
-    val attributes: Map<String, Int>?,
-    val weaponRequired: String?
-)
-
 // Flat DTO para o app do jogador
 data class PlayerSkillTreeEntry(
     val skillId: String,
     val nome: String,
     val custo: String,
+    val custoBase: Int? = null,          // custo de Fluxo sem desconto (maestria e efeitos), para mostrar a conta
     val descricao: String,
     val categoria: String,
     val unlocked: Boolean,
     val equipped: Boolean,
     val slotId: String?,
     val requirementsText: String?,
-    val maestria: MaestriaSimple?,
+    val maestria: MaestriaGrupoInfo?,   // maestria do grupo da skill (arma ou Essência)
     val isPassive: Boolean = false,
     val danoFormula: String? = null,
     val danoBase: Int? = null,
     val atributo: String? = null,
-    val equilibrio: Int? = null,
+    val equilibrio: Double? = null,
+    val tier: Int? = null,
+    val semProficiencia: String? = null,  // categoria de arma sem proficiência: skill bloqueada
+    val bloqueio: String? = null,         // requisito por origem/tier que falta (ou sem proficiência): skill bloqueada
+    val origem: String? = null,           // "CLASSE" | "ARMA" | "ESSENCIA"
+    val alvo: String? = null,             // em quem a skill é usada: "USUARIO" | "INIMIGOS" | "ALIADOS"
+    val grupoMaestria: String? = null,    // grupo de maestria da skill para este jogador
     val damageSource: String = "formula", // "formula" | "weapon"
     val weaponSlot: String? = null,       // "mainHand" | "offHand" — quando damageSource == "weapon"
     val weaponDamageModifiers: List<AutoEffect> = emptyList(), // modificadores da skill sobre o dano da arma equipada
     val cooldownTurns: Int = 0,
     val skillType: String = "class",  // "class" | "weapon" | "essencia" | "mestre"
     val pressaoDice: Boolean = false, // técnica consome Pressão e ganha +1d6 de dano por ponto
-    val buffDurationTurns: Int? = null,
-    val hitBonus: Int? = null,
-    val attackBonus: Int? = null,
-    val damageBonus: Int? = null,
-    val critThreshold: Int? = null,
+    val critThreshold: Int? = null,   // margem própria da skill; null usa a margem da arma (padrão 20)
     val actionType: String = "main",  // "main" | "bonus" | "both"
     val multiTarget: MultiTarget? = null,
-    val onHitEffects: List<StatusEffect> = emptyList()
+    val efeitos: List<Efeito> = emptyList()
 )
 
-data class MaestriaSimple(
-    val playerSkillId: String,
-    val level: Int,
-    val totalUses: Int,
-    val nextLevelUses: Int,
-    val choices: List<String>,  // "aumento" | "otimizacao" por nível, na ordem
-    val bonusDano: Double,      // ex: 0.32 = +32%
-    val custoAumento: Double,   // ex: 0.24 = +24%
-    val reducaoCusto: Double,   // ex: 0.16 = -16%
-)
 
 // DTO para o app do mestre — árvore de habilidades com status e playerSkill
 data class MasterSkillTreeEntry(
     val skill: Skill,
     val status: SkillStatus,
-    val playerSkill: PlayerSkill?
-)
-
-// DTO interno — usado apenas no SkillTreeService
-data class SkillTreeEntry(
-    val skill: Skill,
-    val status: SkillStatus,
-    val missing: MissingRequirements?
+    val playerSkill: PlayerSkill?,
+    val maestria: MaestriaGrupoInfo? = null,
+    val bloqueio: String? = null           // requisito por origem/tier que falta
 )

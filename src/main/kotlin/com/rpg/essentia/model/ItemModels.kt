@@ -1,5 +1,6 @@
 package com.rpg.essentia.model
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.util.UUID
@@ -37,7 +38,9 @@ data class ItemCatalog(
     val damageAttribute: String? = null,
     val equilibrio: Int? = null,
     val properties: String? = null,
-    val critThreshold: Int? = null,   // mínimo no d20 para crítico (null = 20)
+    @JsonAlias("critThreshold")
+    val margemCritico: Int? = null,   // mínimo no d20 de acerto para crítico (null = 20)
+    val negaCritico: Boolean? = null, // armadura: nega um acerto crítico por rodada
     val damageReduction: Int? = null,
     val attributeBonus: Map<String, Int>? = null,
     val equipSlot: String? = null,
@@ -45,6 +48,7 @@ data class ItemCatalog(
     val rarity: String? = null,       // "branco" | "verde" | "azul" | "roxo" | "amarelo" | "rosa"
     val twoHanded: Boolean? = null,
     val requirements: ItemRequirements? = null,
+    val requisitoNarrativo: String? = null,  // só informativo (armas lendárias/históricas), sem validação
     val onUseEffect: OnUseEffect? = null,
     val goldValue: Int? = null,
     val subtype: String? = null

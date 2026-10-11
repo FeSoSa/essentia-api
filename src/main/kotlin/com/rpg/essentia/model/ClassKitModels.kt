@@ -25,5 +25,8 @@ data class ClassKit(
     val starterItems: List<Item> = emptyList(),
     val starterAttributes: Attributes? = null,
     val perks: ClassPerks = ClassPerks(),
-    val allowedWeaponTypes: List<String> = emptyList()
+    val allowedWeaponTypes: List<String> = emptyList(),
+    val proficienciasIniciais: List<String> = emptyList(),  // categorias de arma com proficiência ao criar o personagem
+    val pvPorNivel: Int = 0,                                 // PV máximo a mais por nível acima do 1
+    val fluxoPorNivel: Int = 0                               // Fluxo máximo a mais por nível acima do 1
 )

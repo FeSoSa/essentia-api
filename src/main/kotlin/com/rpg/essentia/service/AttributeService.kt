@@ -1,9 +1,9 @@
 package com.rpg.essentia.service
 
 import com.rpg.essentia.model.*
-import com.rpg.essentia.repository.SkillRepository
+import com.rpg.essentia.repository.ClassKitRepository
+import com.rpg.essentia.repository.EffectPresetRepository
 import org.springframework.stereotype.Service
-import java.util.UUID
 
 const val HP_BASE = 20
 const val HP_PER_RESISTANCE = 20
@@ -11,7 +11,10 @@ const val FLOW_BASE = 20
 const val FLOW_PER_FLOW_ATTR = 15
 
 @Service
-class AttributeService(private val skillRepository: SkillRepository) {
+class AttributeService(
+    private val effectPresetRepository: EffectPresetRepository,
+    private val classKitRepository: ClassKitRepository
+) {
 
     fun computeEffectiveAttributes(player: Player, essencias: List<Essencia>): Attributes {
         val base = player.attributes.toMap().toMutableMap()
@@ -34,15 +37,7 @@ class AttributeService(private val skillRepository: SkillRepository) {
                     ?.forEach { (k, v) -> base.merge(k, v, Int::plus) }
             }
 
-        // Passive skill bonuses (skills equipadas com passiveAttributes)
-        val equippedIds = player.slots.mapNotNull { it.skillId }
-        if (equippedIds.isNotEmpty()) {
-            skillRepository.findAllById(equippedIds)
-                .filter { it.passiveAttributes != null }
-                .forEach { skill ->
-                    skill.passiveAttributes!!.forEach { (k, v) -> base.merge(k, v, Int::plus) }
-                }
-        }
+        // Efeitos PASSIVO de skills equipadas já chegam como StatusEffect (syncPassiveSelfEffects)
 
         // Status effect attribute bonuses
         player.statusEffects
@@ -56,45 +51,54 @@ class AttributeService(private val skillRepository: SkillRepository) {
             if (mod != 0) base.merge(key, mod, Int::plus)
         }
 
+        // Penalidade por excedente de Essência: modificador efetivo em RES/FLX (SAB não é afetada)
+        val essencia = EssenciaRules.estado(player, base["wisdom"] ?: 0)
+        if (essencia.penalidadeRes != 0) base["resistance"] = ((base["resistance"] ?: 0) + essencia.penalidadeRes).coerceAtLeast(0)
+        if (essencia.penalidadeFlx != 0) base["flow"] = ((base["flow"] ?: 0) + essencia.penalidadeFlx).coerceAtLeast(0)
+
         return base.toAttributes()
     }
 
-    /** Regenera do zero os StatusEffects derivados de selfEffects de skills passivas equipadas (marcados via sourceSkillId). */
+    /** Regenera do zero os StatusEffects dos efeitos PASSIVO das skills equipadas (marcados via sourceSkillId). */
     fun syncPassiveSelfEffects(player: Player, skills: List<Skill>): Player {
         val skillById = skills.associateBy { it.id }
         val equippedIds = player.slots.mapNotNull { it.skillId }.toSet()
+        val presets = effectPresetRepository.findAll()
 
         val withoutStale = player.statusEffects.filterNot { it.sourceSkillId != null }
         val generated = equippedIds
             .mapNotNull { skillById[it] }
-            .filter { it.passive && it.selfEffects.isNotEmpty() }
-            .flatMap { skill ->
-                skill.selfEffects.map { eff ->
-                    eff.copy(
-                        id = "${skill.id}-${eff.id.ifBlank { UUID.randomUUID().toString() }}",
-                        durationTurns = -1,
-                        sourceSkillId = skill.id
-                    )
-                }
-            }
+            .flatMap { EfeitoRules.passivos(it, presets) }
         return player.copy(statusEffects = withoutStale + generated)
     }
 
-    fun recalculateVitals(player: Player, effective: Attributes): Player {
-        val newHpMax   = HP_BASE + effective.resistance * HP_PER_RESISTANCE
-        val newFlowMax = FLOW_BASE + effective.flow * FLOW_PER_FLOW_ATTR
-        return player.copy(
-            hp   = player.hp.copy(max = newHpMax,   current = minOf(player.hp.current,   newHpMax)),
-            flow = player.flow.copy(max = newFlowMax, current = minOf(player.flow.current, newFlowMax)),
-            effectiveAttributes = effective
-        )
+    /**
+     * Recalcula PV/Fluxo máximos a partir dos atributos efetivos (já com a penalidade de Essência) e do bônus
+     * por nível da classe. Corta o atual se ficar acima do novo máximo; com `somarGanho` (subiu de nível),
+     * o atual soma o mesmo que o máximo aumentou.
+     */
+    fun recalculateVitals(player: Player, effective: Attributes, somarGanho: Boolean = false): Player {
+        val kit = player.char.skillClass.takeIf { it.isNotBlank() }?.let { classKitRepository.findByClassName(it) }
+        val pvPorNivel = kit?.pvPorNivel ?: 0
+        val fluxoPorNivel = kit?.fluxoPorNivel ?: 0
+        val nivel = player.char.level
+        return EscudoRules.ajustarTeto(player.copy(
+            hp   = VitaisRules.ajustar(player.hp, VitaisRules.pvMax(effective.resistance, nivel, pvPorNivel), somarGanho),
+            flow = VitaisRules.ajustar(player.flow, VitaisRules.fluxoMax(effective.flow, nivel, fluxoPorNivel), somarGanho),
+            effectiveAttributes = effective,
+            essencia = EssenciaRules.estado(player, effective.wisdom),
+            vitaisClasse = VitaisClasse(
+                pvPorNivel, fluxoPorNivel,
+                VitaisRules.bonusClasse(pvPorNivel, nivel), VitaisRules.bonusClasse(fluxoPorNivel, nivel)
+            )
+        ))
     }
 }
 
 fun Equipment.slotToItem(slot: String): Item? = when (slot) {
-    "mainHand" -> mainHand?.let { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded) }
-    "offHand"  -> offHand?.let  { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded) }
-    "armor"    -> armor?.let    { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "armor",  equipSlot = slot, damageReduction = it.damageReduction, armorWeight = it.armorWeight, attributeBonus = it.attributeBonus, rarity = it.rarity) }
+    "mainHand" -> mainHand?.let { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = it.equipSlot ?: slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded, margemCritico = it.margemCritico) }
+    "offHand"  -> offHand?.let  { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = it.equipSlot ?: slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded, margemCritico = it.margemCritico) }
+    "armor"    -> armor?.let    { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "armor",  equipSlot = slot, damageReduction = it.damageReduction, armorWeight = it.armorWeight, attributeBonus = it.attributeBonus, rarity = it.rarity, negaCritico = it.negaCritico) }
     "amulet"   -> amulet?.let   { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }
     "ring"     -> ring?.let     { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }
     "utility"  -> utility?.let  { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }

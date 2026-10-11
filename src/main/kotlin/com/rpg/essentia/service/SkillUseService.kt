@@ -1,6 +1,7 @@
 package com.rpg.essentia.service
 
 import com.rpg.essentia.model.*
+import com.rpg.essentia.repository.EffectPresetRepository
 import com.rpg.essentia.repository.EssenciaRepository
 import com.rpg.essentia.repository.PlayerRepository
 import com.rpg.essentia.repository.PlayerSkillRepository
@@ -18,8 +19,10 @@ class SkillUseService(
     private val playerSkillRepository: PlayerSkillRepository,
     private val skillRepository: SkillRepository,
     private val essenciaRepository: EssenciaRepository,
+    private val effectPresetRepository: EffectPresetRepository,
     private val attributeService: AttributeService,
     private val gameStateService: GameStateService,
+    private val maestriaService: MaestriaService,
     private val broadcaster: WebSocketBroadcaster
 ) {
     fun useSkill(playerId: String, request: UseSkillRequest): DamageResult {
@@ -54,16 +57,28 @@ class SkillUseService(
         if (playerSkill.blocked)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta habilidade foi bloqueada pelo mestre")
 
+        ProficienciaRules.categoriaSemProficiencia(skill, player.equipment, player.proficiencias)?.let { cat ->
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Sem proficiência em $cat: não pode usar esta habilidade")
+        }
+
         // 3. Compute effective attributes
         val essencias = essenciaRepository.findAll()
+
+        // Requisito por origem e tier: a skill fica na ficha, mas bloqueada para uso
+        MaestriaRules.requisito(skill, player, essencias)?.let {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "$it: habilidade bloqueada")
+        }
         val effectiveAttrs = attributeService.computeEffectiveAttributes(player, essencias)
         val attrMap = effectiveAttrs.toMap()
 
-        val computed = playerSkill.maestria.computed
+        val state = gameStateService.getOrCreate()
+        val combate = state.combateConfig
+        // Maestria do grupo da skill (arma ou Essência): +% dano e -% custo para todas as skills do grupo
+        val grupo = MaestriaRules.grupoDaSkill(skill, player, essencias)?.first
+        val (danoPct, custoPct) = MaestriaRules.bonus(player, grupo, state.maestriaConfig)
+        val bonusDano = danoPct / 100.0
 
-        // 4. Compute effective costs (after maestria percentual modifiers and active status effects)
-        // custo_final = custo_base × (1 + custoAumento - reducaoCusto - reducaoEfeitoAtivo)
-        val baseCostMod = computed.custoAumento - computed.reducaoCusto
+        // 4. Compute effective costs: custo_final = floor(custo × (1 - reducaoMaestria - reducaoEfeitoAtivo))
         val costMap = mutableMapOf<String, Int>()
         for (cost in skill.costs) {
             val base = when (cost.type) {
@@ -72,9 +87,8 @@ class SkillUseService(
                 "percentual_hp"   -> (player.hp.max  * (cost.percentual ?: 0)) / 100
                 else              -> cost.value ?: 0
             }
-            val netCostMod = baseCostMod - player.statusEffects.resourceCostModifierPercent(cost.type)
-            val effectiveCost = maxOf(0, Math.round(base * (1.0 + netCostMod)).toInt())
-            costMap[cost.type] = effectiveCost
+            val reducao = custoPct / 100.0 + player.statusEffects.resourceCostModifierPercent(cost.type)
+            costMap[cost.type] = CombatRules.custoFinal(base, reducao)
         }
 
         // 5. Validate sufficient resources
@@ -109,8 +123,8 @@ class SkillUseService(
         }
 
         // 6. Calculate damage
-        // Mesma fórmula do ataque básico (essentia-player/basic-attack-modal.tsx):
-        // dano_final = round(dano_base + (d20 × mod_atributo) / equilibrio), equilibrio com fallback 4
+        // dano = floor(dano_base + (d20 × mod_atributo) / equilibrio), equilíbrio decimal vindo do tier
+        val equilibrioSkill = skill.equilibrio(combate)
         val (totalDamage, displayFormula) = if (skill.damageSource == "weapon") {
             val weapon = when (skill.weaponSlot) {
                 "offHand" -> player.equipment.offHand
@@ -118,49 +132,45 @@ class SkillUseService(
                 else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Habilidade sem mão de arma configurada")
             } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma arma equipada em ${skill.weaponSlot}")
 
-            val modAtributo = resolveAtributo(weapon.damageAttribute.ifBlank { null }, attrMap)
-            val equilibrio = weapon.equilibrio ?: 4
+            val modAtributo = CombatRules.resolveAtributo(weapon.damageAttribute.ifBlank { null }, attrMap)
+            val equilibrio = equilibrioSkill ?: ProficienciaRules.equilibrioAtaqueBasico(weapon, player.proficiencias, combate)
             val d20 = request.diceRoll ?: 0
-            var danoCalculado = Math.round(weapon.damageBase + (d20.toDouble() * modAtributo) / equilibrio).toInt()
+            // Somas antes dos multiplicadores; floor só no final
+            var bruto = CombatRules.danoBruto(weapon.damageBase, d20, modAtributo, equilibrio, request.critico, combate)
             skill.weaponDamageModifiers.forEach { mod ->
                 when (mod.type) {
-                    "flat" -> danoCalculado += (mod.value ?: 0)
-                    "extra_dice" -> mod.dice?.let { danoCalculado += rollDice(it) }
+                    "flat" -> bruto += (mod.value ?: 0)
+                    "extra_dice" -> mod.dice?.let { bruto += rollDice(it) }
                 }
             }
-            val pctTotal = skill.weaponDamageModifiers
+            if (skill.pressaoDice && pressaoCurrent > 0) {
+                repeat(pressaoCurrent) { bruto += rollDice(Dice(1, "d6")) }
+            }
+            val pctArma = skill.weaponDamageModifiers
                 .filter { it.type == "percent" }
                 .sumOf { (it.percentual ?: 0) / 100.0 }
-            if (pctTotal != 0.0) danoCalculado = Math.round(danoCalculado * (1.0 + pctTotal)).toInt()
-
-            if (skill.pressaoDice && pressaoCurrent > 0) {
-                repeat(pressaoCurrent) { danoCalculado += rollDice(Dice(1, "d6")) }
-            }
-            if (computed.bonusDano > 0.0)
-                danoCalculado = Math.round(danoCalculado * (1.0 + computed.bonusDano)).toInt()
+            val danoCalculado = CombatRules.danoFinal(bruto, pctArma, bonusDano)
 
             applyDamageModifiers(danoCalculado, player.statusEffects, emptyList()) to "${weapon.name} (${skill.weaponSlot})"
         } else if (skill.damage != null) {
             val dmg = skill.damage
-            val danoFinal = if (dmg.equilibrio != null) {
+            val danoFinal = if (equilibrioSkill != null && !dmg.atributo.isNullOrBlank()) {
                 val d20 = request.diceRoll ?: 0
-                val modAtributo = resolveAtributo(dmg.atributo, attrMap)
-                var danoCalculado = dmg.baseFixed + (d20 * modAtributo) / dmg.equilibrio
+                val modAtributo = CombatRules.resolveAtributo(dmg.atributo, attrMap)
+                var bruto = CombatRules.danoBruto(dmg.baseFixed, d20, modAtributo, equilibrioSkill, request.critico, combate)
                 if (skill.pressaoDice && pressaoCurrent > 0) {
-                    repeat(pressaoCurrent) { danoCalculado += rollDice(Dice(1, "d6")) }
+                    repeat(pressaoCurrent) { bruto += rollDice(Dice(1, "d6")) }
                 }
-                if (computed.bonusDano > 0.0)
-                    Math.round(danoCalculado * (1.0 + computed.bonusDano)).toInt()
-                else
-                    danoCalculado
+                CombatRules.danoFinal(bruto, bonusDano)
             } else {
-                var dano = dmg.baseFixed
+                var bruto = dmg.baseFixed * (if (request.critico) combate.critMultBase else 1.0)
                 if (skill.pressaoDice && pressaoCurrent > 0) {
-                    repeat(pressaoCurrent) { dano += rollDice(Dice(1, "d6")) }
+                    repeat(pressaoCurrent) { bruto += rollDice(Dice(1, "d6")) }
                 }
-                dano
+                CombatRules.danoFinal(bruto, bonusDano)
             }
-            applyDamageModifiers(danoFinal, player.statusEffects, emptyList()) to dmg.formula
+            applyDamageModifiers(danoFinal, player.statusEffects, emptyList()) to
+                TierRules.formula(dmg.baseFixed, dmg.atributo, equilibrioSkill)
         } else {
             null to null
         }
@@ -173,44 +183,22 @@ class SkillUseService(
             costMap["pressao"] = pressaoCurrent
         }
 
-        // 7b. Criar buff se a skill tiver buffAttributes ou bônus de combate
-        val hasBuff = (!skill.buffAttributes.isNullOrEmpty()) ||
-                      skill.hitBonus != null || skill.attackBonus != null || skill.damageBonus != null
-        if (hasBuff) {
-            val duration = skill.buffDurationTurns ?: 1
-            val parts = mutableListOf<String>()
-            if (!skill.buffAttributes.isNullOrEmpty()) parts.add("atributos")
-            skill.hitBonus?.let    { parts.add("acerto ${if (it >= 0) "+$it" else "$it"}") }
-            skill.attackBonus?.let { parts.add("ataque ${if (it >= 0) "+$it" else "$it"}") }
-            skill.damageBonus?.let { parts.add("dano ${if (it >= 0) "+$it" else "$it"}") }
-            val buffEffect = StatusEffect(
-                id             = UUID.randomUUID().toString(),
-                name           = skill.name,
-                desc           = "${parts.joinToString(", ")} por ${if (duration == -1) "∞" else "$duration"} turno(s)",
-                color          = "#4ade80",
-                durationTurns  = duration,
-                attributeBonus = skill.buffAttributes,
-                hitBonus       = skill.hitBonus,
-                attackBonus    = skill.attackBonus,
-                damageBonus    = skill.damageBonus
-            )
+        // 7b. Efeitos SELF com duração em rodadas (modificadores e condições da lista `efeitos`)
+        val noUsuario = EfeitoRules.noUsuario(skill, effectPresetRepository.findAll())
+        if (noUsuario.isNotEmpty()) {
             updatedPlayer = updatedPlayer.copy(
-                statusEffects = updatedPlayer.statusEffects + buffEffect
+                statusEffects = updatedPlayer.statusEffects.applyOrStack(noUsuario)
             )
         }
 
-        // 7c. Aplicar selfEffects (efeitos ricos configurados no cadastro da skill)
-        if (skill.selfEffects.isNotEmpty()) {
-            val selfStatusEffects = skill.selfEffects.map { it.copy(id = UUID.randomUUID().toString()) }
-            updatedPlayer = updatedPlayer.copy(
-                statusEffects = updatedPlayer.statusEffects + selfStatusEffects
-            )
-        }
+        // 7b2. Escudo no próprio usuário (efeito ESCUDO com alvo SELF): soma até o teto
+        EfeitoRules.escudoNoUsuario(skill).takeIf { it > 0 }?.let { updatedPlayer = EscudoRules.ganhar(updatedPlayer, it) }
+        // 7b3. Cura instantânea no próprio usuário (CURA sem duração): até o PV máximo, nunca vira Escudo
+        EfeitoRules.curaNoUsuario(skill).takeIf { it > 0 }?.let { updatedPlayer = EscudoRules.curar(updatedPlayer, it) }
 
-        // 7d. Recalcula effectiveAttributes/vitais para refletir os status effects recém-aplicados
-        // (buffAttributes, modify_attribute de selfEffects) — sem isso o efeito fica salvo mas
-        // não aparece no personagem até algum outro fluxo (equipar item, etc.) forçar o recálculo.
-        if (hasBuff || skill.selfEffects.isNotEmpty()) {
+        // 7c. Recalcula effectiveAttributes/vitais para refletir os status effects recém-aplicados;
+        // sem isso o efeito fica salvo mas não aparece no personagem até outro fluxo forçar o recálculo.
+        if (noUsuario.isNotEmpty()) {
             val updatedEffective = attributeService.computeEffectiveAttributes(updatedPlayer, essencias)
             updatedPlayer = attributeService.recalculateVitals(updatedPlayer, updatedEffective)
         }
@@ -225,8 +213,9 @@ class SkillUseService(
             }
             updatedPlayer = updatedPlayer.copy(slots = newSlots)
 
-            // 9. Mark skill as used (maestria is NOT touched here — master updates it manually)
+            // 9. Mark skill as used; uso direto (sem alvo) em combate conta para a maestria
             playerSkillRepository.save(playerSkill.copy(used = true))
+            maestriaService.registrarUsoSkill(playerId, skillId)
         }
 
         // 10. Save, log, broadcast
@@ -249,31 +238,6 @@ class SkillUseService(
     private fun rollDice(dice: Dice): Int {
         val sides = dice.die.removePrefix("d").toIntOrNull() ?: 6
         return (1..dice.quantity).sumOf { Random.nextInt(1, sides + 1) }
-    }
-
-    private fun getModifier(value: Int): Int = when {
-        value <= 7  -> -1; value <= 11 -> 0;  value <= 15 -> 1;  value <= 19 -> 2
-        value <= 23 -> 3;  value <= 27 -> 4;  value <= 31 -> 5;  value <= 35 -> 6
-        value <= 40 -> 7;  value <= 46 -> 8;  value <= 53 -> 9;  value <= 61 -> 10
-        else        -> 11
-    }
-
-    private val ABBREV_TO_KEY = mapOf(
-        "FOR" to "strength", "AGI" to "agility", "INT" to "intelligence",
-        "RES" to "resistance", "FLX" to "flow", "SAB" to "wisdom",
-        "PRE" to "presence", "DEF" to "defense"
-    )
-
-    private fun resolveAtributo(atributo: String?, attrMap: Map<String, Int>): Int {
-        if (atributo == null) return 0
-        return atributo.split("/")
-            .mapNotNull { raw ->
-                val key = raw.trim()
-                val resolvedKey = ABBREV_TO_KEY[key.uppercase()] ?: key
-                attrMap[resolvedKey]
-            }
-            .maxOrNull()
-            ?.let { getModifier(it) } ?: 0
     }
 
     private fun buildLogText(player: Player, skill: Skill, damage: Int?, costs: Map<String, Int>): String {

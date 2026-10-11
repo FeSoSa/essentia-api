@@ -8,13 +8,19 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import kotlin.random.Random
 
-private val SOBRECARGA_LEVELS = listOf(
-    mapOf("nivel" to 1, "bonus" to 2,  "custo" to 60,  "cd" to 10, "danoDado" to "2d6"),
-    mapOf("nivel" to 2, "bonus" to 4,  "custo" to 90,  "cd" to 12, "danoDado" to "3d6"),
-    mapOf("nivel" to 3, "bonus" to 6,  "custo" to 125, "cd" to 14, "danoDado" to "4d6"),
-    mapOf("nivel" to 4, "bonus" to 8,  "custo" to 165, "cd" to 16, "danoDado" to "5d6"),
-    mapOf("nivel" to 5, "bonus" to 10, "custo" to 210, "cd" to 18, "danoDado" to "6d6"),
-    mapOf("nivel" to 6, "bonus" to 12, "custo" to 260, "cd" to 20, "danoDado" to "8d6"),
+/** Custo de ES para ativar a Sobrecarga (debitado na aprovação). */
+const val SOBRECARGA_CUSTO_ATIVACAO = 5
+
+data class SobrecargaNivel(val nivel: Int, val bonus: Int, val custoTurno: Int, val cd: Int, val danoDado: String)
+
+/** Tabela da Sobrecarga (espelhada no mestre e no player). custoTurno é debitado no início de cada turno do jogador. */
+val SOBRECARGA_LEVELS = listOf(
+    SobrecargaNivel(1, 2,  3,  6,  "2d6"),
+    SobrecargaNivel(2, 4,  4,  8,  "3d6"),
+    SobrecargaNivel(3, 6,  6,  10, "4d6"),
+    SobrecargaNivel(4, 8,  9,  16, "5d6"),
+    SobrecargaNivel(5, 10, 12, 18, "6d6"),
+    SobrecargaNivel(6, 12, 18, 20, "8d6"),
 )
 
 @Service
@@ -29,10 +35,12 @@ class SobrecargaService(
         if (player.sobrecargaAtiva)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Sobrecarga já está ativa")
 
-        val lvl = SOBRECARGA_LEVELS.firstOrNull { it["nivel"] == nivel }
+        val lvl = SOBRECARGA_LEVELS.firstOrNull { it.nivel == nivel }
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nível de sobrecarga inválido: $nivel")
+        if (player.flow.current < SOBRECARGA_CUSTO_ATIVACAO + lvl.custoTurno)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "ES insuficiente: ativar custa $SOBRECARGA_CUSTO_ATIVACAO e o nível $nivel custa ${lvl.custoTurno} por turno")
 
-        val cd = lvl["cd"] as Int
+        val cd = lvl.cd
         val sabMod = wisdomMod(player.attributes.wisdom)
 
         val broadcast = SobrecargaBroadcast(
@@ -51,7 +59,11 @@ class SobrecargaService(
         val nivel = player.sobrecargaNivel
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nível de sobrecarga não definido")
 
-        val updated = player.copy(sobrecargaAtiva = true)
+        // Ativação custa ES na aprovação; o custo por turno é debitado pelo TurnService
+        val updated = player.copy(
+            sobrecargaAtiva = true,
+            flow = player.flow.copy(current = (player.flow.current - SOBRECARGA_CUSTO_ATIVACAO).coerceAtLeast(0))
+        )
         val saved = save(updated)
 
         val result = SobrecargaResult(approved = true, nivel = nivel)
@@ -64,15 +76,11 @@ class SobrecargaService(
         val nivel = player.sobrecargaNivel
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nível de sobrecarga não definido")
 
-        val lvl = SOBRECARGA_LEVELS.firstOrNull { it["nivel"] == nivel }
-        val cd = (lvl?.get("cd") as? Int) ?: 10
+        val cd = SOBRECARGA_LEVELS.firstOrNull { it.nivel == nivel }?.cd ?: 10
         val damage = rollDice(danoDado)
 
-        val newHp = maxOf(0, player.hp.current - damage)
-        val updated = player.copy(
-            hp = player.hp.copy(current = newHp),
-            sobrecargaNivel = null
-        )
+        // Dano da Sobrecarga também consome o Escudo primeiro
+        val updated = EscudoRules.receberDano(player, damage).copy(sobrecargaNivel = null)
         val saved = save(updated)
 
         val result = SobrecargaResult(

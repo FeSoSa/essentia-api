@@ -57,6 +57,7 @@ class ShopService(
         val cost = goldValue * req.qty
 
         val addReq = AddItemRequest(
+            catalogId = catalog.id,
             name = catalog.name,
             desc = catalog.desc,
             qty = req.qty,
@@ -74,8 +75,11 @@ class ShopService(
             rarity = catalog.rarity,
             twoHanded = catalog.twoHanded,
             requirements = catalog.requirements,
+            requisitoNarrativo = catalog.requisitoNarrativo,
             onUseEffect = catalog.onUseEffect,
-            goldValue = catalog.goldValue
+            goldValue = catalog.goldValue,
+            margemCritico = catalog.margemCritico,
+            negaCritico = catalog.negaCritico
         )
 
         // addItem validates player exists; adjustGold will then run on updated player

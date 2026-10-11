@@ -7,4 +7,5 @@ interface PlayerSkillRepository : MongoRepository<PlayerSkill, String> {
     fun findByPlayerId(playerId: String): List<PlayerSkill>
     fun findByPlayerIdAndSlotId(playerId: String, slotId: String): PlayerSkill?
     fun findByPlayerIdAndSkillId(playerId: String, skillId: String): PlayerSkill?
+    fun findBySkillId(skillId: String): List<PlayerSkill>
 }

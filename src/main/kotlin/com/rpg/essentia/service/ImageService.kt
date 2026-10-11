@@ -54,6 +54,9 @@ class ImageService(
     }
 
     fun deleteImage(id: String) {
+        if (id == GameStateService.ROOT_MAP_ID) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "O mapa principal não pode ser excluído")
+        }
         val state = gameStateService.getOrCreate()
         val newImages = state.images.filter { it.id != id }
         gameStateService.save(state.copy(images = newImages))

@@ -3,17 +3,11 @@ package com.rpg.essentia.model
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
-data class SkillRequirements(
-    val level: Int? = null,
-    val attributes: Map<String, Int>? = null,  // ex: { "agility": 14, "strength": 12 }
-    val weaponRequired: String? = null          // "curta" | "media" | "pesada" | "ranged" | "unarmed"
-)
-
 data class DamageFormula(
     val formula: String,       // display string, e.g. "17 + d20×FOR/4"
     val baseFixed: Int,
     val atributo: String?,     // ex: "FOR", "AGI", "FOR/AGI"
-    val equilibrio: Int?
+    val equilibrio: Int? = null // só skills sem tier (inimigo/mestre); nas demais vem do tier
 )
 
 data class Cost(
@@ -42,21 +36,30 @@ data class Skill(
     val damage: DamageFormula?,
     val cooldownTurns: Int,
     val ultimate: Boolean,
-    val requirements: SkillRequirements? = null,
     val actionType: String = "main",                     // "main" | "bonus" | "both"
     val passive: Boolean = false,                      // skill passiva — não é usada ativamente
-    val passiveAttributes: Map<String, Int>? = null,  // bônus passivo enquanto equipada
-    val buffAttributes: Map<String, Int>? = null,     // bônus de atributo ao usar
-    val buffDurationTurns: Int? = null,               // duração do buff (-1 = permanente)
-    val hitBonus: Int? = null,                        // bônus ao d20 de acerto (buff ao usar)
-    val attackBonus: Int? = null,                     // bônus ao d20 de ataque/fórmula (buff ao usar)
-    val damageBonus: Int? = null,                     // bônus fixo de dano (buff ao usar)
+    val tier: Int? = null,                             // 1 a 4: equilíbrio, custo base e requisito por origem (null = inimigo/mestre)
+    val grupoMaestria: String? = null,                 // skill de arma: categoria da maestria (null = primeira de weaponTypes)
+    val alvo: String? = null,                          // em quem a skill é usada: "USUARIO" | "INIMIGOS" | "ALIADOS" (área e alvos em multiTarget)
+    val efeitos: List<Efeito> = emptyList(),           // lista única de efeitos (modificadores e condições)
     val pressaoDice: Boolean = false,                  // técnica rola +1d6 por ponto de Pressão e consome tudo
     val critThreshold: Int? = null,                    // mínimo no d20 para crítico (null = 20)
     val multiTarget: MultiTarget? = null,              // habilidade atinge múltiplos inimigos
-    val onHitEffects: List<StatusEffect> = emptyList(), // status effects aplicados ao inimigo ao acertar
-    val selfEffects: List<StatusEffect> = emptyList(), // status effects aplicados ao usuário ao usar a skill
     val damageSource: String = "formula",              // "formula" (usa damage) | "weapon" (usa arma equipada em weaponSlot)
     val weaponSlot: String? = null,                    // "mainHand" | "offHand" — obrigatório quando damageSource == "weapon"
     val weaponDamageModifiers: List<AutoEffect> = emptyList() // AutoEffect.type: "flat" | "percent" | "extra_dice"
-)
+) {
+    /** Equilíbrio da fórmula: vem do tier; sem tier (inimigo/mestre) usa o valor salvo na fórmula. */
+    fun equilibrio(cfg: CombateConfig): Double? =
+        tier?.let { cfg.tier(it).equilibrio } ?: damage?.equilibrio?.toDouble()
+
+    /**
+     * Tem tier? Skills de arma, de Essência e de classe com classe definida. Ficam fora: Geral (classe sem classe),
+     * mestre e inimigo, que mantêm o equilíbrio próprio.
+     */
+    fun usaTier(): Boolean = type == "weapon" || type == "essencia" || (type == "class" && !skillClass.isNullOrBlank())
+
+    /** Categorias de arma da skill: weaponTypes (multi) ou weaponType (legado), em minúsculas. */
+    fun categoriasArma(): List<String> =
+        (weaponTypes ?: listOfNotNull(weaponType)).map { it.lowercase() }.filter { it.isNotBlank() }
+}

@@ -68,7 +68,7 @@ class BossService(
 
     fun applyStatusEffects(instanceId: String, effects: List<StatusEffect>): List<BossInstance> {
         val boss = load(instanceId)
-        val merged = boss.statusEffects + effects
+        val merged = boss.statusEffects.applyOrStack(effects)
         instanceRepository.save(boss.copy(statusEffects = merged))
         return broadcastAndReturn()
     }
@@ -91,6 +91,7 @@ class BossService(
                 playerRepository.findById(drop.playerId).ifPresent { player ->
                     val item = Item(
                         id = UUID.randomUUID().toString(),
+                        catalogId = drop.itemId,
                         name = drop.itemName,
                         desc = "Drop de ${boss.name}",
                         qty = 1,
@@ -128,6 +129,12 @@ class BossService(
         }
 
         instanceRepository.deleteById(instanceId)
+        return broadcastAndReturn()
+    }
+
+    /** Salva uma instância alterada por outro serviço (ES, negação de crítico) e avisa o mestre. */
+    fun saveInstance(instance: BossInstance): List<BossInstance> {
+        instanceRepository.save(instance)
         return broadcastAndReturn()
     }
 

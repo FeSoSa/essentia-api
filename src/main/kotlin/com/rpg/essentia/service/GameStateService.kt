@@ -13,11 +13,65 @@ class GameStateService(
     private val gameStateRepository: GameStateRepository,
     private val broadcaster: WebSocketBroadcaster
 ) {
-    fun getOrCreate(): GameState =
-        gameStateRepository.findById("main").orElseGet { createDefault() }
+    companion object {
+        const val ROOT_MAP_ID = "essentia-root"
+    }
+
+    fun getOrCreate(): GameState {
+        val state = gameStateRepository.findById("main").orElseGet { createDefault() }
+        return ensureRootMap(state)
+    }
 
     fun save(gameState: GameState): GameState =
         gameStateRepository.save(gameState)
+
+    /** Rodada atual do combate (0 fora de combate). Uma rodada = todos da iniciativa agiram uma vez. */
+    fun rodadaAtual(state: GameState = getOrCreate()): Int =
+        if (state.initiative.isEmpty()) 0 else state.totalTurns / state.initiative.size
+
+    /** Config de combate; uma tabela de tiers salva antes (com o Tier 5) volta para os tiers 1 a 4. */
+    fun combateConfig(): CombateConfig = getOrCreate().combateConfig.let { c ->
+        val tiers = c.tiers.filter { it.tier in 1..4 }
+        if (tiers.map { it.tier }.sorted() == (1..4).toList()) c.copy(tiers = tiers) else c.copy(tiers = TIERS_PADRAO)
+    }
+
+    fun updateCombateConfig(cfg: CombateConfig): CombateConfig {
+        if (cfg.critMultBase < 0 || cfg.critMultDado < 0)
+            throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Multiplicadores de crítico não podem ser negativos")
+        if (cfg.equilibrioSemProficiencia < 0.5 || cfg.equilibrioComProficiencia < 0.5 || cfg.desviosPorCombate < 0 || cfg.esPorAcertoBasico < 0)
+            throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Valores de combate inválidos")
+        if (cfg.tiers.map { it.tier }.sorted() != (1..4).toList() || cfg.tiers.any { it.equilibrio < 0.5 || it.custoBase < 0 })
+            throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Tabela de tiers inválida: precisa dos tiers 1 a 4 com equilíbrio e custo válidos")
+        save(getOrCreate().copy(combateConfig = cfg))
+        broadcaster.broadcastCombateConfig(cfg)
+        return cfg
+    }
+
+    fun achadoConfig(): AchadoConfig = getOrCreate().achadoConfig
+
+    fun updateAchadoConfig(cfg: AchadoConfig): AchadoConfig {
+        if (cfg.niveis.isEmpty())
+            throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Precisa de pelo menos um nível de achado")
+        cfg.niveis.forEach { n ->
+            if (n.nome.isBlank() || n.pesos.values.any { it < 0 } || n.pesos.values.sum() <= 0)
+                throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Nível \"${n.nome}\" precisa de nome e de alguma chance acima de zero")
+        }
+        if (cfg.pesosTipo.values.any { it < 0 } || cfg.pesosTipo.values.sum() <= 0)
+            throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "As chances por tipo precisam somar mais que zero")
+        save(getOrCreate().copy(achadoConfig = cfg))
+        return cfg
+    }
+
+    fun encontroConfig(): EncontroConfig = getOrCreate().encontro
+
+    fun updateEncontroConfig(cfg: EncontroConfig): EncontroConfig {
+        if (cfg.dificuldades.isEmpty() || cfg.dificuldades.any { it.nome.isBlank() || it.perigo !in 1..100 })
+            throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Cada dificuldade precisa de nome e de perigo entre 1 e 100")
+        if (cfg.hordaMax < 2)
+            throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "A horda precisa permitir pelo menos 2 inimigos")
+        save(getOrCreate().copy(encontro = cfg))
+        return cfg
+    }
 
     fun addLogEntry(playerId: String, text: String, type: String = "info"): GameState {
         val now = Instant.now()
@@ -98,6 +152,18 @@ class GameStateService(
         val updated = save(state.copy(log = emptyList()))
         broadcaster.broadcastLogCleared()
         return updated
+    }
+
+    private fun ensureRootMap(state: GameState): GameState {
+        if (state.images.any { it.id == ROOT_MAP_ID }) return state
+        val rootMap = GameImage(
+            id = ROOT_MAP_ID,
+            url = "",
+            title = "Mapa",
+            timestamp = Instant.now().toString(),
+            active = false
+        )
+        return save(state.copy(images = listOf(rootMap) + state.images))
     }
 
     private fun createDefault() = GameState(

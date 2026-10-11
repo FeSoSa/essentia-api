@@ -15,6 +15,8 @@ import com.rpg.essentia.service.applyDamageModifiers
 import com.rpg.essentia.service.RaceService
 import com.rpg.essentia.service.SobrecargaService
 import com.rpg.essentia.service.TurnService
+import com.rpg.essentia.service.MaestriaService
+import com.rpg.essentia.service.EnemyTurnService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -34,7 +36,10 @@ class MasterController(
     private val sobrecargaService: SobrecargaService,
     private val damageService: DamageService,
     private val effectService: EffectService,
-    private val raceService: RaceService
+    private val raceService: RaceService,
+    private val maestriaService: MaestriaService,
+    private val enemyTurnService: EnemyTurnService,
+    private val aliadoEfeitoService: com.rpg.essentia.service.AliadoEfeitoService
 ) {
     @GetMapping("/players")
     fun getPlayers(): List<Player> = masterService.getPlayers()
@@ -156,6 +161,14 @@ class MasterController(
         )
     }
 
+    @PostMapping("/initiative/entrar")
+    fun entrarNaLuta(@RequestBody req: EntrarNaLutaRequest): List<InitiativeEntry> =
+        masterService.entrarNaLuta(req.playerId, req.valor)
+
+    @PostMapping("/initiative/sair")
+    fun sairDaLuta(@RequestBody req: SairDaLutaRequest): List<InitiativeEntry> =
+        masterService.sairDaLuta(req.playerId)
+
     @PutMapping("/initiative")
     fun setInitiative(@RequestBody entries: List<InitiativeEntry>) =
         masterService.setInitiative(entries)
@@ -193,11 +206,76 @@ class MasterController(
         @RequestBody req: AdjustItemQtyRequest
     ): Player = masterService.adjustItemQty(id, itemId, req.delta)
 
-    @PutMapping("/players/{id}/maestria")
-    fun addMaestriaUses(
+    /** Maestrias do jogador já calculadas (nome, bônus, nível disponível). */
+    @GetMapping("/players/{id}/maestrias")
+    fun maestrias(@PathVariable id: String): List<MaestriaGrupoInfo> =
+        maestriaService.infos(playerService.load(id))
+
+    @PutMapping("/players/{id}/maestrias/{grupo}/usos")
+    fun ajustarUsosMaestria(
         @PathVariable id: String,
+        @PathVariable grupo: String,
         @RequestBody req: MaestriaUsesRequest
-    ): PlayerSkill = masterService.addMaestriaUses(id, req.playerSkillId, req.uses)
+    ): Player = maestriaService.ajustarUsos(id, grupo, req.uses)
+
+    @PutMapping("/players/{id}/maestrias/{grupo}/nivel")
+    fun definirNivelMaestria(@PathVariable id: String, @PathVariable grupo: String, @RequestBody req: NivelClasseRequest): Player =
+        maestriaService.definirNivel(id, grupo, req.nivel)
+
+    @PostMapping("/players/{id}/maestrias/{grupo}/confirmar")
+    fun confirmarNivelMaestria(@PathVariable id: String, @PathVariable grupo: String): Player =
+        maestriaService.confirmarNivel(id, grupo)
+
+    /** Dar Escudo (PV temporário) a um jogador: skill em aliado ou decisão do mestre. */
+    @PostMapping("/players/{id}/escudo")
+    fun darEscudo(@PathVariable id: String, @RequestBody req: Map<String, Int>): Player =
+        playerService.darEscudo(id, req["valor"] ?: 0)
+
+    /** Ajuste manual do Escudo (delta positivo dá até o teto, negativo tira até 0). */
+    @PutMapping("/players/{id}/escudo")
+    fun ajustarEscudo(@PathVariable id: String, @RequestBody req: DeltaRequest): Player =
+        playerService.ajustarEscudo(id, req.delta)
+
+    /** Fim do dia: zera o Escudo de todos os jogadores. */
+    @PostMapping("/fim-do-dia")
+    fun fimDoDia(): List<Player> = playerService.fimDoDia()
+
+    @PutMapping("/players/{id}/nivel-classe")
+    fun setNivelClasse(@PathVariable id: String, @RequestBody req: NivelClasseRequest): Player =
+        playerService.setNivelClasse(id, req.nivel)
+
+    /* ── Configurações editáveis ─────────────────────────────── */
+
+    @PutMapping("/maestria-config")
+    fun updateMaestriaConfig(@RequestBody cfg: MaestriaConfig): MaestriaConfig = maestriaService.updateConfig(cfg)
+
+    @PutMapping("/combate-config")
+    fun updateCombateConfig(@RequestBody cfg: CombateConfig): CombateConfig = gameStateService.updateCombateConfig(cfg)
+
+    @PutMapping("/achado-config")
+    fun updateAchadoConfig(@RequestBody cfg: AchadoConfig): AchadoConfig = gameStateService.updateAchadoConfig(cfg)
+
+    @PutMapping("/encontro-config")
+    fun updateEncontroConfig(@RequestBody cfg: EncontroConfig): EncontroConfig = gameStateService.updateEncontroConfig(cfg)
+
+    /* ── Turno automático dos inimigos ───────────────────────── */
+
+    @PostMapping("/enemy-turn/propose")
+    fun proposeEnemyTurn(@RequestBody req: EnemyTurnProposeRequest): EnemyAction =
+        enemyTurnService.propor(req.entityId, req.entityKind, req.alvoId, req.ataqueIdx)
+
+    @PostMapping("/enemy-turn/{actionId}/swap")
+    fun swapEnemyTurn(@PathVariable actionId: String, @RequestBody req: EnemyTurnSwapRequest): EnemyAction =
+        enemyTurnService.trocar(actionId, req.alvoId, req.ataqueIdx)
+
+    @PostMapping("/enemy-turn/{actionId}/allow")
+    fun allowEnemyTurn(@PathVariable actionId: String): EnemyAction = enemyTurnService.permitir(actionId)
+
+    @PostMapping("/enemy-turn/{actionId}/skip")
+    fun skipEnemyTurn(@PathVariable actionId: String): EnemyAction = enemyTurnService.pular(actionId)
+
+    @GetMapping("/combat-log")
+    fun combatLog(@RequestParam(required = false) combatId: String?): Map<String, Any> = enemyTurnService.relatorio(combatId)
 
     @PutMapping("/players/{id}/skill/{skillId}/block")
     fun setSkillBlocked(
@@ -285,6 +363,13 @@ class MasterController(
         return playerService.adjustHp(req.targetPlayerId, -finalDamage)
     }
 
+    @PostMapping("/ally-effect/approve")
+    fun approveAllyEffect(@RequestBody req: AllyEffectApproveBody) = aliadoEfeitoService.aprovar(req)
+
+    @PostMapping("/ally-effect/reject")
+    fun rejectAllyEffect(@RequestBody req: Map<String, String>) =
+        aliadoEfeitoService.rejeitar(req["requestId"] ?: "", req["playerId"] ?: "")
+
     @PostMapping("/damage/approve")
     fun approveDamage(@RequestBody req: DamageApproveBody) = damageService.approveDamage(req)
 
@@ -318,6 +403,19 @@ class MasterController(
         @PathVariable id: String,
         @PathVariable essenciaId: String
     ): Player = essenciaService.removeEssencia(id, essenciaId)
+
+    @PutMapping("/players/{id}/essencias/{essenciaId}/nivel")
+    fun setNivelEssencia(
+        @PathVariable id: String,
+        @PathVariable essenciaId: String,
+        @RequestBody req: NivelEssenciaRequest
+    ): Player = essenciaService.setNivel(id, essenciaId, req.nivel)
+
+    @PutMapping("/players/{id}/proficiencias")
+    fun setProficiencias(
+        @PathVariable id: String,
+        @RequestBody req: ProficienciasRequest
+    ): Player = playerService.setProficiencias(id, req.proficiencias)
 
     // Notas fixas
     @GetMapping("/notes")
