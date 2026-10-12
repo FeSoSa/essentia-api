@@ -119,6 +119,37 @@ class RevisaoRulesTest {
     }
 
     @Test
+    fun `bonus de atributo da Essencia sem tabela usa a regra padrao de porcentagem`() {
+        val fogo = Essencia(name = "Fogo", type = "Elemental", desc = "", attributeBonus = mapOf("strength" to 6, "resistance" to 4), skillIds = emptyList())
+        assertEquals(mapOf("strength" to 1, "resistance" to 1), EssenciaRules.bonusNoNivel(fogo, 1))
+        assertEquals(mapOf("strength" to 3, "resistance" to 2), EssenciaRules.bonusNoNivel(fogo, 2))
+        assertEquals(mapOf("strength" to 4, "resistance" to 3), EssenciaRules.bonusNoNivel(fogo, 3))
+        assertEquals(fogo.attributeBonus, EssenciaRules.bonusNoNivel(fogo, 4))
+        // valor que zera sai do mapa; negativo arredonda na direção do zero
+        assertEquals(mapOf("wisdom" to 1), EssenciaRules.bonusPorPct(mapOf("wisdom" to 5, "presence" to 2), 1))
+        assertEquals(mapOf("flow" to -1), EssenciaRules.bonusPorPct(mapOf("flow" to -6), 1))
+    }
+
+    @Test
+    fun `bonus de atributo da Essencia com tabela soma os niveis ate o do jogador`() {
+        val tabela = listOf(mapOf("strength" to 2), emptyMap(), mapOf("strength" to 1, "resistance" to 3), mapOf("resistance" to 1))
+        val e = Essencia(name = "X", type = "Elemental", desc = "", attributeBonus = emptyMap(), skillIds = emptyList(), bonusPorNivel = tabela)
+        assertEquals(mapOf("strength" to 2), EssenciaRules.bonusNoNivel(e, 1))
+        assertEquals(mapOf("strength" to 2), EssenciaRules.bonusNoNivel(e, 2))
+        assertEquals(mapOf("strength" to 3, "resistance" to 3), EssenciaRules.bonusNoNivel(e, 3))
+        assertEquals(mapOf("strength" to 3, "resistance" to 4), EssenciaRules.bonusNoNivel(e, 4))
+    }
+
+    @Test
+    fun `tabela padrao reproduz a porcentagem e soma o bonus total`() {
+        val fogo = mapOf("strength" to 6, "resistance" to 4)
+        val tabela = EssenciaRules.tabelaPadrao(fogo)
+        assertEquals(listOf(mapOf("strength" to 1, "resistance" to 1), mapOf("strength" to 2, "resistance" to 1),
+            mapOf("strength" to 1, "resistance" to 1), mapOf("strength" to 2, "resistance" to 1)), tabela)
+        assertEquals(fogo, EssenciaRules.somar(tabela))
+    }
+
+    @Test
     fun `penalidade por degrau de excedente`() {
         // SAB 10: capacidade 4
         val zero = EssenciaRules.estado(listOf(2, 2), 10)

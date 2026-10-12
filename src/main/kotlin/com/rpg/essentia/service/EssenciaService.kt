@@ -87,7 +87,11 @@ class EssenciaService(
     }
 
     /** Nível da mãe para liberar a Derivada: 1 a 4, e só faz sentido em Derivada com mãe. */
-    private fun validar(e: Essencia): Essencia {
+    private fun validar(essencia: Essencia): Essencia {
+        // Com tabela por nível, o bônus total é a soma dela (é o que vale no nível 4)
+        val e = if (essencia.bonusPorNivel.isEmpty()) essencia else EssenciaRules.normalizarTabela(essencia.bonusPorNivel).let {
+            essencia.copy(bonusPorNivel = it, attributeBonus = EssenciaRules.somar(it))
+        }
         val nivel = e.nivelMaeNecessario ?: return e
         if (nivel !in EssenciaRules.NIVEL_MIN..EssenciaRules.NIVEL_MAX)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nível da Essência-mãe deve ser de 1 a 4")

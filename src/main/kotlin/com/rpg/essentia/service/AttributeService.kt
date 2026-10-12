@@ -28,13 +28,13 @@ class AttributeService(
             eq.utility?.attributeBonus
         ).forEach { bonus -> bonus.forEach { (k, v) -> base.merge(k, v, Int::plus) } }
 
-        // Essencia bonuses
+        // Essencia bonuses: o que a Essência soma até o nível dela no jogador
         val essenciaMap = essencias.associateBy { it.id }
         player.essenciasObtidas
             .filter { it.attributeBonusActive }
             .forEach { obtained ->
-                essenciaMap[obtained.essenciaId]?.attributeBonus
-                    ?.forEach { (k, v) -> base.merge(k, v, Int::plus) }
+                val essencia = essenciaMap[obtained.essenciaId] ?: return@forEach
+                EssenciaRules.bonusNoNivel(essencia, obtained.nivel).forEach { (k, v) -> base.merge(k, v, Int::plus) }
             }
 
         // Efeitos PASSIVO de skills equipadas já chegam como StatusEffect (syncPassiveSelfEffects)

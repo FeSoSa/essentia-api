@@ -15,7 +15,8 @@ data class Essencia(
     val icon: String? = null,
     val color: String? = null,
     val parentId: String? = null,
-    val nivelMaeNecessario: Int? = null   // Derivada: liberada pela mãe com ela neste nível ou acima (null = só tendo a Derivada)
+    val nivelMaeNecessario: Int? = null,  // Derivada: liberada pela mãe com ela neste nível ou acima (null = só tendo a Derivada)
+    val bonusPorNivel: List<Map<String, Int>> = emptyList()  // quanto cada nível (1 a 4) soma ao bônus; vazio = regra padrão de %
 ) {
     /** Essência Elemental (o nome antigo "Grande" ainda vale até a migração renomear). */
     val elemental: Boolean get() = type == "Elemental" || type == "Grande"

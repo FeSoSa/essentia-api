@@ -120,7 +120,7 @@ data class CombateConfig(
     val equilibrioSemProficiencia: Double = 6.0,        // ataque básico desarmado ou com arma sem proficiência
     val equilibrioComProficiencia: Double = 5.0,        // ataque básico com arma em que tem proficiência
     val esPorAcertoBasico: Int = 3,                     // ES recuperada a cada acerto de ataque básico
-    val desviosPorCombate: Int = 4,
+    val desviosPorCombate: Int = 3,
     val tiers: List<TierRegra> = TIERS_PADRAO           // equilíbrio e custo base por tier de skill
 ) {
     /** Regra do tier (1 a 5); fora da faixa usa o mais próximo. */

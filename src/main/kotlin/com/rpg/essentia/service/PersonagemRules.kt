@@ -61,6 +61,42 @@ object EssenciaRules {
 
     fun estado(player: Player, sabEfetivo: Int): EstadoEssencia =
         estado(player.essenciasObtidas.map { it.nivel }, sabEfetivo)
+
+    /** % do bônus total em cada nível, para Essência sem tabela própria (e para gerar a tabela inicial). */
+    val PCT_PADRAO = listOf(25, 50, 75, 100)
+
+    /**
+     * Bônus de atributo da Essência no nível do jogador: a soma da tabela (bonusPorNivel) do nível 1 até o nível dele.
+     * Sem tabela, vale a regra padrão: floor(bônus total × % do nível / 100).
+     */
+    fun bonusNoNivel(essencia: Essencia, nivel: Int): Map<String, Int> {
+        val n = nivel.coerceIn(NIVEL_MIN, NIVEL_MAX)
+        return if (essencia.bonusPorNivel.isNotEmpty()) somar(essencia.bonusPorNivel.take(n))
+        else bonusPorPct(essencia.attributeBonus, n)
+    }
+
+    /** Regra padrão: floor(bônus × % do nível / 100), sem mudar o sinal. Ex: +6 FOR vira 1, 3, 4 e 6. */
+    fun bonusPorPct(bonus: Map<String, Int>, nivel: Int): Map<String, Int> {
+        if (nivel < NIVEL_MIN) return emptyMap()
+        val pct = PCT_PADRAO[nivel.coerceAtMost(NIVEL_MAX) - 1]
+        return bonus.mapValues { (_, v) -> Integer.signum(v) * (kotlin.math.abs(v) * pct / 100) }.filterValues { it != 0 }
+    }
+
+    /** Tabela por nível que reproduz a regra padrão (quanto cada nível soma). */
+    fun tabelaPadrao(bonus: Map<String, Int>): List<Map<String, Int>> =
+        (NIVEL_MIN..NIVEL_MAX).map { n ->
+            val agora = bonusPorPct(bonus, n)
+            val antes = bonusPorPct(bonus, n - 1)
+            (agora.keys + antes.keys).associateWith { (agora[it] ?: 0) - (antes[it] ?: 0) }.filterValues { it != 0 }
+        }
+
+    /** Tabela com 4 níveis e sem zeros. */
+    fun normalizarTabela(tabela: List<Map<String, Int>>): List<Map<String, Int>> =
+        (0 until NIVEL_MAX).map { i -> (tabela.getOrNull(i) ?: emptyMap()).filterValues { it != 0 } }
+
+    fun somar(mapas: List<Map<String, Int>>): Map<String, Int> =
+        mapas.fold(mutableMapOf<String, Int>()) { acc, m -> m.forEach { (k, v) -> acc.merge(k, v, Int::plus) }; acc }
+            .filterValues { it != 0 }
 }
 
 /** Tier de skill: custo mínimo por tier (o equilíbrio vem de Skill.equilibrio). */
