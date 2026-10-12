@@ -132,6 +132,12 @@ class BossService(
         return broadcastAndReturn()
     }
 
+    /** Tira da Mesa sem dar XP nem recompensa (usado ao trocar de encontro). */
+    fun removeInstance(instanceId: String): List<BossInstance> {
+        instanceRepository.deleteById(instanceId)
+        return broadcastAndReturn()
+    }
+
     /** Salva uma instância alterada por outro serviço (ES, negação de crítico) e avisa o mestre. */
     fun saveInstance(instance: BossInstance): List<BossInstance> {
         instanceRepository.save(instance)

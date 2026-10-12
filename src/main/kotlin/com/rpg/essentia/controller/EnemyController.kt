@@ -43,4 +43,7 @@ class EnemyController(private val enemyService: EnemyService) {
     @PostMapping("/api/combat/enemies/{id}/defeat")
     fun defeat(@PathVariable id: String, @RequestBody req: EnemyDefeatRequest): List<EnemyInstance> =
         enemyService.defeat(id, req)
+
+    @DeleteMapping("/api/combat/enemies/{id}")
+    fun remove(@PathVariable id: String): List<EnemyInstance> = enemyService.removeInstance(id)
 }

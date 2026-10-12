@@ -47,4 +47,7 @@ class BossController(private val bossService: BossService) {
     @PostMapping("/api/combat/bosses/{id}/defeat")
     fun defeat(@PathVariable id: String, @RequestBody req: BossDefeatRequest): List<BossInstance> =
         bossService.defeat(id, req)
+
+    @DeleteMapping("/api/combat/bosses/{id}")
+    fun remove(@PathVariable id: String): List<BossInstance> = bossService.removeInstance(id)
 }
