@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.*
 class CampanhaController(
     private val service: CampanhaService,
     private val files: CampanhaFileService,
-    private val estado: CampanhaEstadoService
+    private val estado: CampanhaEstadoService,
+    private val grafo: CampanhaGrafoService
 ) {
     @GetMapping
     fun snapshot(): CampanhaSnapshot = service.snapshot()
@@ -40,6 +41,14 @@ class CampanhaController(
 
     @DeleteMapping("/pontos/{id}")
     fun removerPonto(@PathVariable id: String) = service.removerPonto(id)
+
+    /* ── Visão em grafo (_grafo.json) ── */
+
+    @PutMapping("/grafo/posicoes")
+    fun posicionar(@RequestBody req: GrafoRequest) = service.alterar { grafo.posicionar(req.posicoes) }
+
+    @DeleteMapping("/grafo/posicoes")
+    fun soltarTodos() = service.alterar { grafo.soltarTodos() }
 
     /* ── Estado da sessão (_estado.json) ── */
 

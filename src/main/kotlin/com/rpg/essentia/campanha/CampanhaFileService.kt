@@ -282,6 +282,7 @@ class CampanhaFileService(@Value("\${essentia.campanha.dir:../campanha}") dir: S
 
             - `_referencias.md` lista os nomes e ids que existem no Bestiário, no catálogo de itens e nas regiões. É gerado pela API.
             - `_estado.json` guarda o que aconteceu na sessão (status, itens achados, quem foi para a Mesa). Só a API escreve nele.
+            - `_grafo.json` guarda onde cada nó foi posicionado na visão em grafo do painel. Só a API escreve nele.
             - Comentários `#` dentro do cabeçalho somem quando o painel salva o ponto.
         """.trimIndent() + "\n"
     }

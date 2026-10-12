@@ -53,7 +53,7 @@ class CampanhaWatcher(
             var relevante = false
             for (ev in key.pollEvents()) {
                 val nome = (ev.context() as? Path)?.toString() ?: continue
-                if (nome.startsWith(".") || nome == CampanhaEstadoService.ARQUIVO || nome == "_referencias.md") continue
+                if (nome.startsWith(".") || nome == CampanhaEstadoService.ARQUIVO || nome == CampanhaGrafoService.ARQUIVO || nome == "_referencias.md") continue
                 val caminho = dir.resolve(nome)
                 if (ev.kind() == ENTRY_CREATE && Files.isDirectory(caminho)) registrar(ws, caminho)
                 relevante = true

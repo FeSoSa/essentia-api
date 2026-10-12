@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 class CampanhaService(
     private val files: CampanhaFileService,
     private val estado: CampanhaEstadoService,
+    private val grafo: CampanhaGrafoService,
     private val vinculos: ObjectProvider<CampanhaVinculos>,
     private val messaging: SimpMessagingTemplate
 ) {
@@ -30,6 +31,7 @@ class CampanhaService(
             capitulos = files.capitulos(),
             pontos = pontos.map { resolvidos?.get(it.id)?.ponto ?: it },
             estado = estado.todos(),
+            grafo = grafo.atual(),
             avisos = resolvidos?.mapValues { it.value.avisos }?.filterValues { it.isNotEmpty() } ?: emptyMap(),
             erros = files.erros()
         )
@@ -48,6 +50,7 @@ class CampanhaService(
     fun removerPonto(id: String) = alterar {
         files.removerPonto(id)
         estado.esquecer(id)
+        grafo.esquecer(id)
     }
 
     private fun broadcast(): CampanhaSnapshot {

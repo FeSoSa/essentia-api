@@ -70,11 +70,18 @@ data class PontoEstado(
 
 data class CampanhaEstado(val pontos: Map<String, PontoEstado> = emptyMap())
 
+/* ── Visão em grafo: posições dos nós, em _grafo.json ──────────── */
+
+data class PosicaoGrafo(val x: Double = 0.0, val y: Double = 0.0)
+data class CampanhaGrafo(val posicoes: Map<String, PosicaoGrafo> = emptyMap())
+
 data class CampanhaSnapshot(
     val pasta: String,
     val capitulos: List<CampanhaCapitulo>,
     val pontos: List<CampanhaPonto>,
     val estado: Map<String, PontoEstado>,
+    /** Posições salvas dos nós na visão em grafo (ponto ou "mapa:<id>"). */
+    val grafo: CampanhaGrafo,
     /** Avisos por ponto: nome que não existe no Bestiário, região apagada etc. */
     val avisos: Map<String, List<String>>,
     /** Arquivos que não deu para ler. */
@@ -85,4 +92,5 @@ data class CampanhaSnapshot(
 
 data class CapituloRequest(val titulo: String = "", val ordem: Int? = null, val resumo: String = "")
 data class PosicaoRequest(val mapa: CampanhaRef? = null, val x: Double? = null, val y: Double? = null)
+data class GrafoRequest(val posicoes: Map<String, PosicaoGrafo?> = emptyMap())
 data class MesaRequest(val entradas: List<MesaEntrada> = emptyList())
