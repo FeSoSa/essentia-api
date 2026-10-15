@@ -45,6 +45,7 @@ class EnemyTurnServiceTest {
         `when`(gameState.getOrCreate()).thenReturn(GameState(combatId = "c1"))
         `when`(gameState.combateConfig()).thenReturn(CombateConfig())
         `when`(gameState.rodadaAtual(any() ?: GameState())).thenReturn(0)
+        `when`(repo.findById(any())).thenAnswer { inv -> java.util.Optional.ofNullable(actions[inv.getArgument<String>(0)]) }
         val jogadores = listOf(player("forte", 14, 50), player("fraco", 9, 80), player("fraco2", 9, 40))
         `when`(playerRepository.findAll()).thenReturn(jogadores)
         jogadores.forEach { p -> `when`(playerRepository.findById(p.id)).thenReturn(java.util.Optional.of(p)) }
@@ -59,8 +60,40 @@ class EnemyTurnServiceTest {
                 EnemyAttack(name = "Passiva")
             )
         ))
-        service = EnemyTurnService(enemyService, mock(BossService::class.java), playerRepository,
+        bossService = mock(BossService::class.java)
+        allyService = mock(AllyService::class.java)
+        `when`(enemyService.listInstances()).thenReturn(listOf(
+            EnemyInstance(instanceId = "duro", name = "Golem", hpCurrent = 30, defesa = 15),
+            EnemyInstance(instanceId = "mole", name = "Rato", hpCurrent = 12, attributes = EnemyAttributes(defense = 8)),
+            EnemyInstance(instanceId = "morto", name = "Lobo", hpCurrent = 0, defesa = 2)
+        ))
+        `when`(bossService.listInstances()).thenReturn(emptyList())
+        `when`(allyService.findInstance("a1")).thenReturn(CombatAlly(
+            id = "a1", name = "Stebam",
+            attributes = AllyAttributes(strength = 10, agility = 16),
+            attacks = listOf(AllyAttack(name = "Corte", damageBase = 8, damageAttribute = "AGI", equilibrio = 4))
+        ))
+        service = EnemyTurnService(enemyService, bossService, allyService, playerRepository,
             mock(PlayerService::class.java), gameState, repo, mock(WebSocketBroadcaster::class.java))
+    }
+
+    private lateinit var bossService: BossService
+    private lateinit var allyService: AllyService
+
+    @Test
+    fun `aliado mira o oponente vivo de menor DEF e o dano entra direto ao permitir`() {
+        service.random = Dados(10, 12)
+        val a = service.propor("a1", "ally", null, null)
+        assertEquals("mole", a.alvoId)
+        assertEquals("enemy", a.alvoKind)
+        assertEquals(10 + 2, a.totalAcerto)  // AGI 16 = mod +2
+        assertTrue(a.acertou)                 // 12 >= DEF 8
+        assertEquals(8 + 24 / 4, a.dano)      // d20 12 × mod 2 / 4
+
+        val feita = service.permitir(a.id)
+        assertEquals("CONCLUIDA", feita.status)
+        assertEquals(a.dano, feita.danoAplicado)
+        org.mockito.Mockito.verify(enemyService).adjustHp("mole", -(a.dano ?: 0))
     }
 
     @Test

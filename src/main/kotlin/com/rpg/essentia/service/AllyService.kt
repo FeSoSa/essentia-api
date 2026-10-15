@@ -65,6 +65,8 @@ class AllyService(
         return broadcastAndReturn()
     }
 
+    fun findInstance(id: String): CombatAlly? = repository.findById(id).orElse(null)
+
     private fun load(id: String): CombatAlly =
         repository.findById(id).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Ally not found")

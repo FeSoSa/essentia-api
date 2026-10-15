@@ -10,13 +10,15 @@ import org.springframework.web.server.ResponseStatusException
 import kotlin.random.Random
 
 /**
- * Turno dos inimigos calculado pelo app. O mestre sempre decide (permitir, trocar, pular);
- * em caso de acerto o jogador alvo pode reagir com Desvio antes do dano entrar.
+ * Turno dos inimigos e dos aliados calculado pelo app. O mestre sempre decide (permitir, trocar, pular);
+ * em caso de acerto de inimigo o jogador alvo pode reagir com Desvio antes do dano entrar.
+ * Aliado ataca inimigo ou boss e, como o oponente não reage, o dano entra quando o mestre permite.
  */
 @Service
 class EnemyTurnService(
     private val enemyService: EnemyService,
     private val bossService: BossService,
+    private val allyService: AllyService,
     private val playerRepository: PlayerRepository,
     private val playerService: PlayerService,
     private val gameStateService: GameStateService,
@@ -26,7 +28,7 @@ class EnemyTurnService(
     /** Fonte dos d20; substituível em testes. */
     internal var random: Random = Random.Default
 
-    /** Visão comum de inimigo e boss para o cálculo. */
+    /** Visão comum de inimigo, boss e aliado para o cálculo. */
     private data class Atacante(
         val id: String,
         val kind: String,
@@ -37,11 +39,14 @@ class EnemyTurnService(
         val esAtual: Int
     )
 
+    /** Visão comum do alvo: jogador (ataque de inimigo) ou inimigo/boss (ataque de aliado). */
+    private data class Alvo(val id: String, val kind: String, val nome: String, val def: Int, val hp: Int)
+
     private data class Formula(val base: Int, val atributo: String, val equilibrio: Int)
 
     fun propor(entityId: String, kind: String, alvoId: String?, ataqueIdx: Int?): EnemyAction {
         val atk = atacante(entityId, kind)
-        val alvo = escolherAlvo(alvoId)
+        val alvo = escolherAlvo(atk, alvoId)
         val idx = ataqueIdx ?: escolherAtaque(atk)
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "${atk.nome} não tem ataque com dano que consiga pagar")
         val state = gameStateService.getOrCreate()
@@ -54,7 +59,7 @@ class EnemyTurnService(
         if (atual.status != "PROPOSTA")
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta ação já foi decidida")
         val atk = atacante(atual.entityId, atual.entityKind)
-        val alvo = escolherAlvo(alvoId ?: atual.alvoId)
+        val alvo = escolherAlvo(atk, alvoId ?: atual.alvoId)
         val novo = calcular(atual.copy(trocas = atual.trocas + 1, decisaoMestre = "TROCOU"), atk, alvo, ataqueIdx ?: atual.ataqueIdx)
         return salvar(novo)
     }
@@ -73,6 +78,7 @@ class EnemyTurnService(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta ação já foi decidida")
         val decidida = atual.copy(decisaoMestre = if (atual.trocas > 0) "TROCOU" else "PERMITIU")
         gastarEs(decidida)
+        if (decidida.entityKind == "ally") return concluirAliado(decidida)
         if (!decidida.acertou) {
             gameStateService.addLogEntry(decidida.alvoId,
                 "${decidida.entityName} usou ${decidida.ataqueNome} em ${decidida.alvoNome} e errou (${decidida.totalAcerto} vs DEF ${decidida.defAlvo})", "hp")
@@ -81,6 +87,27 @@ class EnemyTurnService(
         val aguardando = salvar(decidida.copy(status = "AGUARDANDO_JOGADOR"))
         broadcaster.broadcastEnemyAttackToPlayer(aguardando.alvoId, aguardando)
         return aguardando
+    }
+
+    /** Ataque de aliado: o oponente não desvia, então o dano entra direto. */
+    private fun concluirAliado(acao: EnemyAction): EnemyAction {
+        if (!acao.acertou) {
+            gameStateService.addLogEntry("",
+                "${acao.entityName} usou ${acao.ataqueNome} em ${acao.alvoNome} e errou (${acao.totalAcerto} vs DEF ${acao.defAlvo})", "hp")
+            return salvar(acao.copy(status = "ERROU"))
+        }
+        val efeitosAlvo = when (acao.alvoKind) {
+            "enemy" -> enemyService.findInstance(acao.alvoId)?.statusEffects
+            "boss" -> bossService.findInstance(acao.alvoId)?.statusEffects
+            else -> null
+        } ?: emptyList()
+        val danoAplicado = applyDamageModifiers(acao.dano ?: 0, emptyList(), efeitosAlvo)
+        when (acao.alvoKind) {
+            "enemy" -> enemyService.adjustHp(acao.alvoId, -danoAplicado)
+            "boss" -> bossService.adjustHp(acao.alvoId, -danoAplicado)
+        }
+        gameStateService.addLogEntry("", "${acao.entityName} acertou ${acao.alvoNome} com ${acao.ataqueNome}: $danoAplicado de dano", "hp")
+        return salvar(acao.copy(status = "CONCLUIDA", danoAplicado = danoAplicado))
     }
 
     /** Resposta do jogador alvo: desviar (com a rolagem do d20) ou receber. */
@@ -127,7 +154,8 @@ class EnemyTurnService(
         val id = combatId ?: gameStateService.getOrCreate().combatId
             ?: actionRepository.findAll().maxByOrNull { it.criadoEm }?.combatId
         val acoes = if (id == null) emptyList() else actionRepository.findByCombatId(id)
-        val porInimigo = acoes.filter { it.status in setOf("CONCLUIDA", "ERROU") }.groupBy { it.entityName }.map { (nome, lista) ->
+        // Os números servem para calibrar os inimigos; ataques de aliados ficam de fora
+        val porInimigo = acoes.filter { it.status in setOf("CONCLUIDA", "ERROU") && it.entityKind != "ally" }.groupBy { it.entityName }.map { (nome, lista) ->
             val acertos = lista.filter { it.acertou }
             mapOf(
                 "inimigo" to nome,
@@ -145,7 +173,7 @@ class EnemyTurnService(
 
     /* ── Cálculo ─────────────────────────────────────────────── */
 
-    private fun calcular(base: EnemyAction, atk: Atacante, alvo: Player, idx: Int): EnemyAction {
+    private fun calcular(base: EnemyAction, atk: Atacante, alvo: Alvo, idx: Int): EnemyAction {
         val ataque = atk.ataques.getOrNull(idx)
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Ataque inválido: $idx")
         val formula = formula(ataque)
@@ -153,7 +181,7 @@ class EnemyTurnService(
         if (ataque.custoEs > atk.esAtual)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "${atk.nome} não tem ES para ${ataque.name} (${ataque.custoEs} > ${atk.esAtual})")
 
-        val def = defesa(alvo)
+        val def = alvo.def
         val d20 = CombatRules.rolarD20(random)
         val total = d20 + atk.modAcerto
         val acertou = total >= def
@@ -166,7 +194,7 @@ class EnemyTurnService(
         return base.copy(
             status = "PROPOSTA",
             entityId = atk.id, entityKind = atk.kind, entityName = atk.nome,
-            alvoId = alvo.id, alvoNome = alvo.char.name,
+            alvoId = alvo.id, alvoKind = alvo.kind, alvoNome = alvo.nome,
             ataqueIdx = idx, ataqueNome = ataque.name,
             formula = "${formula.base} + d20×${formula.atributo}/${formula.equilibrio}",
             d20Acerto = d20, modAcerto = atk.modAcerto, totalAcerto = total, defAlvo = def,
@@ -176,8 +204,26 @@ class EnemyTurnService(
         )
     }
 
+    private fun escolherAlvo(atk: Atacante, alvoId: String?): Alvo =
+        if (atk.kind == "ally") escolherOponente(alvoId)
+        else escolherJogador(alvoId).let { Alvo(it.id, "player", it.char.name, defesa(it), it.hp.current) }
+
+    /** Alvo do aliado: inimigo ou boss vivo com menor DEF; empate pelo menor PV atual. */
+    private fun escolherOponente(alvoId: String?): Alvo {
+        val oponentes = enemyService.listInstances().map { e ->
+            Alvo(e.instanceId, "enemy", e.name, e.defesa ?: e.attributes.defense, e.hpCurrent)
+        } + bossService.listInstances().mapNotNull { b ->
+            val fase = b.phases.getOrNull(b.currentPhase) ?: return@mapNotNull null
+            Alvo(b.instanceId, "boss", b.name, fase.defesa ?: fase.attributes.defense, b.hpCurrent)
+        }
+        if (alvoId != null)
+            return oponentes.find { it.id == alvoId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Oponente alvo não encontrado")
+        return oponentes.filter { it.hp > 0 }.minWithOrNull(compareBy<Alvo> { it.def }.thenBy { it.hp })
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum oponente vivo para atacar")
+    }
+
     /** Alvo sugerido: jogador ativo e vivo com menor DEF; empate pelo menor PV atual. */
-    private fun escolherAlvo(alvoId: String?): Player {
+    private fun escolherJogador(alvoId: String?): Player {
         if (alvoId != null)
             return playerRepository.findById(alvoId).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador alvo não encontrado") }
         val state = gameStateService.getOrCreate()
@@ -237,6 +283,16 @@ class EnemyTurnService(
             val a = fase.attributes
             Atacante(b.instanceId, "boss", b.name, a.toMap(),
                 fase.attacks, fase.modAcerto ?: CombatRules.getModifier(maxOf(a.strength, a.agility)), b.esCurrent ?: fase.esMax)
+        }
+        "ally" -> {
+            val al = allyService.findInstance(entityId)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Aliado não encontrado")
+            val a = al.attributes
+            // Aliado não tem ES: todo ataque sai sem custo
+            Atacante(al.id, "ally", al.name,
+                mapOf("strength" to a.strength, "agility" to a.agility, "intelligence" to a.intelligence, "defense" to a.defense),
+                al.attacks.map { EnemyAttack(it.name, it.damage, it.damageBase, it.damageAttribute, it.equilibrio, it.skillId, it.skillName) },
+                CombatRules.getModifier(maxOf(a.strength, a.agility)), 0)
         }
         else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo inválido: $kind")
     }

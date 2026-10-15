@@ -191,9 +191,10 @@ data class EnemyAction(
     val rodada: Int = 0,
     val status: String = "PROPOSTA",       // PROPOSTA | AGUARDANDO_JOGADOR | CONCLUIDA | PULADA | ERROU
     val entityId: String = "",
-    val entityKind: String = "enemy",      // "enemy" | "boss"
+    val entityKind: String = "enemy",      // "enemy" | "boss" | "ally"
     val entityName: String = "",
     val alvoId: String = "",
+    val alvoKind: String = "player",       // "player" (ataque de inimigo) | "enemy" | "boss" (ataque de aliado)
     val alvoNome: String = "",
     val ataqueIdx: Int = 0,
     val ataqueNome: String = "",
