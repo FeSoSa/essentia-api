@@ -127,6 +127,7 @@ class BossService(
                 masterService.grantExp(player.id, xpToGrant)
             }
         }
+        masterService.entregarOuro(req.goldDrop)
 
         instanceRepository.deleteById(instanceId)
         return broadcastAndReturn()

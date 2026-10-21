@@ -91,7 +91,10 @@ class EnemyService(
             playerRepository.findAll().filter { it.active }.forEach { player ->
                 masterService.grantExp(player.id, xpToGrant)
             }
+        } else if (!req.xpPlayerId.isNullOrBlank() && xpToGrant > 0) {
+            masterService.grantExp(req.xpPlayerId, xpToGrant)
         }
+        masterService.entregarOuro(req.goldDrop)
 
         instanceRepository.deleteById(instanceId)
         return broadcastAndReturn()

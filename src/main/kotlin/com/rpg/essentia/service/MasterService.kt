@@ -339,6 +339,23 @@ class MasterService(
         return saveAndBroadcast(player.copy(gold = maxOf(0, player.gold + delta)))
     }
 
+    /** Ouro de uma derrota: para um jogador ou dividido entre os ativos (a sobra vai para os primeiros). */
+    fun entregarOuro(gold: GoldAssignment?) {
+        if (gold == null || gold.amount <= 0) return
+        if (!gold.distribute) {
+            if (gold.playerId.isNotBlank()) adjustGold(gold.playerId, gold.amount)
+            return
+        }
+        val ativos = playerRepository.findAll().filter { it.active }
+        if (ativos.isEmpty()) return
+        val parte = gold.amount / ativos.size
+        val sobra = gold.amount % ativos.size
+        ativos.forEachIndexed { i, p ->
+            val valor = parte + if (i < sobra) 1 else 0
+            if (valor > 0) adjustGold(p.id, valor)
+        }
+    }
+
     fun clearSkillFromSlots(playerId: String, skillId: String) {
         val player = loadPlayer(playerId)
         val hasSlot = player.slots.any { it.skillId == skillId }
