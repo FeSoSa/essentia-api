@@ -5,6 +5,8 @@ data class LoginRequest(val code: String)
 
 // Player vitals
 data class DeltaRequest(val delta: Int)
+/** Sorte: o d6 somado a uma rolagem de d20; contexto é acerto, desvio ou teste. */
+data class SorteRequest(val d6: Int, val contexto: String = "teste")
 data class AttributeDeltaRequest(val attribute: String, val delta: Int)
 
 // Skills

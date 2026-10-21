@@ -65,7 +65,7 @@ class PlayerController(
 
     @PostMapping("/enemy-attack/{actionId}/respond")
     fun respondEnemyAttack(@PathVariable id: String, @PathVariable actionId: String, @RequestBody req: EnemyAttackResponse): EnemyAction =
-        enemyTurnService.responder(actionId, id, req.desviar, req.roll)
+        enemyTurnService.responder(actionId, id, req.desviar, req.roll, req.sorte)
 
     @PostMapping("/request-item")
     fun requestItem(@PathVariable id: String, @RequestBody req: RequestItemRequest): Player =
@@ -90,6 +90,11 @@ class PlayerController(
     @PostMapping("/desvio")
     fun desvio(@PathVariable id: String): Player =
         playerService.executeDesvio(id)
+
+    /** Gasta 1 sorte: o d6 entra numa rolagem de d20 já feita. */
+    @PostMapping("/sorte")
+    fun usarSorte(@PathVariable id: String, @RequestBody req: SorteRequest): Player =
+        playerService.usarSorte(id, req.d6, req.contexto)
 
     @PostMapping("/sobrecarga/request")
     fun requestSobrecarga(@PathVariable id: String, @RequestBody req: SobrecargaRequestBody): Player {

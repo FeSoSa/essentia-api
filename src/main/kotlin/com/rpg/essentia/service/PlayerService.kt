@@ -377,6 +377,24 @@ class PlayerService(
         return saveAndBroadcast(player.copy(desviosRestantes = player.desviosRestantes - 1))
     }
 
+    /** Sorte: soma 1d6 a uma rolagem de d20 (acerto, desvio ou teste). Só 1 por rolagem e não volta com o tempo. */
+    fun usarSorte(id: String, d6: Int, contexto: String): Player {
+        if (d6 !in 1..6) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o d6 da sorte (1 a 6)")
+        val player = load(id)
+        if (player.sorte <= 0) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Sem sorte restante")
+        val onde = when (contexto) { "acerto" -> "no acerto"; "desvio" -> "no desvio"; else -> "num teste" }
+        gameStateService.addLogEntry(id, "${player.char.name} usou SORTE $onde: +$d6 (restam ${player.sorte - 1})", "info")
+        return saveAndBroadcast(player.copy(sorte = player.sorte - 1))
+    }
+
+    /** Mestre dá ou tira sorte (recompensa rara). */
+    fun ajustarSorte(id: String, delta: Int): Player {
+        val player = load(id)
+        val nova = (player.sorte + delta).coerceAtLeast(0)
+        if (nova != player.sorte) gameStateService.addLogEntry(id, "${player.char.name} Sorte ${if (delta > 0) "+$delta" else "$delta"} (agora $nova)", "info")
+        return saveAndBroadcast(player.copy(sorte = nova))
+    }
+
     fun deductCosts(id: String, costs: Map<String, Int>, slotId: String? = null): Player {
         var player = load(id)
         costs["flow"]?.let { c ->

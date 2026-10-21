@@ -240,6 +240,11 @@ class MasterController(
     @PostMapping("/fim-do-dia")
     fun fimDoDia(): List<Player> = playerService.fimDoDia()
 
+    /** Dá (delta positivo) ou tira sorte de um jogador. */
+    @PutMapping("/players/{id}/sorte")
+    fun ajustarSorte(@PathVariable id: String, @RequestBody req: DeltaRequest): Player =
+        playerService.ajustarSorte(id, req.delta)
+
     @PutMapping("/players/{id}/nivel-classe")
     fun setNivelClasse(@PathVariable id: String, @RequestBody req: NivelClasseRequest): Player =
         playerService.setNivelClasse(id, req.nivel)

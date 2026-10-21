@@ -111,7 +111,7 @@ class EnemyTurnService(
     }
 
     /** Resposta do jogador alvo: desviar (com a rolagem do d20) ou receber. */
-    fun responder(actionId: String, playerId: String, desviar: Boolean, roll: Int?): EnemyAction {
+    fun responder(actionId: String, playerId: String, desviar: Boolean, roll: Int?, sorte: Int? = null): EnemyAction {
         val atual = load(actionId)
         if (atual.status != "AGUARDANDO_JOGADOR")
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Este ataque não aguarda resposta")
@@ -126,10 +126,14 @@ class EnemyTurnService(
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Armadura pesada não permite desvio")
             val d20 = roll?.takeIf { it in 1..20 }
                 ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o d20 do desvio")
+            // Sorte validada antes de gastar o desvio, para não consumir um sem o outro
+            if (sorte != null && (sorte !in 1..6 || player.sorte <= 0))
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Sorte inválida ou sem sorte restante")
             playerService.executeDesvio(playerId) // valida e consome um uso
+            if (sorte != null) playerService.usarSorte(playerId, sorte, "desvio") // valida e consome 1 sorte
             val attrs = player.effectiveAttributes ?: player.attributes
             val bonus = if (peso == "nenhuma") CombatRules.getModifier(attrs.agility) else 0
-            val total = d20 + bonus
+            val total = d20 + bonus + (sorte ?: 0)
             acao = acao.copy(desviou = total >= CombatRules.CD_DESVIO, desvioRoll = d20, desvioTotal = total)
         } else {
             acao = acao.copy(desviou = false)

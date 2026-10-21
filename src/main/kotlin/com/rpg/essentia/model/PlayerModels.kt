@@ -236,6 +236,7 @@ data class Player(
     val pendingRequests: List<PendingRequest> = emptyList(),
     val gold: Int = 0,
     val desviosRestantes: Int = 4,
+    val sorte: Int = 2,                               // d6 de sorte da campanha inteira; não volta, só o mestre concede
     val sobrecargaDesbloqueada: Boolean = false,
     val sobrecargaAtiva: Boolean = false,
     val sobrecargaNivel: Int? = null,

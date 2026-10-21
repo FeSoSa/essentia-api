@@ -165,10 +165,14 @@ data class EnemyHpRequest(val delta: Int = 0)
 data class EnemyNotesRequest(val notes: String = "")
 data class AddEnemyRequest(val templateId: String? = null, val enemy: EnemyInstance)
 data class DropAssignment(val itemName: String = "", val icon: String = "", val itemId: String? = null, val playerId: String = "")
+/** Ouro sorteado na derrota: dividido entre os jogadores ativos ou para um só. Null = ninguém recebe. */
+data class GoldAssignment(val amount: Int = 0, val distribute: Boolean = false, val playerId: String = "")
 data class EnemyDefeatRequest(
     val drops: List<DropAssignment> = emptyList(),
     val distributeXp: Boolean = true,
-    val xpAmount: Int? = null
+    val xpPlayerId: String? = null,   // XP só para este jogador (distributeXp = false)
+    val xpAmount: Int? = null,
+    val goldDrop: GoldAssignment? = null
 )
 
 data class BossHpRequest(val delta: Int = 0)
@@ -179,7 +183,8 @@ data class BossDefeatRequest(
     val drops: List<DropAssignment> = emptyList(),
     val specialReward: SpecialRewardAssignment? = null,
     val distributeXp: Boolean = true,
-    val xpAmount: Int? = null
+    val xpAmount: Int? = null,
+    val goldDrop: GoldAssignment? = null
 )
 
 /* ── Turno automático dos inimigos ───────────────────────────── */
@@ -218,4 +223,4 @@ data class EnemyAction(
 
 data class EnemyTurnProposeRequest(val entityId: String, val entityKind: String = "enemy", val alvoId: String? = null, val ataqueIdx: Int? = null)
 data class EnemyTurnSwapRequest(val alvoId: String? = null, val ataqueIdx: Int? = null)
-data class EnemyAttackResponse(val desviar: Boolean = false, val roll: Int? = null)
+data class EnemyAttackResponse(val desviar: Boolean = false, val roll: Int? = null, val sorte: Int? = null)
