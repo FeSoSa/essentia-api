@@ -54,10 +54,8 @@ class MapMarkerService(
         if (marker.x < 0.0 || marker.x > 1.0 || marker.y < 0.0 || marker.y > 1.0) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "x/y must be between 0 and 1")
         }
-        if (marker.regionId.isBlank()) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "regionId is required")
-        }
-        if (!regionRepository.existsById(marker.regionId)) {
+        // regionId vazio = marcador sem imagem própria (não dá para entrar nele)
+        if (marker.regionId.isNotBlank() && !regionRepository.existsById(marker.regionId)) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "regionId does not reference an existing region")
         }
     }
