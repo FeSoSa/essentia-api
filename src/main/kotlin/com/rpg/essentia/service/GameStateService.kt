@@ -58,6 +58,8 @@ class GameStateService(
         }
         if (cfg.pesosTipo.values.any { it < 0 } || cfg.pesosTipo.values.sum() <= 0)
             throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "As chances por tipo precisam somar mais que zero")
+        if (cfg.pesoRegional < 1)
+            throw org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "O peso dos itens da região precisa ser 1 ou mais")
         save(getOrCreate().copy(achadoConfig = cfg))
         return cfg
     }

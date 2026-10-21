@@ -51,5 +51,7 @@ data class ItemCatalog(
     val requisitoNarrativo: String? = null,  // só informativo (armas lendárias/históricas), sem validação
     val onUseEffect: OnUseEffect? = null,
     val goldValue: Int? = null,
-    val subtype: String? = null
+    val subtype: String? = null,
+    val regioes: List<String>? = null,       // nomes de região do mundo (não as regiões do Mapa); vazio = comum (sai em qualquer lugar)
+    val unico: Boolean? = null               // item com história: só sai pela mão do mestre ou drop fixo, nunca no sorteio
 )

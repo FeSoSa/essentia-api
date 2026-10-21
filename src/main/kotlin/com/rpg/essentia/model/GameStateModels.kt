@@ -149,7 +149,9 @@ data class AchadoConfig(
     // Quando o tipo é "qualquer": chance de cada tipo de item sair
     val pesosTipo: Map<String, Int> = mapOf(
         "arma" to 25, "armadura" to 20, "acessorio" to 15, "consumivel" to 30, "material" to 10
-    )
+    ),
+    // Com uma região escolhida no sorteio: quantas vezes um item da região pesa mais que um comum
+    val pesoRegional: Int = 8
 )
 
 /**
