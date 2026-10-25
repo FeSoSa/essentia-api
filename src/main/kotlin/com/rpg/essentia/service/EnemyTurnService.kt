@@ -3,6 +3,7 @@ package com.rpg.essentia.service
 import com.rpg.essentia.model.*
 import com.rpg.essentia.repository.EnemyActionRepository
 import com.rpg.essentia.repository.PlayerRepository
+import com.rpg.essentia.repository.SkillRepository
 import com.rpg.essentia.websocket.WebSocketBroadcaster
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -23,6 +24,8 @@ class EnemyTurnService(
     private val playerService: PlayerService,
     private val gameStateService: GameStateService,
     private val actionRepository: EnemyActionRepository,
+    private val degrauService: DegrauService,
+    private val skillRepository: SkillRepository,
     private val broadcaster: WebSocketBroadcaster
 ) {
     /** Fonte dos d20; substituível em testes. */
@@ -82,7 +85,8 @@ class EnemyTurnService(
         if (!decidida.acertou) {
             gameStateService.addLogEntry(decidida.alvoId,
                 "${decidida.entityName} usou ${decidida.ataqueNome} em ${decidida.alvoNome} e errou (${decidida.totalAcerto} vs DEF ${decidida.defAlvo})", "hp")
-            return salvar(decidida.copy(status = "ERROU"))
+            // Errou um jogador com skill de contra-ataque equipada: o mestre decide se libera
+            return salvar(decidida.copy(status = "ERROU", contraAtaqueSkill = skillDeContraAtaque(decidida.alvoId)))
         }
         val aguardando = salvar(decidida.copy(status = "AGUARDANDO_JOGADOR"))
         broadcaster.broadcastEnemyAttackToPlayer(aguardando.alvoId, aguardando)
@@ -101,13 +105,34 @@ class EnemyTurnService(
             "boss" -> bossService.findInstance(acao.alvoId)?.statusEffects
             else -> null
         } ?: emptyList()
-        val danoAplicado = applyDamageModifiers(acao.dano ?: 0, emptyList(), efeitosAlvo)
+        val degrau = degrauService.resolver(acao.tiposDano, acao.alvoKind, acao.alvoId)
+        val danoAplicado = DegrauRules.aplicar(applyDamageModifiers(acao.dano ?: 0, emptyList(), efeitosAlvo), degrau.degrau)
         when (acao.alvoKind) {
             "enemy" -> enemyService.adjustHp(acao.alvoId, -danoAplicado)
             "boss" -> bossService.adjustHp(acao.alvoId, -danoAplicado)
         }
-        gameStateService.addLogEntry("", "${acao.entityName} acertou ${acao.alvoNome} com ${acao.ataqueNome}: $danoAplicado de dano", "hp")
-        return salvar(acao.copy(status = "CONCLUIDA", danoAplicado = danoAplicado))
+        gameStateService.addLogEntry("", "${acao.entityName} acertou ${acao.alvoNome} com ${acao.ataqueNome}: $danoAplicado de dano${sufixoDegrau(degrau)}", "hp")
+        return salvar(acao.copy(status = "CONCLUIDA", danoAplicado = danoAplicado, degrau = degrau))
+    }
+
+    /** Nome da skill de contra-ataque equipada pelo jogador (null = não tem). */
+    private fun skillDeContraAtaque(playerId: String): String? {
+        val player = playerRepository.findById(playerId).orElse(null) ?: return null
+        val ids = player.slots.mapNotNull { it.skillId }
+        if (ids.isEmpty()) return null
+        return skillRepository.findAllById(ids).firstOrNull { it.contraAtaque }?.name
+    }
+
+    /** O mestre libera (ou ignora) o contra-ataque: liberado, o app do jogador destrava um ataque básico contra o atacante. */
+    fun contraAtaque(actionId: String, liberar: Boolean): EnemyAction {
+        val acao = load(actionId)
+        if (acao.status != "ERROU" || acao.contraAtaqueSkill == null || acao.contraAtaque != null)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há contra-ataque esperando nesta ação")
+        if (liberar) {
+            broadcaster.broadcastContraAtaque(acao.alvoId, ContraAtaqueLiberado(acao.id, acao.entityId, acao.entityKind, acao.entityName))
+            gameStateService.addLogEntry(acao.alvoId, "${acao.alvoNome} pode contra-atacar ${acao.entityName} (${acao.contraAtaqueSkill})", "info")
+        }
+        return salvar(acao.copy(contraAtaque = if (liberar) "LIBERADO" else "IGNORADO"))
     }
 
     /** Resposta do jogador alvo: desviar (com a rolagem do d20) ou receber. */
@@ -139,18 +164,20 @@ class EnemyTurnService(
             acao = acao.copy(desviou = false)
         }
 
-        val danoAplicado = if (acao.desviou == true) 0 else {
+        // Recalcula na hora do golpe: a armadura pode ter mudado desde a proposta
+        val degrau = if (acao.desviou == true) null else degrauService.resolver(acao.tiposDano, "player", playerId)
+        val danoAplicado = if (degrau == null) 0 else {
             val alvo = playerService.load(playerId)
-            applyDamageModifiers(acao.dano ?: 0, emptyList(), alvo.statusEffects).also {
+            DegrauRules.aplicar(applyDamageModifiers(acao.dano ?: 0, emptyList(), alvo.statusEffects), degrau.degrau).also {
                 playerService.adjustHp(playerId, -it)
             }
         }
-        val texto = if (acao.desviou == true)
+        val texto = if (degrau == null)
             "${acao.alvoNome} desviou de ${acao.ataqueNome} (${acao.entityName})"
         else
-            "${acao.entityName} acertou ${acao.alvoNome} com ${acao.ataqueNome}: $danoAplicado de dano"
+            "${acao.entityName} acertou ${acao.alvoNome} com ${acao.ataqueNome}: $danoAplicado de dano${sufixoDegrau(degrau)}"
         gameStateService.addLogEntry(playerId, texto, "hp")
-        return salvar(acao.copy(status = "CONCLUIDA", danoAplicado = danoAplicado))
+        return salvar(acao.copy(status = "CONCLUIDA", danoAplicado = danoAplicado, degrau = degrau ?: acao.degrau))
     }
 
     /** Números do combate para ajustar CD e dano dos inimigos. */
@@ -195,8 +222,12 @@ class EnemyTurnService(
             CombatRules.dano(formula.base, it, modDoAtributo(formula.atributo, atk.attrs), formula.equilibrio, false, gameStateService.combateConfig())
                 .coerceAtLeast(0)
         }
+        // Prévia do degrau para o mestre; vale de fato quando o golpe entra
+        val tipos = degrauService.tiposDoAtaque(ataque)
+        val degrau = if (acertou) degrauService.resolver(tipos, alvo.kind, alvo.id) else null
         return base.copy(
             status = "PROPOSTA",
+            tiposDano = tipos, degrau = degrau,
             entityId = atk.id, entityKind = atk.kind, entityName = atk.nome,
             alvoId = alvo.id, alvoKind = alvo.kind, alvoNome = alvo.nome,
             ataqueIdx = idx, ataqueNome = ataque.name,
@@ -257,6 +288,9 @@ class EnemyTurnService(
 
     private fun modDoAtributo(atributo: String, attrs: Map<String, Int>): Int = CombatRules.resolveAtributo(atributo, attrs)
 
+    /** " (Fogo: Fraco x1,5)" no log; nada quando o golpe saiu Neutro. */
+    private fun sufixoDegrau(d: DegrauAplicado): String = if (d.degrau == Degrau.NEUTRO) "" else " (${d.texto})"
+
     /** DEF do jogador: atributo efetivo (já inclui o bônus da armadura). */
     private fun defesa(p: Player): Int = (p.effectiveAttributes ?: p.attributes).defense
 
@@ -295,7 +329,7 @@ class EnemyTurnService(
             // Aliado não tem ES: todo ataque sai sem custo
             Atacante(al.id, "ally", al.name,
                 mapOf("strength" to a.strength, "agility" to a.agility, "intelligence" to a.intelligence, "defense" to a.defense),
-                al.attacks.map { EnemyAttack(it.name, it.damage, it.damageBase, it.damageAttribute, it.equilibrio, it.skillId, it.skillName) },
+                al.attacks.map { EnemyAttack(it.name, it.damage, it.damageBase, it.damageAttribute, it.equilibrio, it.skillId, it.skillName, tiposDano = it.tiposDano) },
                 CombatRules.getModifier(maxOf(a.strength, a.agility)), 0)
         }
         else -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo inválido: $kind")

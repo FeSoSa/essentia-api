@@ -3,6 +3,8 @@ package com.rpg.essentia.service
 import com.rpg.essentia.model.*
 import com.rpg.essentia.repository.EnemyActionRepository
 import com.rpg.essentia.repository.PlayerRepository
+import com.rpg.essentia.repository.RaceRepository
+import com.rpg.essentia.repository.SkillRepository
 import com.rpg.essentia.websocket.WebSocketBroadcaster
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -74,7 +76,11 @@ class EnemyTurnServiceTest {
             attacks = listOf(AllyAttack(name = "Corte", damageBase = 8, damageAttribute = "AGI", equilibrio = 4))
         ))
         service = EnemyTurnService(enemyService, bossService, allyService, playerRepository,
-            mock(PlayerService::class.java), gameState, repo, mock(WebSocketBroadcaster::class.java))
+            mock(PlayerService::class.java), gameState, repo,
+            DegrauService(mock(TipoDanoService::class.java), mock(SkillRepository::class.java), mock(RaceRepository::class.java),
+                playerRepository, enemyService, bossService, allyService),
+            mock(SkillRepository::class.java),
+            mock(WebSocketBroadcaster::class.java))
     }
 
     private lateinit var bossService: BossService

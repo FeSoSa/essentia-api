@@ -20,16 +20,18 @@ class DamageService(
     private val allyService: AllyService,
     private val maestriaService: MaestriaService,
     private val gameStateService: GameStateService,
+    private val degrauService: DegrauService,
+    private val descobertaService: DescobertaService,
     private val broadcaster: WebSocketBroadcaster
 ) {
     fun requestDamage(playerId: String, req: DamageRequestBody) {
         val player = playerRepository.findById(playerId).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado")
         }
-        val onHitEffects = req.skillId
-            ?.let { skillRepository.findById(it).orElse(null) }
-            ?.let { EfeitoRules.noAlvo(it, effectPresetRepository.findAll()) }
-            ?: emptyList()
+        val skill = req.skillId?.let { skillRepository.findById(it).orElse(null) }
+        val onHitEffects = skill?.let { EfeitoRules.noAlvo(it, effectPresetRepository.findAll()) } ?: emptyList()
+        // Prévia para o mestre; a aprovação recalcula com o estado do momento
+        val degrau = degrauService.resolver(degrauService.tiposDoJogador(player, skill), req.targetType, req.targetId)
         val approval = DamageApprovalRequest(
             requestId    = req.requestId,
             playerId     = playerId,
@@ -44,7 +46,8 @@ class DamageService(
             skillId      = req.skillId,
             critico      = req.critico,
             danoSemCritico = req.danoSemCritico,
-            ataqueBasico = req.ataqueBasico
+            ataqueBasico = req.ataqueBasico,
+            degrau       = degrau
         )
         broadcaster.broadcastDamageRequest(approval)
     }
@@ -68,7 +71,8 @@ class DamageService(
 
     fun approveDamage(req: DamageApproveBody) {
         // Aplica modificadores passivos de dano causado/recebido (modify_damage_dealt / modify_damage_received)
-        val attackerEffects = playerRepository.findById(req.playerId).orElse(null)?.statusEffects ?: emptyList()
+        val atacante = playerRepository.findById(req.playerId).orElse(null)
+        val attackerEffects = atacante?.statusEffects ?: emptyList()
         val targetEffects = when (req.targetType) {
             "enemy" -> enemyService.findInstance(req.targetId)?.statusEffects ?: emptyList()
             "boss"  -> bossService.findInstance(req.targetId)?.statusEffects ?: emptyList()
@@ -78,7 +82,13 @@ class DamageService(
         // Negação de crítico do alvo (ex: Manto do Vento): checada antes de valer o crítico, 1x por rodada
         val criticoNegado = req.critico && negarCritico(req.targetType, req.targetId)
         val danoRolado = if (criticoNegado) (req.danoSemCritico ?: req.damage) else req.damage
-        val finalDamage = applyDamageModifiers(danoRolado, attackerEffects, targetEffects)
+        // Fraqueza/resistência do alvo entra por último, sobre o dano final
+        val skill = req.skillId?.let { skillRepository.findById(it).orElse(null) }
+        val degrau = atacante?.let { degrauService.resolver(degrauService.tiposDoJogador(it, skill), req.targetType, req.targetId) }
+            ?: DegrauAplicado()
+        val finalDamage = DegrauRules.aplicar(applyDamageModifiers(danoRolado, attackerEffects, targetEffects), degrau.degrau)
+        // Antes do dano: se o golpe derrubar o alvo, a instância ainda existe para achar a criatura
+        atacante?.let { descobertaService.registrar(it, req.targetType, req.targetId, degrau) }
 
         // Aplica dano no alvo
         when (req.targetType) {
@@ -109,10 +119,12 @@ class DamageService(
 
         // Debita custo do jogador e seta cooldown da habilidade (só agora que o dano foi aprovado)
         val esRecuperada = if (req.ataqueBasico) gameStateService.combateConfig().esPorAcertoBasico else 0
-        if (req.costs.isNotEmpty() || req.slotId != null || esRecuperada > 0) {
+        val primeiroPedido = req.slotId != null || req.costs.isNotEmpty()
+        if (primeiroPedido || esRecuperada > 0) {
             val player = playerRepository.findById(req.playerId).orElse(null)
             if (player != null) {
-                var updated = player
+                // Escudo e cura da própria skill só entram quando o golpe acerta (uma vez, mesmo em área)
+                var updated = if (primeiroPedido && skill != null) EfeitoRules.escudoECuraNoUsuario(skill, player) else player
                 req.costs["flow"]?.let { c ->
                     updated = updated.copy(flow = updated.flow.copy(current = (updated.flow.current - c).coerceAtLeast(0)))
                 }
@@ -137,7 +149,7 @@ class DamageService(
                     updated = updated.copy(flow = updated.flow.copy(current = (updated.flow.current + esRecuperada).coerceAtMost(updated.flow.max)))
                 }
                 if (req.slotId != null) {
-                    val cooldownTurns = req.skillId?.let { skillRepository.findById(it).orElse(null) }?.cooldownTurns ?: 0
+                    val cooldownTurns = skill?.cooldownTurns ?: 0
                     updated = updated.copy(slots = updated.slots.map { s ->
                         if (s.id == req.slotId) s.copy(cooldownRemaining = cooldownTurns) else s
                     })
@@ -147,7 +159,7 @@ class DamageService(
             }
         }
 
-        broadcaster.broadcastDamageResult(req.playerId, DamageResultNotification(req.requestId, true, criticoNegado))
+        broadcaster.broadcastDamageResult(req.playerId, DamageResultNotification(req.requestId, true, criticoNegado, degrau, finalDamage))
     }
 
     /** Consome a negação de crítico do alvo nesta rodada. Retorna true se o crítico foi negado. */

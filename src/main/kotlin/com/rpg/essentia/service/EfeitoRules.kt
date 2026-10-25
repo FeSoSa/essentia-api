@@ -18,6 +18,14 @@ object EfeitoRules {
     fun noUsuario(skill: Skill, presets: List<EffectPreset>): List<StatusEffect> =
         converter(skill, skill.efeitos.filter { it.alvo == Efeito.ALVO_SELF && !it.passivo }, presets, rodadasPadrao = 1)
 
+    /** Escudo (soma até o teto) e cura instantânea (até o PV máximo, nunca vira Escudo) no próprio usuário. */
+    fun escudoECuraNoUsuario(skill: Skill, player: Player): Player {
+        var p = player
+        escudoNoUsuario(skill).takeIf { it > 0 }?.let { p = EscudoRules.ganhar(p, it) }
+        curaNoUsuario(skill).takeIf { it > 0 }?.let { p = EscudoRules.curar(p, it) }
+        return p
+    }
+
     /** Efeitos passivos enquanto a skill estiver equipada (SELF com duração PASSIVO). */
     fun passivos(skill: Skill, presets: List<EffectPreset>): List<StatusEffect> =
         converter(skill, skill.efeitos.filter { it.alvo == Efeito.ALVO_SELF && it.passivo }, presets, rodadasPadrao = -1)

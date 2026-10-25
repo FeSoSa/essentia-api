@@ -62,7 +62,10 @@ class AttributeService(
     /** Regenera do zero os StatusEffects dos efeitos PASSIVO das skills equipadas (marcados via sourceSkillId). */
     fun syncPassiveSelfEffects(player: Player, skills: List<Skill>): Player {
         val skillById = skills.associateBy { it.id }
-        val equippedIds = player.slots.mapNotNull { it.skillId }.toSet()
+        // Passiva só vale nos slots de passiva; skills ativas com efeito passivo valem em qualquer slot
+        val equippedIds = player.slots
+            .filter { s -> s.type == Slot.TIPO_PASSIVA || skillById[s.skillId]?.passive != true }
+            .mapNotNull { it.skillId }.toSet()
         val presets = effectPresetRepository.findAll()
 
         val withoutStale = player.statusEffects.filterNot { it.sourceSkillId != null }
@@ -96,9 +99,9 @@ class AttributeService(
 }
 
 fun Equipment.slotToItem(slot: String): Item? = when (slot) {
-    "mainHand" -> mainHand?.let { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = it.equipSlot ?: slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded, margemCritico = it.margemCritico) }
-    "offHand"  -> offHand?.let  { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = it.equipSlot ?: slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded, margemCritico = it.margemCritico) }
-    "armor"    -> armor?.let    { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "armor",  equipSlot = slot, damageReduction = it.damageReduction, armorWeight = it.armorWeight, attributeBonus = it.attributeBonus, rarity = it.rarity, negaCritico = it.negaCritico) }
+    "mainHand" -> mainHand?.let { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = it.equipSlot ?: slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded, margemCritico = it.margemCritico, catalogId = it.catalogId, tiposDano = it.tiposDano) }
+    "offHand"  -> offHand?.let  { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "weapon", equipSlot = it.equipSlot ?: slot, weaponType = it.weaponType, damageBase = it.damageBase, damageAttribute = it.damageAttribute, equilibrio = it.equilibrio, properties = it.properties, attributeBonus = it.attributeBonus, rarity = it.rarity, twoHanded = it.twoHanded, margemCritico = it.margemCritico, catalogId = it.catalogId, tiposDano = it.tiposDano) }
+    "armor"    -> armor?.let    { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "armor",  equipSlot = slot, damageReduction = it.damageReduction, armorWeight = it.armorWeight, attributeBonus = it.attributeBonus, rarity = it.rarity, negaCritico = it.negaCritico, catalogId = it.catalogId, tracosDano = it.tracosDano) }
     "amulet"   -> amulet?.let   { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }
     "ring"     -> ring?.let     { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }
     "utility"  -> utility?.let  { Item(id = it.id, name = it.name, desc = it.desc ?: "", icon = it.icon, type = "accessory", equipSlot = slot, attributeBonus = it.attributeBonus, rarity = it.rarity) }

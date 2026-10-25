@@ -59,6 +59,7 @@ class SkillCatalogService(
         TierRules.erroCusto(skill, gameStateService.combateConfig())?.let {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, it)
         }
+        DegrauRules.erroTipos(skill.tiposDano)?.let { throw ResponseStatusException(HttpStatus.BAD_REQUEST, it) }
     }
 
     /** Skills com tier: o equilíbrio não fica salvo na fórmula e o texto da fórmula é refeito a partir do tier. */

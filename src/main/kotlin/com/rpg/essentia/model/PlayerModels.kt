@@ -79,10 +79,16 @@ data class EstadoEssencia(
 
 data class Slot(
     val id: String = "",
-    val type: String = "",             // "class" | "free" | "human_bonus"
+    val type: String = "",             // "class" | "free" | "human_bonus" | "passive"
     val skillId: String? = null,
     val cooldownRemaining: Int = 0
-)
+) {
+    companion object {
+        /** Slots só de passiva: passiva só vale equipada aqui, e os demais slots não aceitam passiva. */
+        const val TIPO_PASSIVA = "passive"
+        const val QTD_PASSIVA = 2
+    }
+}
 
 data class WeaponEquip(
     val id: String = "",
@@ -98,7 +104,9 @@ data class WeaponEquip(
     val rarity: String? = null,
     val twoHanded: Boolean = false,
     val equipSlot: String? = null,     // slot original do item ("both" p/ qualquer mão); null = fixo na mão em que está
-    val margemCritico: Int? = null     // mínimo no d20 de acerto para crítico (null = 20)
+    val margemCritico: Int? = null,    // mínimo no d20 de acerto para crítico (null = 20)
+    val catalogId: String? = null,
+    val tiposDano: List<String>? = null
 )
 
 data class ArmorEquip(
@@ -110,7 +118,9 @@ data class ArmorEquip(
     val attributeBonus: Map<String, Int>? = null,
     val armorWeight: String? = null,
     val rarity: String? = null,
-    val negaCritico: Boolean = false   // nega um acerto crítico por rodada (ex: Manto do Vento)
+    val negaCritico: Boolean = false,  // nega um acerto crítico por rodada (ex: Manto do Vento)
+    val catalogId: String? = null,
+    val tracosDano: List<TracoDano>? = null
 )
 
 data class AccessoryEquip(
@@ -200,7 +210,9 @@ data class Item(
     val onUseEffect: OnUseEffect? = null,
     val goldValue: Int? = null,
     val margemCritico: Int? = null,
-    val negaCritico: Boolean? = null
+    val negaCritico: Boolean? = null,
+    val tiposDano: List<String>? = null,
+    val tracosDano: List<TracoDano>? = null
 )
 
 data class PendingRequest(

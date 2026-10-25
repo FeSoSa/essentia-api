@@ -8,5 +8,6 @@ data class Race(
     @Id val id: String = java.util.UUID.randomUUID().toString(),
     val name: String = "",
     val starterAttributes: Attributes = Attributes(),
-    val inventorySize: Int = 18
+    val inventorySize: Int = 18,
+    val tracosDano: List<TracoDano> = emptyList()   // fraquezas, resistências e imunidades da raça (vencem a armadura)
 )

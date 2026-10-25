@@ -53,5 +53,7 @@ data class ItemCatalog(
     val goldValue: Int? = null,
     val subtype: String? = null,
     val regioes: List<String>? = null,       // nomes de região do mundo (não as regiões do Mapa); vazio = comum (sai em qualquer lugar)
-    val unico: Boolean? = null               // item com história: só sai pela mão do mestre ou drop fixo, nunca no sorteio
+    val unico: Boolean? = null,              // item com história: só sai pela mão do mestre ou drop fixo, nunca no sorteio
+    val tiposDano: List<String>? = null,     // arma: ids de TipoDano (1 a 2)
+    val tracosDano: List<TracoDano>? = null  // armadura de corpo: fraquezas, resistências e imunidades
 )

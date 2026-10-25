@@ -11,7 +11,8 @@ data class AllyAttack(
     val damageAttribute: String? = null,
     val equilibrio: Int? = null,
     val skillId: String? = null,
-    val skillName: String? = null
+    val skillName: String? = null,
+    val tiposDano: List<String> = emptyList()
 )
 data class AllyAttributes(
     val strength: Int = 10,
@@ -31,7 +32,8 @@ data class AllyTemplate(
     val attacks: List<AllyAttack> = emptyList(),
     val immunities: List<com.rpg.essentia.model.BossImmunity> = emptyList(),
     val desc: String = "",
-    val notes: String = ""
+    val notes: String = "",
+    val tracosDano: List<TracoDano> = emptyList()
 )
 
 @Document(collection = "combat_allies")
@@ -47,7 +49,8 @@ data class CombatAlly(
     val attacks: List<AllyAttack> = emptyList(),
     val immunities: List<com.rpg.essentia.model.BossImmunity> = emptyList(),
     val desc: String = "",
-    val notes: String = ""
+    val notes: String = "",
+    val tracosDano: List<TracoDano> = emptyList()
 )
 
 data class AllyHpRequest(val delta: Int = 0)

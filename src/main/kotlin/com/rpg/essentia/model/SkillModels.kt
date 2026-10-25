@@ -44,10 +44,15 @@ data class Skill(
     val efeitos: List<Efeito> = emptyList(),           // lista única de efeitos (modificadores e condições)
     val pressaoDice: Boolean = false,                  // técnica rola +1d6 por ponto de Pressão e consome tudo
     val critThreshold: Int? = null,                    // mínimo no d20 para crítico (null = 20)
+    val bonusAcerto: Int? = null,                      // +X no acerto desta skill (o app soma sozinho)
+    val exclusivaCom: String? = null,
+    val ignoraDef: Boolean = false,                    // acerta sempre: o app pula a rolagem de acerto
+    val contraAtaque: Boolean = false,                 // equipada: quando um inimigo erra este jogador, o mestre pode liberar um contra-ataque                  // id de uma skill que não pode ser equipada junto com esta (ex.: evolução que substitui a T1)
     val multiTarget: MultiTarget? = null,              // habilidade atinge múltiplos inimigos
     val damageSource: String = "formula",              // "formula" (usa damage) | "weapon" (usa arma equipada em weaponSlot)
     val weaponSlot: String? = null,                    // "mainHand" | "offHand" — obrigatório quando damageSource == "weapon"
-    val weaponDamageModifiers: List<AutoEffect> = emptyList() // AutoEffect.type: "flat" | "percent" | "extra_dice"
+    val weaponDamageModifiers: List<AutoEffect> = emptyList(), // AutoEffect.type: "flat" | "percent" | "extra_dice"
+    val tiposDano: List<String> = emptyList()              // ids de TipoDano (1 a 2); vazio = herda da arma só no dano da arma
 ) {
     /** Equilíbrio da fórmula: vem do tier; sem tier (inimigo/mestre) usa o valor salvo na fórmula. */
     fun equilibrio(cfg: CombateConfig): Double? =

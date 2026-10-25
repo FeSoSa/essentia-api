@@ -191,10 +191,9 @@ class SkillUseService(
             )
         }
 
-        // 7b2. Escudo no próprio usuário (efeito ESCUDO com alvo SELF): soma até o teto
-        EfeitoRules.escudoNoUsuario(skill).takeIf { it > 0 }?.let { updatedPlayer = EscudoRules.ganhar(updatedPlayer, it) }
-        // 7b3. Cura instantânea no próprio usuário (CURA sem duração): até o PV máximo, nunca vira Escudo
-        EfeitoRules.curaNoUsuario(skill).takeIf { it > 0 }?.let { updatedPlayer = EscudoRules.curar(updatedPlayer, it) }
+        // 7b2/7b3. Escudo e cura instantânea no próprio usuário. No combate (prévia antes do acerto, commit = false)
+        // ficam para a aprovação do dano: só entram se o golpe acertar (DamageService.approveDamage).
+        if (request.commit) updatedPlayer = EfeitoRules.escudoECuraNoUsuario(skill, updatedPlayer)
 
         // 7c. Recalcula effectiveAttributes/vitais para refletir os status effects recém-aplicados;
         // sem isso o efeito fica salvo mas não aparece no personagem até outro fluxo forçar o recálculo.

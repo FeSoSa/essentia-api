@@ -276,6 +276,10 @@ class MasterController(
     @PostMapping("/enemy-turn/{actionId}/allow")
     fun allowEnemyTurn(@PathVariable actionId: String): EnemyAction = enemyTurnService.permitir(actionId)
 
+    @PostMapping("/enemy-turn/{actionId}/contra-ataque")
+    fun counterAttack(@PathVariable actionId: String, @RequestBody req: Map<String, Boolean>): EnemyAction =
+        enemyTurnService.contraAtaque(actionId, req["liberar"] ?: true)
+
     @PostMapping("/enemy-turn/{actionId}/skip")
     fun skipEnemyTurn(@PathVariable actionId: String): EnemyAction = enemyTurnService.pular(actionId)
 

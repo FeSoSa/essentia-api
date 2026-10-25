@@ -151,14 +151,25 @@ class PlayerService(
             throw ResponseStatusException(HttpStatus.CONFLICT, "Não é possível alterar habilidades durante o combate.")
         val player = load(id)
 
-        // Validate: class slots only accept class skills
+        // Validate: slots de passiva só aceitam passiva (e os outros não aceitam); slots de classe só skill de classe
         if (skillId != null) {
             val slot = player.slots.firstOrNull { it.id == slotId }
                 ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slot não encontrado")
+            val skill = skillRepository.findById(skillId).orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Habilidade não encontrada")
+            }
+            // Skills exclusivas (uma é a versão melhor da outra): equipa uma ou outra
+            val outrasEquipadas = player.slots.filter { it.id != slotId }.mapNotNull { it.skillId }
+            if (outrasEquipadas.isNotEmpty()) {
+                skillRepository.findAllById(outrasEquipadas)
+                    .firstOrNull { it.id == skill.exclusivaCom || it.exclusivaCom == skill.id }
+                    ?.let { throw ResponseStatusException(HttpStatus.BAD_REQUEST, "${skill.name} e ${it.name} não podem ser equipadas juntas: escolha uma") }
+            }
+            if (slot.type == Slot.TIPO_PASSIVA && !skill.passive)
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Slots de passiva só aceitam habilidades passivas")
+            if (slot.type != Slot.TIPO_PASSIVA && skill.passive)
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Passivas vão nos slots de passiva")
             if (slot.type == "class") {
-                val skill = skillRepository.findById(skillId).orElseThrow {
-                    ResponseStatusException(HttpStatus.NOT_FOUND, "Habilidade não encontrada")
-                }
                 if (skill.type != "class")
                     throw ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
@@ -247,18 +258,19 @@ class PlayerService(
                 damageAttribute = item.damageAttribute ?: "", equilibrio = item.equilibrio,
                 properties = item.properties, attributeBonus = item.attributeBonus,
                 rarity = item.rarity, twoHanded = item.twoHanded ?: false, equipSlot = item.equipSlot,
-                margemCritico = item.margemCritico))
+                margemCritico = item.margemCritico, catalogId = item.catalogId, tiposDano = item.tiposDano))
             "offHand" -> player.equipment.copy(offHand = WeaponEquip(
                 id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
                 weaponType = item.weaponType ?: "", damageBase = item.damageBase ?: 0,
                 damageAttribute = item.damageAttribute ?: "", equilibrio = item.equilibrio,
                 properties = item.properties, attributeBonus = item.attributeBonus,
                 rarity = item.rarity, twoHanded = item.twoHanded ?: false, equipSlot = item.equipSlot,
-                margemCritico = item.margemCritico))
+                margemCritico = item.margemCritico, catalogId = item.catalogId, tiposDano = item.tiposDano))
             "armor" -> player.equipment.copy(armor = ArmorEquip(
                 id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
                 damageReduction = item.damageReduction ?: 0, attributeBonus = item.attributeBonus,
-                armorWeight = item.armorWeight, rarity = item.rarity, negaCritico = item.negaCritico ?: false))
+                armorWeight = item.armorWeight, rarity = item.rarity, negaCritico = item.negaCritico ?: false,
+                catalogId = item.catalogId, tracosDano = item.tracosDano))
             "amulet" -> player.equipment.copy(amulet = AccessoryEquip(
                 id = item.id, name = item.name, desc = item.desc.ifBlank { null }, icon = item.icon,
                 attributeBonus = item.attributeBonus, rarity = item.rarity))

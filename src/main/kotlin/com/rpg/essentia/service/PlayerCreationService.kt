@@ -52,6 +52,7 @@ class PlayerCreationService(
         repeat(slotsClass) { slots.add(Slot(id = UUID.randomUUID().toString(), type = "class")) }
         repeat(slotsFree)  { slots.add(Slot(id = UUID.randomUUID().toString(), type = "free"))  }
         if (req.race == "Humano") slots.add(Slot(id = UUID.randomUUID().toString(), type = "human_bonus"))
+        repeat(Slot.QTD_PASSIVA) { slots.add(Slot(id = UUID.randomUUID().toString(), type = Slot.TIPO_PASSIVA)) }
 
         val player = Player(
             id = UUID.randomUUID().toString(),
@@ -115,6 +116,7 @@ class PlayerCreationService(
         val existingClass = existing.slots.filter { it.type == "class" }
         val existingFree  = existing.slots.filter { it.type == "free" }
         val bonusSlots    = existing.slots.filter { it.type == "human_bonus" }
+        val passivaSlots  = existing.slots.filter { it.type == Slot.TIPO_PASSIVA }
 
         fun resize(current: List<Slot>, newCount: Int, type: String): List<Slot> =
             List(newCount) { i ->
@@ -123,7 +125,8 @@ class PlayerCreationService(
 
         val newSlots = resize(existingClass, newSlotsClass, "class") +
                        resize(existingFree,  newSlotsFree,  "free")  +
-                       bonusSlots
+                       bonusSlots +
+                       resize(passivaSlots, maxOf(Slot.QTD_PASSIVA, passivaSlots.size), Slot.TIPO_PASSIVA)
 
         val kitPerks = try { classKitService.getByClass(req.skillClass).perks } catch (_: Exception) { null }
 

@@ -139,7 +139,8 @@ data class DamageApprovalRequest(
     val skillId: String? = null,
     val critico: Boolean = false,          // acerto crítico (d20 de acerto >= margem)
     val danoSemCritico: Int? = null,       // dano da mesma rolagem sem o crítico (usado se o alvo negar)
-    val ataqueBasico: Boolean = false      // ataque básico: recupera ES ao acertar
+    val ataqueBasico: Boolean = false,     // ataque básico: recupera ES ao acertar
+    val degrau: DegrauAplicado? = null     // prévia da fraqueza/resistência do alvo (o servidor recalcula ao aprovar)
 )
 data class DamageRequestBody(
     val requestId: String,
@@ -178,7 +179,13 @@ data class DamageApproveBody(
     val danoSemCritico: Int? = null,       // dano da mesma rolagem sem o crítico (usado se o alvo negar)
     val ataqueBasico: Boolean = false      // ataque básico: recupera ES ao acertar
 )
-data class DamageResultNotification(val requestId: String, val approved: Boolean, val criticoNegado: Boolean = false)
+data class DamageResultNotification(
+    val requestId: String,
+    val approved: Boolean,
+    val criticoNegado: Boolean = false,
+    val degrau: DegrauAplicado? = null,   // só chega depois do golpe: o jogador não vê a fraqueza antes
+    val danoAplicado: Int? = null
+)
 
 // Effect approval (separado do damage)
 data class EffectApprovalRequest(
@@ -272,6 +279,7 @@ data class PlayerSkillTreeEntry(
     val requirementsText: String?,
     val maestria: MaestriaGrupoInfo?,   // maestria do grupo da skill (arma ou Essência)
     val isPassive: Boolean = false,
+    val passiva: Boolean = false,         // skill passiva: só cabe e só vale nos slots de passiva
     val danoFormula: String? = null,
     val danoBase: Int? = null,
     val atributo: String? = null,
@@ -289,6 +297,10 @@ data class PlayerSkillTreeEntry(
     val skillType: String = "class",  // "class" | "weapon" | "essencia" | "mestre"
     val pressaoDice: Boolean = false, // técnica consome Pressão e ganha +1d6 de dano por ponto
     val critThreshold: Int? = null,   // margem própria da skill; null usa a margem da arma (padrão 20)
+    val bonusAcerto: Int? = null,     // +X no acerto desta skill
+    val exclusivaCom: String? = null, // skill que não equipa junto com esta
+    val ignoraDef: Boolean = false,   // acerta sempre, sem rolar acerto
+    val tiposDano: List<String> = emptyList(), // tipos de dano do golpe (os da skill ou, se vazio e o dano é da arma, os da arma)
     val actionType: String = "main",  // "main" | "bonus" | "both"
     val multiTarget: MultiTarget? = null,
     val efeitos: List<Efeito> = emptyList()

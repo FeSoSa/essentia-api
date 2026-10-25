@@ -90,4 +90,13 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
 
     fun broadcastEnemyAttackToPlayer(playerId: String, action: EnemyAction) =
         messagingTemplate.convertAndSend("/topic/player/$playerId/enemy-attack", action)
+
+    fun broadcastContraAtaque(playerId: String, liberado: ContraAtaqueLiberado) =
+        messagingTemplate.convertAndSend("/topic/player/$playerId/contra-ataque", liberado)
+
+    fun broadcastDescobertas(entradas: List<BestiarioEntrada>) =
+        messagingTemplate.convertAndSend("/topic/descobertas", entradas)
+
+    fun broadcastDescobertasMestre(entradas: List<BestiarioEntrada>) =
+        messagingTemplate.convertAndSend("/topic/descobertas-mestre", entradas)
 }

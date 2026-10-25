@@ -14,7 +14,8 @@ data class EnemyAttack(
     val equilibrio: Int? = null,     // divisor da escala de atributo
     val skillId: String? = null,
     val skillName: String? = null,
-    val custoEs: Int = 0             // ES gasta pelo inimigo ao usar este ataque
+    val custoEs: Int = 0,            // ES gasta pelo inimigo ao usar este ataque
+    val tiposDano: List<String> = emptyList() // ids de TipoDano (1 a 2); vazio = os da skill ligada, senão sem tipo
 )
 
 data class GoldDrop(
@@ -54,7 +55,8 @@ data class EnemyTemplate(
     val modAcerto: Int? = null,       // bônus no d20 de acerto (null = mod de FOR/AGI)
     val esMax: Int = 0,               // ES disponível para os ataques
     val negaCritico: Boolean = false, // nega um crítico por rodada
-    val dificuldade: String? = null   // declarada pelo mestre: facil, medio, dificil, mortal (o gerador de encontros respeita)
+    val dificuldade: String? = null,  // declarada pelo mestre: facil, medio, dificil, mortal (o gerador de encontros respeita)
+    val tracosDano: List<TracoDano> = emptyList()
 )
 
 /* ── Enemy combat instance ───────────────────────────────────── */
@@ -82,7 +84,8 @@ data class EnemyInstance(
     val esMax: Int = 0,
     val esCurrent: Int? = null,       // null = cheio (esMax)
     val negaCritico: Boolean = false,
-    val negaCriticoRodada: Int? = null // rodada em que a negação já foi usada
+    val negaCriticoRodada: Int? = null, // rodada em que a negação já foi usada
+    val tracosDano: List<TracoDano> = emptyList()
 )
 
 /* ── Boss models ─────────────────────────────────────────────── */
@@ -134,7 +137,8 @@ data class BossTemplate(
     val xp: Int = 500,
     val specialReward: BossReward? = null,
     val notes: String = "",
-    val negaCritico: Boolean = false
+    val negaCritico: Boolean = false,
+    val tracosDano: List<TracoDano> = emptyList()
 )
 
 @Document(collection = "combat_bosses")
@@ -156,7 +160,8 @@ data class BossInstance(
     val statusEffects: List<StatusEffect> = emptyList(),
     val esCurrent: Int? = null,       // null = cheio (esMax da fase atual)
     val negaCritico: Boolean = false,
-    val negaCriticoRodada: Int? = null
+    val negaCriticoRodada: Int? = null,
+    val tracosDano: List<TracoDano> = emptyList()
 )
 
 /* ── DTOs ────────────────────────────────────────────────────── */
@@ -216,6 +221,10 @@ data class EnemyAction(
     val desvioRoll: Int? = null,
     val desvioTotal: Int? = null,
     val danoAplicado: Int? = null,
+    val tiposDano: List<String> = emptyList(),
+    val degrau: DegrauAplicado? = null,     // fraqueza/resistência do alvo ao tipo do ataque (aplicada no dano final)
+    val contraAtaqueSkill: String? = null,  // inimigo errou um jogador com skill de contra-ataque equipada (nome da skill)
+    val contraAtaque: String? = null,       // null = aguardando o mestre | LIBERADO | IGNORADO
     val decisaoMestre: String? = null,     // PERMITIU | TROCOU | PULOU
     val trocas: Int = 0,
     val criadoEm: String = java.time.Instant.now().toString()
@@ -223,4 +232,7 @@ data class EnemyAction(
 
 data class EnemyTurnProposeRequest(val entityId: String, val entityKind: String = "enemy", val alvoId: String? = null, val ataqueIdx: Int? = null)
 data class EnemyTurnSwapRequest(val alvoId: String? = null, val ataqueIdx: Int? = null)
+/** Contra-ataque liberado pelo mestre: o app do jogador destrava um ataque básico contra este alvo. */
+data class ContraAtaqueLiberado(val actionId: String, val targetId: String, val targetType: String, val targetName: String)
+
 data class EnemyAttackResponse(val desviar: Boolean = false, val roll: Int? = null, val sorte: Int? = null)

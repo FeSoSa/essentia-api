@@ -143,6 +143,7 @@ class SkillTreeService(
             requirementsText = bloqueio,
             maestria         = maestria,
             isPassive     = skill.passive || skill.efeitos.any { it.passivo },
+            passiva       = skill.passive,
             skillType     = skill.type,
             origem        = origem(skill.type),
             alvo          = skill.alvo,
@@ -164,6 +165,10 @@ class SkillTreeService(
             weaponDamageModifiers = skill.weaponDamageModifiers,
             cooldownTurns     = skill.cooldownTurns,
             critThreshold     = skill.critThreshold,
+            bonusAcerto       = skill.bonusAcerto,
+            exclusivaCom      = skill.exclusivaCom,
+            ignoraDef         = skill.ignoraDef,
+            tiposDano         = skill.tiposDano.ifEmpty { if (skill.damageSource == "weapon") weapon?.tiposDano.orEmpty() else emptyList() },
             actionType        = skill.actionType,
             multiTarget       = skill.multiTarget,
             efeitos           = skill.efeitos
