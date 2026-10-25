@@ -9,5 +9,6 @@ data class Race(
     val name: String = "",
     val starterAttributes: Attributes = Attributes(),
     val inventorySize: Int = 18,
-    val tracosDano: List<TracoDano> = emptyList()   // fraquezas, resistências e imunidades da raça (vencem a armadura)
+    val tracosDano: List<TracoDano> = emptyList(),  // fraquezas, resistências e imunidades da raça (vencem a armadura)
+    val deslocamento: Int = 6                        // casas por turno no tabuleiro da Mesa
 )

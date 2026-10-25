@@ -32,7 +32,8 @@ class MasterService(
     private val broadcaster: WebSocketBroadcaster,
     private val attributeService: AttributeService,
     private val essenciaRepository: EssenciaRepository,
-    private val itemCatalogService: ItemCatalogService
+    private val itemCatalogService: ItemCatalogService,
+    private val tabuleiroService: TabuleiroService
 ) {
     fun getPlayers(): List<Player> = playerRepository.findAll().map { resolveItems(it) }
 
@@ -172,6 +173,8 @@ class MasterService(
         }
         gameStateService.save(state.copy(initiative = entries, currentTurnIndex = 0, totalTurns = 0, combatId = combatId))
         broadcaster.broadcastInitiative(entries)
+        // Combate novo ou encerrado: o turno volta a 0 e a origem do tabuleiro do combate anterior não vale
+        tabuleiroService.novaVez()
         val desvios = state.combateConfig.desviosPorCombate
         // Reset desvios at combat start AND at combat end; reset cooldowns at combat end
         if (entries.isNotEmpty() || state.initiative.isNotEmpty()) {

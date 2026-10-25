@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service
 class TurnService(
     private val playerRepository: PlayerRepository,
     private val gameStateService: GameStateService,
+    private val tabuleiroService: TabuleiroService,
     private val broadcaster: WebSocketBroadcaster
 ) {
     fun nextTurn(): TurnUpdate {
@@ -22,6 +23,7 @@ class TurnService(
         val newTotal = state.totalTurns + 1
         val currentPlayerId = if (size > 0) state.initiative[newIndex].playerId else ""
         gameStateService.save(state.copy(currentTurnIndex = newIndex, totalTurns = newTotal))
+        tabuleiroService.novaVez()
 
         val players = playerRepository.findAll().filter { it.active }
 

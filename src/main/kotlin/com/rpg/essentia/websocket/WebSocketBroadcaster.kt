@@ -94,6 +94,13 @@ class WebSocketBroadcaster(private val messagingTemplate: SimpMessagingTemplate)
     fun broadcastContraAtaque(playerId: String, liberado: ContraAtaqueLiberado) =
         messagingTemplate.convertAndSend("/topic/player/$playerId/contra-ataque", liberado)
 
+    fun broadcastTabuleiro(tabuleiro: Tabuleiro) =
+        messagingTemplate.convertAndSend("/topic/tabuleiro", tabuleiro)
+
+    /** Só o movimento feito pelo jogador, para o painel aplicar sem depender do retrato inteiro. */
+    fun broadcastPecaMovida(movida: PecaMovida) =
+        messagingTemplate.convertAndSend("/topic/tabuleiro/movimento", movida)
+
     fun broadcastDescobertas(entradas: List<BestiarioEntrada>) =
         messagingTemplate.convertAndSend("/topic/descobertas", entradas)
 
